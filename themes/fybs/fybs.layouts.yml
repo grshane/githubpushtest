@@ -1,0 +1,14 @@
+homepage:
+  label: Homepage Layout
+  category: Basic Page
+  path: templates/layout
+  #icon: homepage.png
+  #css: blog.css
+  template: homepage
+  regions:
+    top:
+      label: top
+    main:
+      label: main
+    bottom:
+      label: bottom
