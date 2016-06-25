@@ -1,0 +1,14 @@
+.layout-container {
+    @include display(flex);
+    @include flex-wrap(wrap);
+    min-height: 100vh;
+}
+header {
+    background: #000;
+    border-right: solid $light-gray 3px;
+    width: 13em;
+}
+
+.site-title {
+    display: none;
+}

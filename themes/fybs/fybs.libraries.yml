@@ -1,0 +1,9 @@
+global-styling:
+  version: VERSION
+  css:
+    base:
+      css/fybs.css: {}
+global-scripts:
+  version: VERSION
+  js:
+    js/scripts.js: {}
