@@ -60,10 +60,15 @@
 
   <main role="main">
     <a id="main-content" tabindex="-1"></a>{# link is in html.html.twig #}
-
-    <div class="layout-content">
-      {{ page.content }}
-    </div>{# /.layout-content #}
+    {% if is_front %}
+      <div class="layout-content">
+        {{ page.content }}
+      </div>{# /.layout-content #}
+    {% else %}
+      <div class="layout-content">
+        {{ content }}
+      </div>{# /.layout-content #}
+    {% endif %}
 
     {% if page.sidebar_first %}
       <aside class="layout-sidebar-first" role="complementary">

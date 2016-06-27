@@ -51,3 +51,14 @@ function fybs_preprocess_page(&$variables) {
  * @param array $variables
  */
 function fybs_preprocess_node(&$variables) {}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for form templates.
+ * @param array $suggestions
+ * @param array $variables
+ */
+function HOOK_theme_suggestions_block_alter(array &$suggestions, array $variables) {
+  if (isset($variables['elements']['content']['#block_content'])) {
+    array_splice($suggestions, 1, 0, 'block__bundle__' . $variables['elements']['content']['#block_content']->bundle());
+  }
+}
