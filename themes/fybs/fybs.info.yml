@@ -6,6 +6,7 @@ core: 8.x
 libraries:
   - fybs/global-styling
   - fybs/global-scripts
+  - fybs/flowtype
 regions:
   header: Header
   featured: Featured
