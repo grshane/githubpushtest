@@ -6,7 +6,9 @@
 header {
     background: #000;
     border-right: solid $light-gray 3px;
-    width: 13em;
+    width: 20%;
+    min-height: 100vh;
+    position: fixed;
 }
 
 .site-title {

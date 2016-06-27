@@ -3,15 +3,16 @@ body {
   padding: 0;
 
   main {
-    @include outer-container;
-    padding: 3em 1em;
+    //@include outer-container;
+    padding: 0em 1em;
+    width: 80%;
+    @include margin(null null null 20%);
   }
 
   &.no-sidebars {
     main {
       section#content {
         @include span-columns(12);
-        @include padding(0 null null);
       }
     }
   }
