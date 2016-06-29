@@ -1,0 +1,34 @@
+.pricing-table {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.pricing-table--option {
+  display: flex;
+  flex: 1 0 200px;
+  background: $light-gray;
+  flex-direction: column;
+  margin: 0 0.5em;
+  border: 3px solid $dark-gray;
+}
+
+.pricing-table--title {
+  text-align: center;
+  background: $blue;
+  @include margin(null null 0);
+  @include padding(0.5em null);
+  border-bottom: 2px solid darken($blue, 20%);
+}
+
+.pricing-table--price {
+  font-style: italic;
+  list-style: none;
+  text-align: center;
+  font-weight: bold;
+}
+
+.pricing-table--item {
+  list-style-type: disc;
+  margin-left: 2.5em;
+  @include padding(null 0.5em);
+}

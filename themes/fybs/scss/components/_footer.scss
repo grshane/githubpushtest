@@ -4,7 +4,8 @@
   $base-accent-color: #477DCA !default;
   $medium-screen: em(640) !default;
   $large-screen: em(860) !default;
-
+  width: 80%;
+  margin-left: 20%;
   ul:not(.contextual-links) {
     padding: 0;
 
