@@ -1,7 +1,7 @@
 #site-footer {
   ///////////////////////////////////////////////////////////////////////////////////
   $base-spacing: 1.5em !default;
-  $base-accent-color: #477DCA !default;
+  $base-accent-color: $blue;
   $medium-screen: em(640) !default;
   $large-screen: em(860) !default;
   width: 80%;
@@ -24,13 +24,13 @@
     @include outer-container;
   }
 
-  $footer-background: desaturate(darken($base-accent-color, 20%), 30%);
+  $footer-background: darken($base-accent-color, 20%);
   $footer-color: white;
   $footer-link-color: transparentize($footer-color, 0.6);
   $footer-disclaimer-color: transparentize($footer-color, 0.35);
 
   background: $footer-background;
-  padding: ($base-spacing * 2) $gutter;
+  padding: ($base-spacing) $gutter;
   width: 100%;
 
   .footer-top {
@@ -52,6 +52,7 @@
       font-size: 0.9em;
       line-height: 1.5em;
       margin: auto;
+      text-align: center;
     }
   }
 

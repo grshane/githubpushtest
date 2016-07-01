@@ -8,7 +8,7 @@ homepage:
   regions:
     top:
       label: top
-    main:
-      label: main
+    content:
+      label: content
     bottom:
       label: bottom
