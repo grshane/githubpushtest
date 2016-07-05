@@ -3,10 +3,9 @@ body {
   padding: 0;
 
   main {
-    //@include outer-container;
+    @include outer-container;
     padding: 0em 1em;
-    width: 80%;
-    @include margin(null null null 20%);
+    display: flex;
   }
 
   &.no-sidebars {

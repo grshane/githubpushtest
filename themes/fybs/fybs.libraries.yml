@@ -15,3 +15,7 @@ flowtype:
     - core/drupal
     - core/jquery.min
     - core/jquery.once
+superfish:
+  version: VERSION
+  js:
+    js/superfish/superfish.js: {}

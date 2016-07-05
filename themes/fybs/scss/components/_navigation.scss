@@ -1,10 +1,12 @@
 .menu--main {
 
     .menu {
-
+        display: flex;
+        @include span-columns(8);
     }
 
     .menu-item {
+        flex: 1 0;
         font-family: $heading-font-family;
         font-size: 3em;
         text-shadow: 3px 3px 2px #a3a3a3;
