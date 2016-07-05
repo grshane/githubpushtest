@@ -69,6 +69,7 @@
 // }
 
 .hero {
+  display: flex;
   position: relative;
   text-align: center;
   color: #fff;
@@ -79,7 +80,8 @@
   img {
     height: auto;
     vertical-align: middle;
-    width: 100%;
+    width: 100vw;
+
   }
 }
 
