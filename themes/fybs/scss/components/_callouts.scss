@@ -1,7 +1,8 @@
 .fullwidth-bg {
     position: relative;
     margin: 2em 0;
-    p {
+    p,
+    blockquote {
         color: #fff;
     }
     @include padding(3em null);
