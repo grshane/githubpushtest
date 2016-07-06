@@ -1,0 +1,35 @@
+.fullwidth-bg {
+    position: relative;
+    margin: 2em 0;
+    p {
+        color: #fff;
+    }
+    @include padding(3em null);
+    &:after {
+        content: "";
+        position: absolute;
+        height: 100%;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100vw;
+
+
+        z-index: -1;
+    }
+}
+
+.fullwidth-bg--orange {
+    @extend .fullwidth-bg;
+    &:after {
+        background: #ee7111;
+    }
+}
+
+.fullwidth-bg--purple {
+    @extend .fullwidth-bg;
+
+    &:after {
+        background: #a41ce3;
+    }
+}
