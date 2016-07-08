@@ -10,7 +10,7 @@ global-scripts:
 flowtype:
   version: VERSION
   js:
-    js/FlowTypeJS/flowtype.js: {}
+    js/flowtype/flowtype.js: {}
   dependencies:
     - core/drupal
     - core/jquery.min
