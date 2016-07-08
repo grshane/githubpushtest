@@ -31,4 +31,7 @@
   list-style-type: disc;
   margin-left: 2.5em;
   @include padding(null 0.5em);
+  &:last {
+    @include padding(null null 1em);
+  }
 }
