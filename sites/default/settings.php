@@ -24,3 +24,27 @@ if (file_exists($local_settings)) {
   include $local_settings;
 }
 $settings['install_profile'] = 'standard';
+
+// All Pantheon Environments.
+if (defined('PANTHEON_ENVIRONMENT')) {
+  // Drupal caching in development environments.
+  if (!in_array(PANTHEON_ENVIRONMENT, array('test', 'live'))) {
+    // Expiration of cached pages - none.
+    $config['system.performance']['cache']['page']['max_age'] = 0;
+    // Aggregate and compress CSS files in Drupal - off.
+    $config['system.performance']['css']['preprocess'] = false;
+    // Aggregate JavaScript files in Drupal - off.
+    $config['system.performance']['js']['preprocess'] = false;
+  }
+  // Drupal caching in test and live environments.
+  else {
+    // Expiration of cached pages - 15 minutes.
+    $config['system.performance']['cache']['page']['max_age'] = 900;
+    // Aggregate and compress CSS files in Drupal - on.
+    $config['system.performance']['css']['preprocess'] = true;
+    // Aggregate JavaScript files in Drupal - on.
+    $config['system.performance']['js']['preprocess'] = true;
+    // Google Analytics.
+    $config['google_analytics.settings']['account'] = 'UA-80484325-1';
+  }
+}
