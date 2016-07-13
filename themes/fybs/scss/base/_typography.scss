@@ -60,3 +60,11 @@ picture {
   margin: 0;
   max-width: 100%;
 }
+
+blockquote {
+  width: 75%;
+  margin-left: 1em;
+  background: transparentize($dark-gray, 0.4);
+  padding: 0.5em 1em;
+
+}
