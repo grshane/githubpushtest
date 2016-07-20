@@ -1,0 +1,6 @@
+form_modal:
+  path: /modal
+  defaults:
+    _controller: Drupal\form_modal\Controller\FormModalController::modal
+  requirements:
+    _permissions: 'access content'
