@@ -14,6 +14,6 @@
     "rimraf": "*"
   },
   "scripts": {
-    "postinstall": "node_modules/.bin/rimraf node_modules/**/*.info && gulp sass && gulp compress"
+
   }
 }

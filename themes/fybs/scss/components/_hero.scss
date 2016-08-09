@@ -85,7 +85,8 @@
     height: auto;
     vertical-align: middle;
     width: 100vw;
-
+    height: 80vh;
+    object-fit: cover;
   }
 }
 
@@ -98,4 +99,9 @@
   justify-content: center;
   flex-direction: column;
   text-shadow: 3px 3px 2px #a3a3a3;
+  @include outer-container();
+}
+
+.hero__cta {
+
 }
