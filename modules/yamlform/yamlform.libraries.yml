@@ -1,0 +1,209 @@
+# Admin.
+
+yamlform.admin:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.admin.css: {}
+  js:
+    js/yamlform.admin.js:  {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - yamlform/yamlform.form
+
+yamlform.theme.seven:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.theme.seven.css: {}
+
+# Help.
+
+yamlform.help:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.help.css: {}
+  js:
+    js/yamlform.help.js:  {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+
+# Form.
+
+yamlform.form:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.form.css: {}
+  js:
+    js/yamlform.form.js:  {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+
+yamlform.progress:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.progress.css: {}
+
+yamlform.progress.bar:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.progress.bar.css: {}
+
+# Elements.
+
+yamlform.element.color:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.element.color.css: {}
+
+yamlform.element.details:
+  version: 1.x
+  js:
+    js/yamlform.element.details.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+
+yamlform.element.composite:
+  version: 1.x
+  js:
+    js/yamlform.element.detail.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+
+yamlform.element.likert:
+  version: 1.x
+  css:
+    component:
+      css/yamlform.element.likert.css: {}
+
+yamlform.element.other:
+  version: 1.x
+  css:
+    component:
+      css/yamlform.element.other.css: {}
+  js:
+    js/yamlform.element.other.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+
+yamlform.navigation:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.navigation.css: {}
+
+# External libraries.
+
+codemirror:
+  remote: https://github.com/codemirror/codemirror
+  version: &yamlform_codemirror_version 5.16.0
+  license: &yamlform_codemirror_license
+    name: MIT
+    url: http://codemirror.net/LICENSE
+    gpl-compatible: true
+  cdn: &yamlform_codemirror_cdn
+    /libraries/codemirror/lib/: https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/
+    /libraries/codemirror/: https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/
+  css:
+    theme:
+      /libraries/codemirror/lib/codemirror.css: {}
+  js:
+    /libraries/codemirror/lib/codemirror.js: {}
+    /libraries/codemirror/addon/runmode/runmode.js: {}
+  dependencies:
+    - core/jquery
+
+codemirror.text:
+  remote: https://github.com/codemirror/codemirror
+  version: *yamlform_codemirror_version
+  license: *yamlform_codemirror_license
+  css:
+    theme:
+      css/yamlform.element.codemirror.css: {}
+  js:
+    js/yamlform.element.codemirror.js: {}
+  dependencies:
+    - yamlform/codemirror
+
+codemirror.yaml:
+  version: *yamlform_codemirror_version
+  license: *yamlform_codemirror_license
+  cdn: *yamlform_codemirror_cdn
+  js:
+    /libraries/codemirror/mode/yaml/yaml.js: {}
+  dependencies:
+    - yamlform/codemirror
+    - yamlform/codemirror.text
+
+codemirror.html:
+  version: *yamlform_codemirror_version
+  license: *yamlform_codemirror_license
+  cdn: *yamlform_codemirror_cdn
+  js:
+    /libraries/codemirror/mode/xml/xml.js: {}
+    /libraries/codemirror/mode/htmlmixed/htmlmixed.js: {}
+  dependencies:
+    - yamlform/codemirror
+    - yamlform/codemirror.text
+
+jquery.inputmask:
+  remote: https://github.com/RobinHerbots/jquery.inputmask
+  version: &yamlform_inputmask_version 3.31
+  license: &yamlform_inputmask_license
+    name: MIT
+    url: http://opensource.org/licenses/mit-license.php
+    gpl-compatible: true
+  cdn:
+    /libraries/jquery.inputmask/dist/: https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.1/
+  js:
+    js/yamlform.jquery.inputmask.js: {}
+    /libraries/jquery.inputmask/dist/min/jquery.inputmask.bundle.min.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+
+jquery.select2:
+  remote: https://select2.github.io/
+  version: &yamlform_select2_version 4.0.3
+  license: &yamlform_select2_license
+    name: MIT
+    url: http://opensource.org/licenses/mit-license.php
+    gpl-compatible: true
+  cdn:
+    /libraries/select2/dist/: https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/
+  css:
+    theme:
+      /libraries/select2/dist/css/select2.min.css: {}
+  js:
+    js/yamlform.jquery.select2.js: {}
+    /libraries/select2/dist/js/select2.min.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+
+jquery.counter:
+  remote: https://github.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin
+  version: &yamlform_word_and_character_counter_version 2.3.5
+  license: &yamlform_word_and_character_counter_license
+    name: MIT
+    url: http://opensource.org/licenses/mit-license.php
+    gpl-compatible: true
+  cdn:
+    /libraries/word-and-character-counter/: https://cdn.rawgit.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin/2.3.5/
+  js:
+    js/yamlform.jquery.counter.js: {}
+    /libraries/word-and-character-counter/word-and-character-counter.min.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
