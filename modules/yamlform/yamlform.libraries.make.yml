@@ -1,0 +1,41 @@
+# Below the libraries used by the YAML form.
+# The below code can be cut-n-pasted into your project's drush make file.
+
+libraries:
+
+  # Code Mirror 5.11.0 - 2016-01-20
+  # http://codemirror.net/
+  codemirror:
+    download:
+      type: get
+      url: 'https://github.com/codemirror/CodeMirror/archive/5.11.0.zip'
+    directory_name: codemirror
+    destination: libraries
+
+  # jQuery Word and character counter 2.3.5 2013-02-05
+  # https://github.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin
+  counter:
+    download:
+      type: get
+      url: 'https://github.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin/archive/2.3.5.zip'
+    directory_name: jquery.counter
+    destination: libraries
+
+  # jQuery Input Mask 3.3.1 - 2016-04-20
+  # http://robinherbots.github.io/jquery.inputmask/
+  inputmask:
+    download:
+      type: get
+      url: 'https://github.com/RobinHerbots/jquery.inputmask/archive/3.3.1.zip'
+    directory_name: jquery.inputmask
+    destination: libraries
+
+  # Select2 4.0.3 - 2016-05-26
+  # https://select2.github.io/
+  select2:
+    download:
+      type: get
+      url: 'https://github.com/select2/select2/archive/4.0.3.zip'
+    directory_name: jquery.select2
+    destination: libraries
+

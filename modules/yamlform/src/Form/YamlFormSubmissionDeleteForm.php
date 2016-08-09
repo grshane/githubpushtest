@@ -1,0 +1,103 @@
+<?php
+
+namespace Drupal\yamlform\Form;
+
+use Drupal\Core\Entity\ContentEntityDeleteForm;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Drupal\yamlform\YamlFormRequestInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
+/**
+ * Provides a confirmation form for deleting a YAML form submission.
+ */
+class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
+
+  /**
+   * The YAML form entity.
+   *
+   * @var \Drupal\yamlform\YamlFormInterface
+   */
+  protected $yamlform;
+
+
+  /**
+   * The YAML form submission entity.
+   *
+   * @var \Drupal\yamlform\YamlFormSubmissionInterface
+   */
+  protected $yamlformSubmission;
+
+  /**
+   * The YAML form source entity.
+   *
+   * @var \Drupal\Core\Entity\EntityInterface
+   */
+  protected $sourceEntity;
+
+  /**
+   * YAML form request handler.
+   *
+   * @var \Drupal\yamlform\YamlFormRequestInterface
+   */
+  protected $yamlFormRequest;
+
+  /**
+   * Constructs a new YamlFormSubmissionDeleteForm object.
+   *
+   * @param \Drupal\yamlform\YamlFormRequestInterface $yamlform_request
+   *   The YAML form request handler.
+   */
+  public function __construct(YamlFormRequestInterface $yamlform_request) {
+    $this->yamlFormRequest = $yamlform_request;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('yamlform.request')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {
+    list($this->yamlformSubmission, $this->sourceEntity) = $this->yamlFormRequest->getYamlFormSubmissionEntities();
+    $this->yamlform = $this->yamlformSubmission->getYamlForm();
+    return parent::buildForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getQuestion() {
+    return $this->t('Are you sure you want to delete @title?', ['@title' => $this->yamlformSubmission->label()]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getDeletionMessage() {
+    return $this->t('@title has been deleted.', ['@title' => $this->yamlformSubmission->label()]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCancelUrl() {
+    $route_name = $this->yamlFormRequest->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
+    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
+    return new Url($route_name, $route_parameters);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getRedirectUrl() {
+    return $this->getCancelUrl();
+  }
+
+}
