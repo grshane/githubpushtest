@@ -26,6 +26,20 @@
 <!DOCTYPE html>
 <html{{ html_attributes }}>
   <head>
+    <!-- Facebook Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '482207655317924');
+    fbq('track', "PageView");
+    fbq('track', 'ViewContent');</script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=482207655317924&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Facebook Pixel Code -->
     <script src="https://use.typekit.net/gxv0krb.js"></script>
     <script>try{Typekit.load({ async: true });}catch(e){}</script>
     <head-placeholder token="{{ placeholder_token|raw }}">
@@ -51,5 +65,19 @@
        maxFont   : 36,
        fontRatio : 60
     })})(jQuery);</script>
+    <!-- Drip -->
+<script type="text/javascript">
+  var _dcq = _dcq || [];
+  var _dcs = _dcs || {};
+  _dcs.account = '5004176';
+
+  (function() {
+    var dc = document.createElement('script');
+    dc.type = 'text/javascript'; dc.async = true;
+    dc.src = '//tag.getdrip.com/5004176.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(dc, s);
+  })();
+</script>
   </body>
 </html>
