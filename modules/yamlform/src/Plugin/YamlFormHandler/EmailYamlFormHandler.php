@@ -24,7 +24,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "email",
  *   label = @Translation("Email"),
  *   category = @Translation("Notification"),
- *   description = @Translation("Sends a YAML form submission via an email."),
+ *   description = @Translation("Sends a form submission via an email."),
  *   cardinality = \Drupal\yamlform\YamlFormHandlerInterface::CARDINALITY_UNLIMITED,
  *   results = \Drupal\yamlform\YamlFormHandlerInterface::RESULTS_PROCESSED,
  * )
@@ -411,7 +411,9 @@ class EmailYamlFormHandler extends YamlFormHandlerBase implements YamlFormHandle
    * {@inheritdoc}
    */
   public function postSave(YamlFormSubmissionInterface $yamlform_submission, $update = TRUE) {
-    if ($yamlform_submission->getState() == YamlFormSubmissionInterface::STATE_COMPLETED) {
+    $is_results_disabled = $yamlform_submission->getYamlForm()->getSetting('results_disabled');
+    $is_completed = ($yamlform_submission->getState() == YamlFormSubmissionInterface::STATE_COMPLETED);
+    if ($is_results_disabled || $is_completed) {
       $message = $this->getMessage($yamlform_submission);
       $this->sendMessage($message);
     }
@@ -507,13 +509,11 @@ class EmailYamlFormHandler extends YamlFormHandlerBase implements YamlFormHandle
     $this->mailManager->mail('yamlform', 'email.' . $this->getHandlerId(), $to, $current_langcode, $message, $from);
 
     // Log message.
-    $variables = [
-      '@from_name' => $message['from_name'],
-      '@from_mail' => $message['from_mail'],
-      '@to_mail' => $message['to_mail'],
-      '@subject' => $message['subject'],
+    $context = [
+      '@form' => $this->getYamlForm()->label(),
+      '@title' => $this->Label(),
     ];
-    \Drupal::logger('yamlform.email')->notice('@subject sent to @to_mail from @from_name [@from_mail].', $variables);
+    \Drupal::logger('yamlform.email')->notice('@form form sent @title email.', $context);
 
     // Debug by displaying send email onscreen.
     if ($this->configuration['debug']) {

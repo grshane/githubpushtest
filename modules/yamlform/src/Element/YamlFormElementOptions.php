@@ -6,7 +6,7 @@ use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element\FormElement;
 use Drupal\Core\Url;
-use Drupal\yamlform\Entity\YamlFormOptions;
+use Drupal\yamlform\Entity\YamlFormOptions as YamlFormOptionsEntity;
 use Drupal\yamlform\Utility\YamlFormElementHelper;
 
 /**
@@ -41,23 +41,27 @@ class YamlFormElementOptions extends FormElement {
    */
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
     if ($input === FALSE) {
-
-      $default_value = isset($element['#default_value']) ? $element['#default_value'] : NULL;
-
-      if (!$default_value) {
-        return $element;
-      }
-
-      if (is_string($default_value) && YamlFormOptions::load($default_value)) {
-        $element['options']['#default_value'] = $default_value;
+      if (isset($element['#default_value'])) {
+        if (is_string($element['#default_value'])) {
+          return (YamlFormOptionsEntity::load($element['#default_value'])) ? $element['#default_value'] : [];
+        }
+        else {
+          return $element['#default_value'];
+        }
       }
       else {
-        $element['options']['#default_value'] = self::CUSTOM_OPTION;
-        $element['custom']['#default_value'] = (is_array($default_value)) ? Yaml::encode($default_value) : $default_value;
+        return [];
       }
-      return $element;
     }
-    return NULL;
+    elseif (!empty($input['options'])) {
+      return $input['options'];
+    }
+    elseif (isset($input['custom']['options'])) {
+      return $input['custom']['options'];
+    }
+    else {
+      return [];
+    }
   }
 
   /**
@@ -69,7 +73,7 @@ class YamlFormElementOptions extends FormElement {
     // Predefined options.
     // @see (/admin/structure/yamlform/settings/options/manage)
     $options = [];
-    $yamlform_options = YamlFormOptions::loadMultiple();
+    $yamlform_options = YamlFormOptionsEntity::loadMultiple();
     foreach ($yamlform_options as $id => $yamlform_option) {
       // Filter likert options for answers to the likert element.
       if ($element['#likert'] && strpos($id, 'likert_') !== 0) {
@@ -79,36 +83,40 @@ class YamlFormElementOptions extends FormElement {
     }
     asort($options);
 
-    $element['options']['#type'] = 'select';
-    $element['options']['#options'] = [
-      self::CUSTOM_OPTION => t('Custom...'),
-    ] + $options;
-    $element['options']['#attributes']['class'][] = 'js-' . $element['#id'] . '-options';
-    $element['options']['#error_no_message'] = TRUE;
     $t_args = [
       '@type' => ($element['#likert']) ? t('answers') : t('options'),
       ':href' => Url::fromRoute('entity.yamlform_options.collection')->toString(),
     ];
-    $element['options']['#description'] = t('Please select <a href=":href">predefined @type</a> or enter custom @type.', $t_args);
+
+    // Select options.
+    $element['options'] = [
+      '#type' => 'select',
+      '#description' => t('Please select <a href=":href">predefined @type</a> or enter custom @type.', $t_args),
+      '#options' => [
+        self::CUSTOM_OPTION => t('Custom...'),
+      ] + $options,
+      '#attributes' => [
+        'class' => ['js-' . $element['#id'] . '-options'],
+      ],
+      '#error_no_message' => TRUE,
+      '#default_value' => (!is_array($element['#default_value'])) ? $element['#default_value'] : '',
+    ];
 
     // Custom options.
-    $element['custom']['#title'] = $element['#title'];
-    $element['custom']['#title_display'] = 'invisible';
-    $element['custom']['#type'] = 'yamlform_codemirror';
-    $element['custom']['#mode'] = 'yaml';
-    $element['custom']['#states'] = [
-      'visible' => [
-        'select.js-' . $element['#id'] . '-options' => ['value' => ''],
+    $element['custom'] = [
+      '#type' => 'yamlform_options',
+      '#title' => $element['#title'],
+      '#title_display' => 'invisible',
+      '#label' => ($element['#likert']) ? t('answer') : t('option'),
+      '#labels' => ($element['#likert']) ? t('answers') : t('options'),
+      '#states' => [
+        'visible' => [
+          'select.js-' . $element['#id'] . '-options' => ['value' => ''],
+        ],
       ],
+      '#error_no_message' => TRUE,
+      '#default_value' => (!is_string($element['#default_value'])) ? $element['#default_value'] : [],
     ];
-    $element['custom']['#error_no_message'] = TRUE;
-    $t_args = [
-      '@type' => ($element['#likert']) ? t('answer') : t('option'),
-    ];
-    $element['custom']['#description'] = t('Key-value pairs MUST be specified as "safe_key: \'Some readable @type\'". Use of only alphanumeric characters and underscores is recommended in keys. One @type per line.', $t_args);
-    if (!$element['#likert']) {
-      $element['custom']['#description'] .= t('Option groups can be created by using just the group name followed by indented group options.');
-    }
 
     $element['#element_validate'] = [[get_called_class(), 'validateYamlFormElementOptions']];
 
@@ -128,7 +136,7 @@ class YamlFormElementOptions extends FormElement {
     $value = $options_value;
     if ($options_value == self::CUSTOM_OPTION) {
       try {
-        $value = Yaml::decode($custom_value);
+        $value = (is_string($custom_value)) ? Yaml::decode($custom_value) : $custom_value;
       }
       catch (\Exception $exception) {
         // Do nothing since the 'yamlform_codemirror' element will have already
@@ -136,9 +144,7 @@ class YamlFormElementOptions extends FormElement {
       }
     }
 
-    $is_empty = ($value === '' || $value === NULL) ? TRUE : FALSE;
-
-    if ($element['#required'] && $is_empty) {
+    if ($element['#required'] && empty($value)) {
       $form_state->setError($element, t('@name field is required.', ['@name' => $element['#title']]));
     }
 

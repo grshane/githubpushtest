@@ -16,10 +16,10 @@
  */
 #}
 {% if type == 'html' %}
-  {{ attach_library('yamlform/codemirror.html') }}
+  {{ attach_library('yamlform/yamlform.element.codemirror.html') }}
 {% elseif type == 'yaml' %}
-  {{ attach_library('yamlform/codemirror.yaml') }}
+  {{ attach_library('yamlform/yamlform.element.codemirror.yaml') }}
 {% else %}
-  {{ attach_library('yamlform/codemirror.text') }}
+  {{ attach_library('yamlform/yamlform.element.codemirror.text') }}
 {% endif %}
 <pre class="js-yamlform-codemirror-runmode yamlform-codemirror-runmode" data-yamlform-codemirror-mode="{{ mode }}">{{ code }}</pre>

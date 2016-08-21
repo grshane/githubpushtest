@@ -8,7 +8,7 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
  * @YamlFormElement(
  *   id = "yamlform_email_multiple",
  *   label = @Translation("Email multiple"),
- *   group = @Translation("Advanced elements")
+ *   category = @Translation("Advanced")
  * )
  */
 class YamlFormEmailMultiple extends Email {

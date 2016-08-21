@@ -20,6 +20,15 @@ class Checkboxes extends OptionsBase {
   /**
    * {@inheritdoc}
    */
+  public function getDefaultProperties() {
+    return parent::getDefaultProperties() + [
+      'options_display' => 'one_column',
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
     parent::prepare($element, $yamlform_submission);
     $element['#element_validate'][] = [get_class($this), 'validateMultipleOptions'];

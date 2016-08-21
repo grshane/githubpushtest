@@ -48,7 +48,7 @@ class Select extends OptionsBase {
 
     // Add select2 library and classes.
     if (!empty($element['#select2'])) {
-      $element['#attached']['library'][] = 'yamlform/jquery.select2';
+      $element['#attached']['library'][] = 'yamlform/yamlform.element.select2';
       $element['#attributes']['class'][] = 'js-yamlform-select2';
       $element['#attributes']['class'][] = 'yamlform-select2';
     }

@@ -100,6 +100,7 @@ trait YamlFormDialogTrait {
     }
     else {
       $form_state->setRedirectUrl($url);
+      return NULL;
     }
   }
 

@@ -18,9 +18,11 @@ class YamlFormRadiosOther extends Radios {
    */
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
-      'other_option_label' => '',
-      'other_placeholder' => '',
-      'other_description' => '',
+      'other__title' => '',
+      'other__placeholder' => '',
+      'other__description' => '',
+      'other__size' => '',
+      'other__maxlength' => '',
     ];
   }
 

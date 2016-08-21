@@ -7,6 +7,7 @@ use Drupal\Core\Form\OptGroup;
 use Drupal\yamlform\Utility\YamlFormArrayHelper;
 use Drupal\yamlform\Utility\YamlFormOptionsHelper;
 use Drupal\yamlform\YamlFormElementBase;
+use Drupal\yamlform\YamlFormSubmissionInterface;
 
 /**
  * Provides a base 'options' element.
@@ -19,7 +20,18 @@ abstract class OptionsBase extends YamlFormElementBase {
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
       'options' => [],
+      'options_randomize' => FALSE,
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
+    // Randomize options.
+    if (isset($element['#options']) && !empty($element['#options_randomize'])) {
+      shuffle($element['#options']);
+    }
   }
 
   /**
@@ -309,8 +321,81 @@ abstract class OptionsBase extends YamlFormElementBase {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
+
     $form['general']['default_value']['#description'] = $this->t('The default value of the field identified by its key.');
     $form['general']['default_value']['#description'] .= ' ' . $this->t('For multiple options use commas to separate multiple defaults.');
+
+    $form['options'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Options'),
+      '#open' => TRUE,
+    ];
+    $form['options']['options'] = [
+      '#type' => 'yamlform_element_options',
+      '#title' => $this->t('Options'),
+      '#required' => TRUE,
+    ];
+    $form['options']['options_display'] = [
+      '#title' => $this->t('Options display'),
+      '#type' => 'select',
+      '#options' => [
+        'one_column' => $this->t('One column'),
+        'two_columns' => $this->t('Two columns'),
+        'three_columns' => $this->t('Three columns'),
+        'side_by_side' => $this->t('Side by side'),
+      ],
+    ];
+    $form['options']['empty_option'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Empty option label'),
+      '#description' => $this->t('The label to show for the initial option denoting no selection in a select element.'),
+    ];
+    $form['options']['empty_value'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Empty option value'),
+      '#description' => $this->t('The value for the initial option denoting no selection in a select element, which is used to determine whether the user submitted a value or not.'),
+    ];
+    $form['options']['options_randomize'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Randomize options'),
+      '#description' => $this->t('Randomizes the order of the options when they are displayed in the form.'),
+      '#return_value' => TRUE,
+    ];
+
+    $form['options_other'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Other option'),
+      '#open' => TRUE,
+    ];
+    $form['options_other']['other__option_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Other option label'),
+    ];
+    $form['options_other']['other__title'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Other title'),
+    ];
+    $form['options_other']['other__placeholder'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Other placeholder'),
+    ];
+    $form['options_other']['other__description'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Other description'),
+    ];
+    $form['options_other']['other__size'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Other size'),
+      '#description' => $this->t('Leaving blank will use the default size.'),
+      '#size' => 4,
+    ];
+    $form['options_other']['other__maxlength'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Other maxlength'),
+      '#description' => $this->t('Leaving blank will use the default maxlength.'),
+      '#size' => 4,
+    ];
+
     return $form;
   }
 

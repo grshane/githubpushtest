@@ -212,4 +212,32 @@ interface YamlFormSubmissionStorageInterface extends ContentEntityStorageInterfa
    */
   public function getCustomSetting($name, $default, YamlFormInterface $yamlform = NULL, EntityInterface $source_entity = NULL);
 
+  /**
+   * Invoke a YAML form submission's form's handlers method.
+   *
+   * @param string $method
+   *   The YAML form handler method to be invoked.
+   * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
+   *   A YAML form submission.
+   * @param mixed $context1
+   *   (optional) An additional variable that is passed by reference.
+   * @param mixed $context2
+   *   (optional) An additional variable that is passed by reference.
+   */
+  public function invokeYamlFormHandlers($method, YamlFormSubmissionInterface $yamlform_submission, &$context1 = NULL, &$context2 = NULL);
+
+  /**
+   * Invoke a YAML form submission's form's elements method.
+   *
+   * @param string $method
+   *   The YAML form element method to be invoked.
+   * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
+   *   A YAML form submission.
+   * @param mixed $context1
+   *   (optional) An additional variable that is passed by reference.
+   * @param mixed $context2
+   *   (optional) An additional variable that is passed by reference.
+   */
+  public function invokeYamlFormElements($method, YamlFormSubmissionInterface $yamlform_submission, &$context1 = NULL, &$context2 = NULL);
+
 }

@@ -165,8 +165,11 @@ class YamlFormSubmissionViewBuilder extends EntityViewBuilder implements YamlFor
           $build[$key] = $build_container;
         }
       }
-      elseif (isset($data[$key]) && $data[$key] !== '') {
-        $build[$key] = $yamlform_element->$build_method($element, $data[$key], $options);
+      else {
+        $value = isset($data[$key]) ? $data[$key] : NULL;
+        if ($build_element = $yamlform_element->$build_method($element, $value, $options)) {
+          $build[$key] = $build_element;
+        }
       }
     }
     return $build;

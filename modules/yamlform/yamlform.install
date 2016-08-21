@@ -54,33 +54,50 @@ function yamlform_requirements($phase) {
     ];
   }
 
-  // Check libraries.
-  $libraries = [
-    'codemirror' => 'codemirror',
-    'jquery.inputmask' => 'jquery.inputmask',
-    'jquery.select2' => 'select2',
-    'jquery.counter' => 'word-and-character-counter',
-  ];
-  foreach ($libraries as $library_name => $directory_name) {
-    /** @var \Drupal\Core\Asset\LibraryDiscoveryInterface $library_discovery */
-    $library_discovery = \Drupal::service('library.discovery');
-    $library = $library_discovery->getLibraryByName('yamlform', $library_name);
-    $version = $library['version'];
-    $library_exists = (file_exists(DRUPAL_ROOT . '/libraries/' . $directory_name)) ? TRUE : FALSE;
+  // Check third party libraries status.
+  $requirements += _yamlform_libraries_requirements();
 
-    $t_args = [
-      ':href' => "https://cdnjs.com/libraries/codemirror/$version",
-      '@name' => $library_name,
-      '@version' => $version,
-    ];
-    $requirements['yamlform_library_' . $library_name] = [
-      'title' => t('YAML Form library: @name', $t_args),
-      'value' => ($library_exists) ? t('@version (Installed)', $t_args) : t('@version (<a href=":href">CDN</a>)', $t_args),
-      'severity' => REQUIREMENT_OK,
-    ];
-  }
   return $requirements;
 }
+
+/******************************************************************************/
+// Helper functions
+/******************************************************************************/
+
+/**
+ * Update YAML form setting to reflect changes in the default settings.
+ *
+ * This function can be used to apply new YAML form settings to all existing
+ * YAML forms.
+ *
+ * @see \Drupal\yamlform\Entity\YamlForm::setSettings
+ */
+function _yamlform_update_settings() {
+  $default_settings = YamlForm::getDefaultSettings();
+  $config_factory = \Drupal::configFactory();
+  // Update 'yamlform.yamlform.*' configuration.
+  foreach ($config_factory->listAll('yamlform.yamlform.') as $yamlform_config_name) {
+    $yamlform_config = $config_factory->getEditable($yamlform_config_name);
+
+    // Get data.
+    $data = $yamlform_config->getRawData();
+
+    // Always apply the default settings.
+    $settings = $default_settings;
+    // Now apply custom settings.
+    foreach ($data['settings'] as $name => $value) {
+      $settings[$name] = $value;
+    }
+
+    // Set settings and save data.
+    $data['settings'] = $settings;
+    \Drupal::configFactory()->getEditable($yamlform_config_name)->setData($data)->save();
+  }
+}
+
+/******************************************************************************/
+// Update hooks
+/******************************************************************************/
 
 /**
  * Add support for HTML and file attachments to YamlFormEmailHandler.
@@ -800,4 +817,138 @@ function yamlform_update_8032() {
     $yamlform_config->set('dependencies', []);
     $yamlform_config->save(TRUE);
   }
+}
+
+/**
+ * Issue #2778521: Refactor email_confirm element to support customization.
+ */
+function yamlform_update_8033() {
+  $config_factory = \Drupal::configFactory();
+  // Update 'yamlform.yamlform.*' configuration.
+  foreach ($config_factory->listAll('yamlform.yamlform.') as $yamlform_config_name) {
+    $yamlform_config = $config_factory->getEditable($yamlform_config_name);
+    $yaml = Yaml::encode($yamlform_config->getRawData());
+    $yaml = str_replace('#confirm_title', '#confirm__title', $yaml);
+    $data = Yaml::decode($yaml);
+    \Drupal::configFactory()->getEditable($yamlform_config_name)->setData($data)->save();
+  }
+}
+
+/**
+ * Issue #2778715: Refactor other elements.
+ */
+function yamlform_update_8034() {
+  $config_factory = \Drupal::configFactory();
+  // Update 'yamlform.yamlform.*' configuration.
+  foreach ($config_factory->listAll('yamlform.yamlform.') as $yamlform_config_name) {
+    $yamlform_config = $config_factory->getEditable($yamlform_config_name);
+    $yaml = Yaml::encode($yamlform_config->getRawData());
+    $yaml = str_replace('#other_option_label', '#other__option_label', $yaml);
+    $yaml = str_replace('#other_placeholder', '#other__placeholder', $yaml);
+    $yaml = str_replace('#other_description', '#other__description', $yaml);
+    $data = Yaml::decode($yaml);
+    \Drupal::configFactory()->getEditable($yamlform_config_name)->setData($data)->save();
+  }
+}
+
+/**
+ * Issue #2778857: Description of elements.
+ */
+function yamlform_update_8035() {
+  // Update 'yamlform.settings' configuration.
+  $settings_config = \Drupal::configFactory()->getEditable('yamlform.settings');
+  $settings_config->set('elements.default_description_display', '');
+  $settings_config->save();
+}
+
+/**
+ * Issue #2781663: Add URL with message to YAML form confirmation types.
+ */
+function yamlform_update_8036() {
+  $config_factory = \Drupal::configFactory();
+  // Update 'yamlform.yamlform.*' configuration.
+  foreach ($config_factory->listAll('yamlform.yamlform.') as $yamlform_config_name) {
+    $yamlform_config = $config_factory->getEditable($yamlform_config_name);
+    $yaml = Yaml::encode($yamlform_config->getRawData());
+    $yaml = str_replace('confirmation_type: url', 'confirmation_type: url_message', $yaml);
+    $data = Yaml::decode($yaml);
+    \Drupal::configFactory()->getEditable($yamlform_config_name)->setData($data)->save();
+  }
+}
+
+/**
+ * Issue #2781713: Remove id, title, and description from setting.
+ */
+function yamlform_update_8037() {
+  // Update 'yamlform.yamlform.*' configuration.
+  $config_factory = \Drupal::configFactory();
+  foreach ($config_factory->listAll('yamlform.yamlform.') as $yamlform_config_name) {
+    $yamlform_config = $config_factory->getEditable($yamlform_config_name);
+    $yamlform_config->clear('settings.id');
+    $yamlform_config->clear('settings.title');
+    $yamlform_config->clear('settings.description');
+    $yamlform_config->save(TRUE);
+  }
+}
+
+/**
+ * Issue #2783527: Order YAML form settings when saved and apply defaults.
+ */
+function yamlform_update_8038() {
+  _yamlform_update_settings();
+}
+
+/**
+ * Issue #2783575: Add autofocus form setting.
+ */
+function yamlform_update_8039() {
+  _yamlform_update_settings();
+}
+
+/**
+ * Issue #2783361: Replace embedded videos by links to them.
+ */
+function yamlform_update_8040() {
+  // Update 'yamlform.settings' configuration.
+  $settings_config = \Drupal::configFactory()->getEditable('yamlform.settings');
+  $settings_config->set('ui.video_display', 'dialog');
+  $settings_config->save();
+}
+
+/**
+ * Issue #2783771: Add setting for #allowed_tags.
+ */
+function yamlform_update_8041() {
+  // Update 'yamlform.settings' configuration.
+  $settings_config = \Drupal::configFactory()->getEditable('yamlform.settings');
+  $settings_config->set('elements.allowed_tags', 'admin');
+  $settings_config->save();
+}
+
+/**
+ * Issue #2783855: Date field display and validation.
+ */
+function yamlform_update_8042() {
+  $config_factory = \Drupal::configFactory();
+  // Update 'yamlform.yamlform.*' configuration.
+  foreach ($config_factory->listAll('yamlform.yamlform.') as $yamlform_config_name) {
+    $yamlform_config = $config_factory->getEditable($yamlform_config_name);
+    $yaml = Yaml::encode($yamlform_config->getRawData());
+    $yaml = str_replace('#date_format', '#date_date_format', $yaml);
+    $data = Yaml::decode($yaml);
+    \Drupal::configFactory()
+      ->getEditable($yamlform_config_name)
+      ->setData($data)
+      ->save();
+  }
+}
+
+/**
+ * Issue #2783785: Add html editor to UI.
+ */
+function yamlform_update_8043(&$sandbox) {
+  // Update 'yamlform.settings' configuration.
+  $settings_config = \Drupal::configFactory()->getEditable('yamlform.settings');
+  $settings_config->set('ui.html_editor_disabled', FALSE);
+  $settings_config->save();
 }

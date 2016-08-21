@@ -249,6 +249,7 @@ class YamlFormSubmissionDevelGenerate extends DevelGenerateBase implements Conta
    */
   protected function generateSubmission(&$results) {
     $yamlform_id = array_rand(array_filter($results['yamlform_ids']));
+    /** @var \Drupal\yamlform\YamlFormInterface  $yamlform */
     $yamlform = $this->yamlformStorage->load($yamlform_id);
 
     $users = $results['users'];

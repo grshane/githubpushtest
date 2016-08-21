@@ -27,6 +27,13 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
   protected $type;
 
   /**
+   * A YAML form element.
+   *
+   * @var \Drupal\yamlform\YamlFormElementInterface
+   */
+  protected $yamlformElement;
+
+  /**
    * {@inheritdoc}
    */
   public function getFormId() {
@@ -55,10 +62,7 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
       $this->element = ['#type' => $type];
     }
 
-    $plugin_id = $this->elementManager->getElementPluginId($this->element);
-
-    /** @var \Drupal\yamlform\YamlFormElementInterface $yamlform_element */
-    $this->yamlformElement = $this->elementManager->createInstance($plugin_id, $this->element);
+    $this->yamlformElement = $this->elementManager->getElementInstance($this->element);
 
     $form['#title'] = $this->t('Test %type element', ['%type' => $type]);
 

@@ -8,6 +8,7 @@ yamlform.admin:
   js:
     js/yamlform.admin.js:  {}
   dependencies:
+    - core/drupal
     - core/jquery
     - core/jquery.once
     - yamlform/yamlform.form
@@ -28,6 +29,7 @@ yamlform.help:
   js:
     js/yamlform.help.js:  {}
   dependencies:
+    - core/drupal
     - core/jquery
     - core/jquery.once
 
@@ -41,8 +43,15 @@ yamlform.form:
   js:
     js/yamlform.form.js:  {}
   dependencies:
+    - core/drupal
     - core/jquery
     - core/jquery.once
+
+yamlform.options:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.options.css: {}
 
 yamlform.progress:
   version: 1.x
@@ -58,33 +67,102 @@ yamlform.progress.bar:
 
 # Elements.
 
+yamlform.element.codemirror.text:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.element.codemirror.css: {}
+  js:
+    js/yamlform.element.codemirror.js: {}
+  dependencies:
+    - yamlform/codemirror.text
+
+yamlform.element.codemirror.yaml:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.element.codemirror.css: {}
+  js:
+    js/yamlform.element.codemirror.js: {}
+  dependencies:
+    - yamlform/codemirror.yaml
+
+yamlform.element.codemirror.html:
+  version: 1.x
+  css:
+    theme:
+      css/yamlform.element.codemirror.css: {}
+  js:
+    js/yamlform.element.codemirror.js: {}
+  dependencies:
+    - yamlform/codemirror.html
+
 yamlform.element.color:
   version: 1.x
   css:
     theme:
       css/yamlform.element.color.css: {}
 
-yamlform.element.details:
-  version: 1.x
-  js:
-    js/yamlform.element.details.js: {}
-  dependencies:
-    - core/jquery
-    - core/jquery.once
-
 yamlform.element.composite:
   version: 1.x
   js:
     js/yamlform.element.detail.js: {}
   dependencies:
+    - core/drupal
     - core/jquery
     - core/jquery.once
+
+yamlform.element.counter:
+  version: 1.x
+  js:
+    js/yamlform.element.counter.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/jquery.once
+    - yamlform/jquery.counter
+
+yamlform.element.details:
+  version: 1.x
+  js:
+    js/yamlform.element.details.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/jquery.once
+
+yamlform.element.html_editor:
+  version: 1.x
+  js:
+    js/yamlform.element.html_editor.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    - core/jquery.once
+    - core/ckeditor
+
+yamlform.element.inputmask:
+  version: 1.x
+  js:
+    js/yamlform.element.inputmask.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/jquery.once
+    - yamlform/jquery.inputmask
 
 yamlform.element.likert:
   version: 1.x
   css:
     component:
       css/yamlform.element.likert.css: {}
+
+yamlform.element.options:
+  version: 1.x
+  css:
+    component:
+      css/yamlform.element.options.css: {}
 
 yamlform.element.other:
   version: 1.x
@@ -94,8 +172,58 @@ yamlform.element.other:
   js:
     js/yamlform.element.other.js: {}
   dependencies:
+    - core/drupal
     - core/jquery
     - core/jquery.once
+
+yamlform.element.rating:
+  version: 1.x
+  css:
+    component:
+      css/yamlform.element.rating.css: {}
+  dependencies:
+    - yamlform/jquery.rateit
+
+yamlform.element.select2:
+  version: 1.x
+  js:
+    js/yamlform.element.select2.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/jquery.once
+    - yamlform/jquery.select2
+
+yamlform.element.signature:
+  version: 1.x
+  css:
+    component:
+      css/yamlform.element.signature.css: {}
+  js:
+    js/yamlform.element.signature.js: {}
+  dependencies:
+    - core/drupal
+    - yamlform/signature_pad
+
+yamlform.element.toggle:
+  version: 1.x
+  css:
+    component:
+      css/yamlform.element.toggle.css: {}
+  js:
+    js/yamlform.element.toggle.js: {}
+  dependencies:
+    - core/drupal
+    - yamlform/jquery.toggles
+
+yamlform.element.tooltip:
+  version: 1.x
+  js:
+    js/yamlform.element.tooltip.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery.once
+    - core/jquery.ui.tooltip
 
 yamlform.navigation:
   version: 1.x
@@ -105,7 +233,7 @@ yamlform.navigation:
 
 # External libraries.
 
-codemirror:
+codemirror.text:
   remote: https://github.com/codemirror/codemirror
   version: &yamlform_codemirror_version 5.16.0
   license: &yamlform_codemirror_license
@@ -121,20 +249,6 @@ codemirror:
   js:
     /libraries/codemirror/lib/codemirror.js: {}
     /libraries/codemirror/addon/runmode/runmode.js: {}
-  dependencies:
-    - core/jquery
-
-codemirror.text:
-  remote: https://github.com/codemirror/codemirror
-  version: *yamlform_codemirror_version
-  license: *yamlform_codemirror_license
-  css:
-    theme:
-      css/yamlform.element.codemirror.css: {}
-  js:
-    js/yamlform.element.codemirror.js: {}
-  dependencies:
-    - yamlform/codemirror
 
 codemirror.yaml:
   version: *yamlform_codemirror_version
@@ -143,7 +257,6 @@ codemirror.yaml:
   js:
     /libraries/codemirror/mode/yaml/yaml.js: {}
   dependencies:
-    - yamlform/codemirror
     - yamlform/codemirror.text
 
 codemirror.html:
@@ -154,29 +267,57 @@ codemirror.html:
     /libraries/codemirror/mode/xml/xml.js: {}
     /libraries/codemirror/mode/htmlmixed/htmlmixed.js: {}
   dependencies:
-    - yamlform/codemirror
     - yamlform/codemirror.text
+
+jquery.counter:
+  remote: https://github.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin
+  version: 2.3.5
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/mit-license.php
+    gpl-compatible: true
+  cdn:
+    /libraries/word-and-character-counter/: https://cdn.rawgit.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin/2.3.5/
+  js:
+    /libraries/word-and-character-counter/word-and-character-counter.min.js: {}
+  dependencies:
+    - core/jquery
 
 jquery.inputmask:
   remote: https://github.com/RobinHerbots/jquery.inputmask
-  version: &yamlform_inputmask_version 3.31
-  license: &yamlform_inputmask_license
+  version: 3.31
+  license:
     name: MIT
     url: http://opensource.org/licenses/mit-license.php
     gpl-compatible: true
   cdn:
     /libraries/jquery.inputmask/dist/: https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.1/
   js:
-    js/yamlform.jquery.inputmask.js: {}
     /libraries/jquery.inputmask/dist/min/jquery.inputmask.bundle.min.js: {}
   dependencies:
     - core/jquery
-    - core/jquery.once
+
+jquery.rateit:
+  remote: https://github.com/gjunge/rateit.js
+  version: 1.0.24
+  license:
+    name: MIT
+    url: https://github.com/gjunge/rateit.js/blob/master/LICENSE.md
+    gpl-compatible: true
+  cdn:
+    /libraries/jquery.rateit/: https://cdn.rawgit.com/gjunge/rateit.js/1.0.24/
+  css:
+    theme:
+      /libraries/jquery.rateit/scripts/rateit.css: {}
+  js:
+    /libraries/jquery.rateit/scripts/jquery.rateit.min.js: {}
+  dependencies:
+    - core/jquery
 
 jquery.select2:
   remote: https://select2.github.io/
-  version: &yamlform_select2_version 4.0.3
-  license: &yamlform_select2_license
+  version: 4.0.3
+  license:
     name: MIT
     url: http://opensource.org/licenses/mit-license.php
     gpl-compatible: true
@@ -186,24 +327,35 @@ jquery.select2:
     theme:
       /libraries/select2/dist/css/select2.min.css: {}
   js:
-    js/yamlform.jquery.select2.js: {}
     /libraries/select2/dist/js/select2.min.js: {}
   dependencies:
     - core/jquery
-    - core/jquery.once
 
-jquery.counter:
-  remote: https://github.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin
-  version: &yamlform_word_and_character_counter_version 2.3.5
-  license: &yamlform_word_and_character_counter_license
+jquery.toggles:
+  remote: https://github.com/simontabor/jquery-toggles/
+  version: &yamlform_toggles_version 4.0.0
+  license: &yamlform_toggles_version
     name: MIT
     url: http://opensource.org/licenses/mit-license.php
     gpl-compatible: true
   cdn:
-    /libraries/word-and-character-counter/: https://cdn.rawgit.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin/2.3.5/
+    /libraries/jquery.toggles/: https://cdn.rawgit.com/simontabor/jquery-toggles/v4.0.0/
+  css:
+    theme:
+      /libraries/jquery.toggles/css/toggles-full.css: {}
   js:
-    js/yamlform.jquery.counter.js: {}
-    /libraries/word-and-character-counter/word-and-character-counter.min.js: {}
+    /libraries/jquery.toggles/toggles.min.js: {}
   dependencies:
     - core/jquery
-    - core/jquery.once
+
+signature_pad:
+  remote: https://github.com/szimek/signature_pad
+  version: 1.5.3
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+    gpl-compatible: true
+  cdn:
+    /libraries/signature_pad/: https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/
+  js:
+    /libraries/signature_pad/signature_pad.js: {}

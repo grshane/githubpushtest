@@ -17,7 +17,8 @@ pages:
 - Support:
   - Installation: support/installation.md
   - Frequently Asked Questions (FAQ): support/faq.md
-  - Videos & Screencasts: support/videos.md
+  - Videos & Presentations: support/videos.md
+  - Screencasts / Tutorials: support/screencasts.md
   - Glossary: support/glossary.md
   - Known Issues: support/issues.md
   - On Drupal.org: support/drupal.md

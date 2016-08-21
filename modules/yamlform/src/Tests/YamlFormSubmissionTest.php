@@ -61,7 +61,7 @@ class YamlFormSubmissionTest extends YamlFormTestBase {
 
     // Check submission label.
     $yamlform_submission->save();
-    $this->assertEqual($yamlform_submission->label(), $yamlform->label() .': Submission #' . $yamlform_submission->id());
+    $this->assertEqual($yamlform_submission->label(), $yamlform->label() . ': Submission #' . $yamlform_submission->id());
   }
 
 }

@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\yamlform\Utility\YamlFormDialogHelper;
 use Drupal\yamlform\YamlFormDialogTrait;
 use Drupal\yamlform\YamlFormElementManagerInterface;
 use Drupal\yamlform\YamlFormEntityElementsValidator;
@@ -41,18 +42,18 @@ abstract class YamlFormUiElementFormBase extends FormBase {
   protected $yamlform;
 
   /**
-   * A YAML form element.
-   *
-   * @var \Drupal\yamlform\YamlFormElementInterface
-   */
-  protected $yamlformElement;
-
-  /**
    * The YAML form element.
    *
    * @var array
    */
   protected $element = [];
+
+  /**
+   * The YAML form element's original element type.
+   *
+   * @var string
+   */
+  protected $originalType;
 
   /**
    * The action of the current form.
@@ -95,10 +96,9 @@ abstract class YamlFormUiElementFormBase extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, YamlFormInterface $yamlform = NULL, $key = NULL, $parent_key = '') {
-    $plugin_id = $this->elementManager->getElementPluginId($this->element);
-
     $this->yamlform = $yamlform;
-    $this->yamlformElement = $this->elementManager->createInstance($plugin_id, $this->element);
+
+    $yamlform_element = $this->getYamlFormElement();
 
     $form['parent_key'] = [
       '#type' => 'value',
@@ -122,16 +122,42 @@ abstract class YamlFormUiElementFormBase extends FormBase {
       $form['key']['#description'] = NULL;
     }
 
-    $form['properties'] = $this->yamlformElement->buildConfigurationForm([], $form_state);
+    $form['properties'] = $yamlform_element->buildConfigurationForm([], $form_state);
 
     // Add type to the general details.
     $form['properties']['general']['type'] = [
       '#type' => 'item',
       '#title' => $this->t('Type'),
-      '#markup' => $this->yamlformElement->getPluginLabel(),
+      'label' => [
+        '#markup' => $yamlform_element->getPluginLabel(),
+      ],
       '#weight' => -100,
       '#parents' => ['type'],
     ];
+
+    // Allows users to change element type.
+    if ($key && $yamlform_element->getRelatedTypes($this->element)) {
+      $route_parameters = ['yamlform' => $yamlform->id(), 'key' => $key];
+      if ($this->originalType) {
+        $original_yamlform_element = $this->elementManager->createInstance($this->originalType);
+        $route_parameters = ['yamlform' => $yamlform->id(), 'key' => $key];
+        $form['properties']['general']['type']['cancel'] = [
+          '#type' => 'link',
+          '#title' => $this->t('Cancel'),
+          '#url' => new Url('entity.yamlform_ui.element.edit_form', $route_parameters),
+          '#attributes' => YamlFormDialogHelper::getModalDialogAttributes(800, ['button', 'button--small']),
+        ];
+        $form['properties']['general']['type']['#description'] = '(' . $this->t('Changing from %type', ['%type' => $original_yamlform_element->getPluginLabel()]) . ')';
+      }
+      else {
+        $form['properties']['general']['type']['change_type'] = [
+          '#type' => 'link',
+          '#title' => $this->t('Change'),
+          '#url' => new Url('entity.yamlform_ui.change_element', $route_parameters),
+          '#attributes' => YamlFormDialogHelper::getModalDialogAttributes(800, ['button', 'button--small']),
+        ];
+      }
+    }
 
     // Use title for key (machine_name).
     if (isset($form['properties']['general']['title'])) {
@@ -144,6 +170,7 @@ abstract class YamlFormUiElementFormBase extends FormBase {
       '#type' => 'submit',
       '#value' => $this->t('Save'),
       '#button_type' => 'primary',
+      '#_validate_form' => TRUE,
     ];
 
     $form = $this->buildDialog($form, $form_state);
@@ -155,13 +182,21 @@ abstract class YamlFormUiElementFormBase extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
+    // Only validate the submit button.
+    $button = $form_state->getTriggeringElement();
+    if (empty($button['#_validate_form'])) {
+      return;
+    }
+
+    $yamlform_element = $this->getYamlFormElement();
+
     // The YAML form element configuration is stored in the 'properties' key in
     // the form, pass that through for validation.
     $element_form_state = (new FormState())->setValues($form_state->getValue('properties') ?: []);
     $element_form_state->setFormObject($this);
 
     // Validate configuration form and set form errors.
-    $this->yamlformElement->validateConfigurationForm($form, $element_form_state);
+    $yamlform_element->validateConfigurationForm($form, $element_form_state);
     $element_errors = $element_form_state->getErrors();
     foreach ($element_errors as $element_error) {
       $form_state->setErrorByName(NULL, $element_error);
@@ -173,17 +208,19 @@ abstract class YamlFormUiElementFormBase extends FormBase {
     }
 
     // Set element properties.
-    $properties = $this->yamlformElement->getConfigurationFormProperties($form, $element_form_state);
+    $properties = $yamlform_element->getConfigurationFormProperties($form, $element_form_state);
     $parent_key = $form_state->getValue('parent_key');
     $key = $form_state->getValue('key');
-    $this->yamlform->setElementProperties($key, $properties, $parent_key);
+    if ($key) {
+      $this->yamlform->setElementProperties($key, $properties, $parent_key);
 
-    // Validate elements.
-    if ($messages = $this->elementsValidator->validate($this->yamlform)) {
-      $t_args = [':href' => Url::fromRoute('entity.yamlform.source_form', ['yamlform' => $this->yamlform->id()])->toString()];
-      $form_state->setErrorByName('elements', $this->t('There has been error validating the elements. You may need to edit the <a href=":href">YAML source</a> to resolve the issue.', $t_args));
-      foreach ($messages as $message) {
-        drupal_set_message($message, 'error');
+      // Validate elements.
+      if ($messages = $this->elementsValidator->validate($this->yamlform)) {
+        $t_args = [':href' => Url::fromRoute('entity.yamlform.source_form', ['yamlform' => $this->yamlform->id()])->toString()];
+        $form_state->setErrorByName('elements', $this->t('There has been error validating the elements. You may need to edit the <a href=":href">YAML source</a> to resolve the issue.', $t_args));
+        foreach ($messages as $message) {
+          drupal_set_message($message, 'error');
+        }
       }
     }
   }
@@ -192,6 +229,8 @@ abstract class YamlFormUiElementFormBase extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $yamlform_element = $this->getYamlFormElement();
+
     if ($response = $this->validateDialog($form, $form_state)) {
       return $response;
     }
@@ -199,7 +238,7 @@ abstract class YamlFormUiElementFormBase extends FormBase {
     // The YAML form element configuration is stored in the 'properties' key in
     // the form, pass that through for submission.
     $element_data = (new FormState())->setValues($form_state->getValue('properties'));
-    $this->yamlformElement->submitConfigurationForm($form, $element_data);
+    $yamlform_element->submitConfigurationForm($form, $element_data);
     $this->yamlform->save();
 
     // Display status message.
@@ -245,7 +284,7 @@ abstract class YamlFormUiElementFormBase extends FormBase {
    *   A YAML form element.
    */
   public function getYamlFormElement() {
-    return $this->yamlformElement;
+    return $this->elementManager->getElementInstance($this->element);
   }
 
 }

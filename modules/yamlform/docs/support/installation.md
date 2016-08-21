@@ -132,14 +132,20 @@ to use the Symfony Validator component within a YAML form.
 
 The YAML Form module utilizes the third-party Open Source libraries below to 
 enhance form elements and to provide additional functionality.  It is recommended 
-that these  libraries be installed in your Drupal installations /libraries 
+that these libraries be installed in your Drupal installations /libraries 
 directory.  If these libraries are not installed, they are automatically loaded 
 from a CDN.
 
-> PLEASE NOTE: These libraries must be manually installed. Support for using
-> [Composer](https://www.drupal.org/node/2404989) and/or the 
-> [Libraries API](https://www.drupal.org/project/libraries) is still 
-> under development.  
+> PLEASE NOTE: The  
+> [Libraries API](https://www.drupal.org/project/libraries) for Drupal 8 is 
+> still under development.  
+
+Currently the best way to download all the needed third party libraries is to 
+either add [yamlform.libraries.make.yml](http://cgit.drupalcode.org/yamlform/tree/yamlform.libraries.make.yml)
+to your drush make file or execute below drush command from the root of your 
+Drupal installation.  
+
+    drush yamlform-libraries-download    
 
 **[Code Mirror](http://codemirror.net/)** - [Demo](http://codemirror.net/)
 
@@ -155,6 +161,31 @@ dates, numerics, phone numbers, etc...
 
 > Input masks are used to ensure predefined and custom format for text fields.
 
+**[RateIt](https://github.com/gjunge/rateit.js)** - [Demo](http://gjunge.github.io/rateit.js/examples/)
+
+Rating plugin for jQuery. Fast, Progressive enhancement, touch support, 
+customizable (just swap out the images, or change some CSS), Unobtrusive 
+JavaScript (using HTML5 data-* attributes), RTL support, supports as many stars 
+as you'd like, and also any step size.
+
+> RateIt is used to provide a customizable rating form element.
+
+**[Select2](https://select2.github.io/)** - [Demo](https://select2.github.io/examples.html)
+
+Select2 gives you a customizable select box with support for searching and 
+tagging.
+
+> Select2 is used to improve the user experience for select menus.
+
+**[Signature Pad](https://github.com/szimek/signature_pad)** - [Demo](http://szimek.github.io/signature_pad/)
+
+Signature Pad is a JavaScript library for drawing smooth signatures. It's HTML5 
+canvas based and uses variable width Bézier curve interpolation 
+It works in all modern desktop and mobile browsers and doesn't depend on any 
+external libraries.
+
+> Signature Pad is used to provide a signature element.
+
 **[Word and Character Counter](https://github.com/qwertypants/jQuery-Word-and-Character-Counter-Plugin)** - [Demo](http://qwertypants.github.io/jQuery-Word-and-Character-Counter-Plugin/)
 
 The jQuery Word and character counter plug-in allows you to count characters
@@ -163,9 +194,8 @@ or words.
 > Word or character counting, with server-side validation, is available for text 
 > fields and text areas.
 
-**[Select2](https://select2.github.io/)** - [Demo](https://select2.github.io/examples.html)
+**[CKEditor Link (and Fake Objects](http://ckeditor.com/addon/link)**
 
-Select2 gives you a customizable select box with support for searching and 
-tagging.
+This plugin adds the link and anchor support.
 
-> Select2 is used to improve the user experience for select menus.
+> Allows YAML Form module to use CKEditor's native link and anchor dialog.

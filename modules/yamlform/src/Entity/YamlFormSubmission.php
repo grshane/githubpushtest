@@ -13,7 +13,6 @@ use Drupal\user\Entity\User;
 use Drupal\user\UserInterface;
 use Drupal\yamlform\YamlFormInterface;
 use Drupal\yamlform\YamlFormSubmissionInterface;
-use Drupal\yamlform\YamlFormSubmissionStorageInterface;
 
 /**
  * Defines the YamlFormSubmission entity.
@@ -489,7 +488,7 @@ class YamlFormSubmission extends ContentEntityBase implements YamlFormSubmission
    *   depending on the last save operation performed.
    */
   public function getState() {
-    if ($this->isNew()) {
+    if (!$this->id()) {
       return self::STATE_UNSAVED;
     }
     elseif ($this->isDraft()) {
@@ -579,73 +578,16 @@ class YamlFormSubmission extends ContentEntityBase implements YamlFormSubmission
   /**
    * {@inheritdoc}
    */
-  public function postCreate(EntityStorageInterface $storage) {
-    parent::postCreate($storage);
-    $this->invokeYamlFormElements(__FUNCTION__);
-    $this->invokeYamlFormHandlers(__FUNCTION__);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function postLoad(EntityStorageInterface $storage, array &$entities) {
-    foreach ($entities as $entity) {
-      $entity->invokeYamlFormElements(__FUNCTION__);
-      $entity->invokeYamlFormHandlers(__FUNCTION__);
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function postDelete(EntityStorageInterface $storage, array $entities) {
-    // Delete submission data.
-    \Drupal::database()->delete('yamlform_submission_data')
-      ->condition('sid', array_keys($entities), 'IN')
-      ->execute();
-    foreach ($entities as $entity) {
-      $entity->invokeYamlFormElements(__FUNCTION__);
-      $entity->invokeYamlFormHandlers(__FUNCTION__);
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function preDelete(EntityStorageInterface $storage, array $entities) {
-    parent::preDelete($storage, $entities);
-    foreach ($entities as $entity) {
-      $entity->invokeYamlFormElements(__FUNCTION__);
-      $entity->invokeYamlFormHandlers(__FUNCTION__);
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function preSave(EntityStorageInterface $storage) {
+    $this->changed->value = REQUEST_TIME;
     if ($this->isDraft()) {
       $this->completed->value = NULL;
     }
     elseif (!$this->isCompleted()) {
-      $this->changed->value = REQUEST_TIME;
       $this->completed->value = REQUEST_TIME;
     }
 
     parent::preSave($storage);
-
-    $this->invokeYamlFormElements(__FUNCTION__);
-    $this->invokeYamlFormHandlers(__FUNCTION__);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function postSave(EntityStorageInterface $storage, $update = TRUE) {
-    parent::postSave($storage, $update);
-
-    $this->invokeYamlFormElements(__FUNCTION__, $update);
-    $this->invokeYamlFormHandlers(__FUNCTION__, $update);
   }
 
   /**
@@ -657,101 +599,7 @@ class YamlFormSubmission extends ContentEntityBase implements YamlFormSubmission
       $this->get('remote_addr')->value = '';
     }
 
-    // When the saving of result is disabled all element and handler hooks
-    // should still be executed.
-    // See \Drupal\Core\Entity\EntityStorageBase::save which would trigger the
-    // below hooks when parent::save() is called.
-    if ($this->getYamlForm()->getSetting('results_disabled')) {
-      /** @var \Drupal\yamlform\YamlFormSubmissionStorageInterface $yamform_submission_storage */
-      $yamform_submission_storage = $this->entityTypeManager()->getStorage('yamlform_submission');
-      $this->preSave($yamform_submission_storage);
-
-      // Invoke save.
-      $this->invokeYamlFormElements(__FUNCTION__);
-
-      // Invoke post save.
-      $update = FALSE;
-      $this->postSave($yamform_submission_storage, $update);
-      return YamlFormSubmissionStorageInterface::SAVED_DISABLED;
-    }
-
-    $result = parent::save();
-
-    $this->invokeYamlFormElements(__FUNCTION__);
-
-    // Get submission data rows.
-    $data = $this->getData();
-    $yamlform_id = $this->getYamlForm()->id();
-    $sid = $this->id();
-
-    $rows = [];
-    foreach ($data as $name => $item) {
-      if (is_array($item)) {
-        foreach ($item as $key => $value) {
-          $rows[] = [
-            'yamlform_id' => $yamlform_id,
-            'sid' => $sid,
-            'name' => $name,
-            'delta' => (string) $key,
-            'value' => (string) $value,
-          ];
-        }
-      }
-      else {
-        $rows[] = [
-          'yamlform_id' => $yamlform_id,
-          'sid' => $sid,
-          'name' => $name,
-          'delta' => '',
-          'value' => (string) $item,
-        ];
-      }
-    }
-
-    // Delete existing submission data rows.
-    \Drupal::database()->delete('yamlform_submission_data')
-      ->condition('sid', $sid)
-      ->execute();
-
-    // Insert new submission data rows.
-    $query = \Drupal::database()
-      ->insert('yamlform_submission_data')
-      ->fields(['yamlform_id', 'sid', 'name', 'delta', 'value']);
-    foreach ($rows as $row) {
-      $query->values($row);
-    }
-    $query->execute();
-
-    // Log transaction.
-    $yamlform = $this->getYamlForm();
-    $link = $this->toLink(t('Edit'), 'edit-form')->toString();
-    switch ($this->getState()) {
-      case YamlFormSubmissionInterface::STATE_DRAFT;
-        \Drupal::logger('yamlform')
-          ->notice('Submission draft saved in %form.', [
-            '%form' => $yamlform->label(),
-            'link' => $link,
-          ]);
-        break;
-
-      case YamlFormSubmissionInterface::STATE_UPDATED;
-        \Drupal::logger('yamlform')
-          ->notice('Submission updated in %form.', [
-            '%form' => $yamlform->label(),
-            'link' => $link,
-          ]);
-        break;
-
-      case YamlFormSubmissionInterface::STATE_COMPLETED;
-        \Drupal::logger('yamlform')
-          ->notice('New submission added to %form.', [
-            '%form' => $yamlform->label(),
-            'link' => $link,
-          ]);
-        break;
-    }
-
-    return $result;
+    return parent::save();
   }
 
 }

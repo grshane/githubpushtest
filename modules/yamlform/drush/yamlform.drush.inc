@@ -17,6 +17,8 @@ use Drupal\yamlform\Utility\YamlFormTidy;
 function yamlform_drush_command() {
   $items = [];
 
+  /* Submissions */
+
   $items['yamlform-export'] = [
     'description' => 'Exports YAML form submissions to a file.',
     'core' => ['8+'],
@@ -63,6 +65,8 @@ function yamlform_drush_command() {
     'aliases' => ['yfp'],
   ];
 
+  /* Tidy */
+
   $items['yamlform-tidy'] = [
     'description' => "Tidy export YAML form configuration files",
     'core' => ['8+'],
@@ -75,6 +79,40 @@ function yamlform_drush_command() {
     ],
     'aliases' => ['yft'],
   ];
+
+  /* Libraries */
+
+  $items['yamlform-libraries-status'] = [
+    'description' => 'Displays the status of third party libraries required by the YAML Form module.',
+    'core' => ['8+'],
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_ROOT,
+    'examples' => [
+      'yamlform-libraries-status' => 'Displays the status of third party libraries required by the YAML Form module.',
+    ],
+    'aliases' => ['yfls'],
+  ];
+
+  $items['yamlform-libraries-download'] = [
+    'description' => 'Download third party libraries required by the YAML Form module.',
+    'core' => ['8+'],
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_ROOT,
+    'examples' => [
+      'yamlform-libraries-download' => 'Download third party libraries required by the YAML Form module.',
+    ],
+    'aliases' => ['yfld'],
+  ];
+
+  $items['yamlform-libraries-remove'] = [
+    'description' => 'Removes all downloaded third party libraries required by the YAML Form module.',
+    'core' => ['8+'],
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_ROOT,
+    'examples' => [
+      'yamlform-libraries-remove' => 'Removes all downloaded third party libraries required by the YAML Form module.',
+    ],
+    'aliases' => ['yflr'],
+  ];
+
+  /* Devel Generate */
 
   $items['yamlform-generate'] = [
     'callback' => 'drush_devel_generate',
@@ -108,6 +146,15 @@ function yamlform_drush_help($section) {
 
     case 'drush:yamlform-purge':
       return dt('This command will purge YAML form submissions.');
+
+    case 'drush:yamlform-libraries-status':
+      return dt('This command displays the status of third party libraries required by the YAML Form module.');
+
+    case 'drush:yamlform-libraries-download':
+      return dt('This command downloads third party libraries required by the YAML Form module.');
+
+    case 'drush:yamlform-libraries-remove':
+      return dt('This command removes all downloaded third party libraries required by the YAML Form module.');
 
     case 'drush:yamlform-tidy':
       return dt('This command tidies exported YAML configuration files.') . "\n\n" .
@@ -299,6 +346,10 @@ function drush_yamlform_tidy($module = 'yamlform') {
   }
 }
 
+/******************************************************************************/
+// Devel Generate.
+/******************************************************************************/
+
 /**
  * Implements drush_hook_COMMAND_validate().
  */
@@ -307,6 +358,76 @@ function drush_yamlform_generate_validate() {
   $params = func_get_args();
   $params[0] = 'yamlform_submission';
   _drush_plugin_validate($params);
+}
+
+/******************************************************************************/
+// Libraries
+/******************************************************************************/
+
+/**
+ * Implements drush_hook_COMMAND().
+ */
+function drush_yamlform_libraries_status() {
+  module_load_include('install', 'yamlform');
+
+  $requirements = _yamlform_libraries_requirements();
+
+  foreach ($requirements as $requirement) {
+    $library = $requirement['library'];
+    drush_print($library['library_title'] . ' (' . $library['library_name'] . ') ' . $requirement['value']);
+    // drush_print();
+    drush_print(strip_tags($requirement['description']));
+    drush_print();
+  }
+}
+
+/**
+ * Implements drush_hook_COMMAND().
+ */
+function drush_yamlform_libraries_remove($status = TRUE) {
+  if ($status) {
+    drush_print(dt('Beginning to remove libraries...'));
+  }
+  $removed = FALSE;
+  $libraries = _yamlform_libraries_load();
+  foreach ($libraries as $library_name => $library) {
+    $library_path = '/' . $library['destination'] . '/' . $library['directory_name'];
+    $library_exists = (file_exists(DRUPAL_ROOT . $library_path)) ? TRUE : FALSE;
+    if ($library_exists) {
+      $t_args = [
+        '@name' => $library_name,
+        '@path' => $library_path,
+      ];
+      if ($status) {
+        drush_print(dt('@name removed from @path...', $t_args));
+        drush_delete_dir(DRUPAL_ROOT . $library_path, TRUE);
+      }
+      $removed = TRUE;
+    }
+  }
+  if ($status) {
+    drupal_flush_all_caches();
+  }
+  return $removed;
+}
+
+/**
+ * Implements drush_hook_COMMAND().
+ */
+function drush_yamlform_libraries_download() {
+  // Remove all existing libraries.
+  if (drush_yamlform_libraries_remove(FALSE)) {
+    drush_print(dt('Removing existing libraries...'));
+  }
+
+  // Download libraries using drush.
+  $commandline_args = [
+    DRUPAL_ROOT . '/' . drupal_get_path('module', 'yamlform') . '/yamlform.libraries.make.yml',
+    DRUPAL_ROOT,
+  ];
+  $commandline_options = ['no-core' => 'no-core'];
+  drush_invoke_process('@self', 'make', $commandline_args, $commandline_options);
+  drupal_flush_all_caches();
 }
 
 /******************************************************************************/

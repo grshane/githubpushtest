@@ -14,4 +14,13 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
  */
 class Radios extends OptionsBase {
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getDefaultProperties() {
+    return parent::getDefaultProperties() + [
+      'options_display' => 'one_column',
+    ];
+  }
+
 }

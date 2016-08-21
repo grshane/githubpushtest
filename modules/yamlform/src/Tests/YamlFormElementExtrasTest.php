@@ -61,16 +61,26 @@ class YamlFormElementExtrasTest extends WebTestBase {
     /**************************************************************************/
 
     // Check basic email_confirm.
-    $this->assertRaw('<label for="edit-email-confirm-basic-mail1">Email confirm basic</label>');
-    $this->assertRaw('<input class="email-field form-email" data-drupal-selector="edit-email-confirm-basic-mail1" type="email" id="edit-email-confirm-basic-mail1" name="email_confirm_basic[mail1]" value="" size="60" maxlength="254" />');
-    $this->assertRaw('<label for="edit-email-confirm-basic-mail2">Confirm Email confirm basic</label>');
-    $this->assertRaw('<input class="email-confirm form-email" data-drupal-selector="edit-email-confirm-basic-mail2" type="email" id="edit-email-confirm-basic-mail2" name="email_confirm_basic[mail2]" value="" size="60" maxlength="254" />');
+    $this->assertRaw('<div data-drupal-selector="edit-email-confirm-basic" id="edit-email-confirm-basic" class="js-form-wrapper form-wrapper">');
+    $this->assertRaw('<div class="js-form-item form-item js-form-type-email form-type-email js-form-item-email-confirm-basic-mail-1 form-item-email-confirm-basic-mail-1">');
+    $this->assertRaw('<label for="edit-email-confirm-basic-mail-1">Email confirm basic</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-email-confirm-basic-mail-1" class="yamlform-email form-email" type="email" id="edit-email-confirm-basic-mail-1" name="email_confirm_basic[mail_1]" value="" size="60" maxlength="254" />');
+    $this->assertRaw('<div class="js-form-item form-item js-form-type-email form-type-email js-form-item-email-confirm-basic-mail-2 form-item-email-confirm-basic-mail-2">');
+    $this->assertRaw('<label for="edit-email-confirm-basic-mail-2">Confirm email</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-email-confirm-basic-mail-2" class="yamlform-email-confirm form-email" type="email" id="edit-email-confirm-basic-mail-2" name="email_confirm_basic[mail_2]" value="" size="60" maxlength="254" />');
 
     // Check advanced email_confirm w/ custom label.
-    $this->assertRaw('<label for="edit-email-confirm-advanced-mail1">Email confirm advanced</label>');
-    $this->assertRaw('<input class="email-field form-email" data-drupal-selector="edit-email-confirm-advanced-mail1" type="email" id="edit-email-confirm-advanced-mail1" name="email_confirm_advanced[mail1]" value="" size="60" maxlength="254" />');
-    $this->assertRaw('<label for="edit-email-confirm-advanced-mail2">Please confirm your email address</label>');
-    $this->assertRaw('<input class="email-confirm form-email" data-drupal-selector="edit-email-confirm-advanced-mail2" type="email" id="edit-email-confirm-advanced-mail2" name="email_confirm_advanced[mail2]" value="" size="60" maxlength="254" />');
+    $this->assertRaw('<div data-drupal-selector="edit-email-confirm-advanced" aria-describedby="edit-email-confirm-advanced--description" id="edit-email-confirm-advanced" class="js-form-wrapper form-wrapper">');
+    $this->assertRaw('<div class="js-form-item form-item js-form-type-email form-type-email js-form-item-email-confirm-advanced-mail-1 form-item-email-confirm-advanced-mail-1">');
+    $this->assertRaw('<label for="edit-email-confirm-advanced-mail-1">Email confirm advanced</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-email-confirm-advanced-mail-1" aria-describedby="edit-email-confirm-advanced-mail-1--description" class="yamlform-email form-email" type="email" id="edit-email-confirm-advanced-mail-1" name="email_confirm_advanced[mail_1]" value="" size="60" maxlength="254" placeholder="Enter email address" />');
+    $this->assertRaw('<div id="edit-email-confirm-advanced-mail-1--description" class="description">');
+    $this->assertRaw('Please make sure to review your email address');
+    $this->assertRaw('<div class="js-form-item form-item js-form-type-email form-type-email js-form-item-email-confirm-advanced-mail-2 form-item-email-confirm-advanced-mail-2">');
+    $this->assertRaw('<label for="edit-email-confirm-advanced-mail-2">Please confirm your email address</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-email-confirm-advanced-mail-2" aria-describedby="edit-email-confirm-advanced-mail-2--description" class="yamlform-email-confirm form-email" type="email" id="edit-email-confirm-advanced-mail-2" name="email_confirm_advanced[mail_2]" value="" size="60" maxlength="254" placeholder="Enter confirmation email address" />');
+    $this->assertRaw('<div id="edit-email-confirm-advanced-mail-2--description" class="description">');
+    $this->assertRaw('Please make sure to review your confirmation email address');
 
     /**************************************************************************/
     // select_other
@@ -85,7 +95,8 @@ class YamlFormElementExtrasTest extends WebTestBase {
     $this->assertRaw('<label for="edit-select-other-advanced-select" class="js-form-required form-required">Select other advanced</label>');
     $this->assertRaw('<select data-drupal-selector="edit-select-other-advanced-select" id="edit-select-other-advanced-select" name="select_other_advanced[select]" class="form-select required" required="required" aria-required="true">');
     $this->assertRaw('<option value="_other_" selected="selected">Is there another option you wish to enter?</option>');
-    $this->assertRaw('<input data-drupal-selector="edit-select-other-advanced-other" aria-describedby="edit-select-other-advanced-other--description" type="text" id="edit-select-other-advanced-other" name="select_other_advanced[other]" value="Four" size="60" maxlength="128" placeholder="What is this other option" class="form-text" />');
+    $this->assertRaw('<label for="edit-select-other-advanced-other">Other</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-select-other-advanced-other" aria-describedby="edit-select-other-advanced-other--description" type="text" id="edit-select-other-advanced-other" name="select_other_advanced[other]" value="Four" size="20" maxlength="20" placeholder="What is this other option" class="form-text" />');
     $this->assertRaw('<div id="edit-select-other-advanced-other--description" class="description">');
     $this->assertRaw('Other select description');
 
@@ -128,6 +139,47 @@ class YamlFormElementExtrasTest extends WebTestBase {
     $this->assertRaw('Other radio description');
 
     /**************************************************************************/
+    // signature
+    /**************************************************************************/
+
+    $this->assertRaw('<input data-drupal-selector="edit-signature-basic" aria-describedby="edit-signature-basic--description" type="hidden" name="signature_basic" value="" class="js-yamlform-signature form-yamlform-signature" /><div class="js-yamlform-signature-pad yamlform-signature-pad">');
+    $this->assertRaw('<input type="submit" name="op" value="Reset" class="button js-form-submit form-submit" />');
+    $this->assertRaw('<canvas></canvas>');
+    $this->assertRaw('</div>');
+    $this->assertRaw('<div id="edit-signature-basic--description" class="description">');
+    $this->assertRaw('Sign above');
+
+    /**************************************************************************/
+    // toggle
+    /**************************************************************************/
+
+    // Check basic toggle.
+    $this->assertRaw('<div class="js-form-item form-item js-form-type-yamlform-toggle form-type-yamlform-toggle js-form-item-toggle-basic form-item-toggle-basic">');
+    $this->assertRaw('<input data-drupal-selector="edit-toggle-basic" type="checkbox" id="edit-toggle-basic" name="toggle_basic" value="1" class="form-checkbox" />');
+    $this->assertRaw('<div class="js-yamlform-toggle yamlform-toggle toggle toggle-medium toggle-light" data-toggle-height="24" data-toggle-width="48" data-toggle-text-on="" data-toggle-text-off=""></div>');
+    $this->assertRaw('<label for="edit-toggle-basic" class="option">This is a basic toggle</label>');
+
+    // Check advanced toggle.
+    $this->assertRaw('<div class="js-form-item form-item js-form-type-yamlform-toggle form-type-yamlform-toggle js-form-item-toggle-advanced form-item-toggle-advanced">');
+    $this->assertRaw('<label for="edit-toggle-advanced">This is an advanced toggle</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-toggle-advanced" type="checkbox" id="edit-toggle-advanced" name="toggle_advanced" value="1" class="form-checkbox" />');
+    $this->assertRaw('<div class="js-yamlform-toggle yamlform-toggle toggle toggle-large toggle-iphone" data-toggle-height="36" data-toggle-width="108" data-toggle-text-on="Yes" data-toggle-text-off="No"></div>');
+
+    /**************************************************************************/
+    // rating
+    /**************************************************************************/
+
+    // Check basic.
+    $this->assertRaw('<label for="edit-rating-basic">Rating basic</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-rating-basic" type="range" id="edit-rating-basic" name="rating_basic" value="0" step="1" min="0" max="5" class="form-yamlform-rating" />');
+    $this->assertRaw('<div class="rateit svg rateit-medium" data-rateit-min="0" data-rateit-max="5" data-rateit-step="1" data-rateit-resetable="false" data-rateit-readonly="false" data-rateit-backingfld="#edit-rating-basic" data-rateit-value="" data-rateit-starheight="24" data-rateit-starwidth="24">');
+
+    // Check advanced.
+    $this->assertRaw('<label for="edit-rating-advanced">Rating advanced</label>');
+    $this->assertRaw('<input data-drupal-selector="edit-rating-advanced" type="range" id="edit-rating-advanced" name="rating_advanced" value="0" step="0.1" min="0" max="10" class="form-yamlform-rating" />');
+    $this->assertRaw('<div class="rateit svg rateit-large" data-rateit-min="0" data-rateit-max="10" data-rateit-step="0.1" data-rateit-resetable="true" data-rateit-readonly="false" data-rateit-backingfld="#edit-rating-advanced" data-rateit-value="" data-rateit-starheight="32" data-rateit-starwidth="32">');
+
+    /**************************************************************************/
     // likert
     /**************************************************************************/
 
@@ -161,23 +213,6 @@ class YamlFormElementExtrasTest extends WebTestBase {
     // Check Text.
     $this->assertRaw('<label for="edit-text-basic">Text basic</label>');
     $this->assertRaw('<textarea data-drupal-selector="edit-text-basic" class="js-yamlform-codemirror yamlform-codemirror text form-textarea resize-vertical" data-yamlform-codemirror-mode="text/plain" id="edit-text-basic" name="text_basic" rows="5" cols="60"></textarea>');
-
-    /**************************************************************************/
-    // yamlform_element_options
-    /**************************************************************************/
-
-    // Check YAML form element options.
-    $this->assertRaw('<select class="js-edit-options-options form-select" data-drupal-selector="edit-options-options" aria-describedby="edit-options-options--description" id="edit-options-options" name="options[options]">');
-    $this->assertRaw('<option value="yes_no" selected="selected">Yes/No</option>');
-
-    // Check YAML form element options (custom).
-    $this->assertRaw('<select class="js-edit-options-custom--2-options form-select" data-drupal-selector="edit-options-custom-options" aria-describedby="edit-options-custom-options--description" id="edit-options-custom-options" name="options_custom[options]">');
-    $this->assertRaw('<option value="" selected="selected">Custom...</option>');
-    $this->assertRaw(">1: one\n2: two\n3: three\n</textarea>");
-
-    // Check YAML form element options (likert).
-    $this->assertRaw('<select class="js-edit-options-likert-options form-select" data-drupal-selector="edit-options-likert-options" aria-describedby="edit-options-likert-options--description" id="edit-options-likert-options" name="options_likert[options]">');
-    $this->assertRaw('<option value="">Custom...</option><option value="likert_agreement">');
 
     /**************************************************************************/
     // contact (composite element)
@@ -327,8 +362,8 @@ class YamlFormElementExtrasTest extends WebTestBase {
 
     // Check invalid email addresses.
     $edit = [
-      'email_confirm_advanced[mail1]' => 'Not a valid email address',
-      'email_confirm_advanced[mail2]' => 'Not a valid email address, again',
+      'email_confirm_advanced[mail_1]' => 'Not a valid email address',
+      'email_confirm_advanced[mail_2]' => 'Not a valid email address, again',
     ];
     $this->drupalPostForm('yamlform/test_element_extras', $edit, t('Submit'));
     $this->assertRaw('The email address <em class="placeholder">Not a valid email address</em> is not valid.');
@@ -336,16 +371,16 @@ class YamlFormElementExtrasTest extends WebTestBase {
 
     // Check non-matching email addresses.
     $edit = [
-      'email_confirm_advanced[mail1]' => 'example01@example.com',
-      'email_confirm_advanced[mail2]' => 'example02@example.com',
+      'email_confirm_advanced[mail_1]' => 'example01@example.com',
+      'email_confirm_advanced[mail_2]' => 'example02@example.com',
     ];
     $this->drupalPostForm('yamlform/test_element_extras', $edit, t('Submit'));
     $this->assertRaw('The specified email addresses do not match.');
 
     // Check matching email addresses.
     $edit = [
-      'email_confirm_advanced[mail1]' => 'example@example.com',
-      'email_confirm_advanced[mail2]' => 'example@example.com',
+      'email_confirm_advanced[mail_1]' => 'example@example.com',
+      'email_confirm_advanced[mail_2]' => 'example@example.com',
     ];
     $this->drupalPostForm('yamlform/test_element_extras', $edit, t('Submit'));
     $this->assertNoRaw('<li class="messages__item">The specified email addresses do not match.</li>');
@@ -353,8 +388,8 @@ class YamlFormElementExtrasTest extends WebTestBase {
 
     // Check empty confirm email address.
     $edit = [
-      'email_confirm_advanced[mail1]' => '',
-      'email_confirm_advanced[mail2]' => '',
+      'email_confirm_advanced[mail_1]' => '',
+      'email_confirm_advanced[mail_2]' => '',
     ];
     $this->drupalPostForm('yamlform/test_element_extras', $edit, t('Submit'));
     $this->assertNoRaw('<li class="messages__item">Confirm Email field is required.</li>');
@@ -500,6 +535,16 @@ class YamlFormElementExtrasTest extends WebTestBase {
     $this->assertNoRaw('expected &#039;&gt;&#039;');
 
     /**************************************************************************/
+    // rating
+    /**************************************************************************/
+
+    $edit = [
+      'rating_basic' => '4',
+    ];
+    $this->drupalPostForm('yamlform/test_element_extras', $edit, t('Submit'));
+    $this->assertRaw("rating_basic: '4'");
+
+    /**************************************************************************/
     // likert
     /**************************************************************************/
 
@@ -536,19 +581,6 @@ class YamlFormElementExtrasTest extends WebTestBase {
     $this->assertNoRaw('<p>This is only displayed on the form view.</p>');
     $this->assertRaw('<p>This is only displayed on the submission view.</p>');
     $this->assertRaw('<p>This is displayed on the both the form and submission view.</p>');
-
-    /**************************************************************************/
-    // yamlform_element_options
-    /**************************************************************************/
-
-    $this->drupalPostForm('yamlform/test_element_extras', [], t('Submit'));
-
-    $this->assertRaw('options: yes_no');
-    $this->assertRaw('options_custom:
-  1: one
-  2: two
-  3: three');
-    $this->assertRaw('options_likert: likert_ten_scale');
 
     /**************************************************************************/
     // contact (composite element)

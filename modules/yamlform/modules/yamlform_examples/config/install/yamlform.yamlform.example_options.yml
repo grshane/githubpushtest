@@ -5,7 +5,7 @@ uid: null
 template: false
 id: example_options
 title: 'Example: Options'
-description: 'Examples of all available select menu, radioa, and checkboxes options.'
+description: 'Examples of all available select menu, radio, and checkbox options.'
 elements: |
   basic_options:
     '#title': 'Basic Options'
@@ -19,7 +19,6 @@ elements: |
       '#type': radios
       '#title': 'Gender'
       '#options': gender
-  
   date_options:
     '#title': 'Date Options'
     '#type': details
@@ -27,8 +26,9 @@ elements: |
     days:
       '#type': select
       '#title': 'Days of the week'
+      '#description': 'Days are randomly displayed.'
       '#options': days
-  
+      '#options_randomize': true
   location_options:
     '#title': 'Location Options'
     '#type': details
@@ -57,7 +57,6 @@ elements: |
       '#type': select
       '#title': 'Country (codes)'
       '#options': country_codes
-  
   likert_options:
     '#title': 'Likert Options'
     '#type': details
@@ -68,7 +67,7 @@ elements: |
       '#questions':
         q1: 'Please answer question 1?'
         q2: 'How about now answering question 2?'
-        q3:  'Finally, here is question 3?'
+        q3: 'Finally, here is question 3?'
       '#answers': likert_agreement
     likert_comparison:
       '#type': likert
@@ -76,7 +75,7 @@ elements: |
       '#questions':
         q1: 'Please answer question 1?'
         q2: 'How about now answering question 2?'
-        q3:  'Finally, here is question 3?'
+        q3: 'Finally, here is question 3?'
       '#answers': likert_comparison
     likert_importance:
       '#type': likert
@@ -84,7 +83,7 @@ elements: |
       '#questions':
         q1: 'Please answer question 1?'
         q2: 'How about now answering question 2?'
-        q3:  'Finally, here is question 3?'
+        q3: 'Finally, here is question 3?'
       '#answers': likert_importance
     likert_satisfaction:
       '#type': likert
@@ -92,7 +91,7 @@ elements: |
       '#questions':
         q1: 'Please answer question 1?'
         q2: 'How about now answering question 2?'
-        q3:  'Finally, here is question 3?'
+        q3: 'Finally, here is question 3?'
       '#answers': likert_satisfaction
     likert_ten_scale:
       '#type': likert
@@ -100,16 +99,18 @@ elements: |
       '#questions':
         q1: 'Please answer question 1?'
         q2: 'How about now answering question 2?'
-        q3:  'Finally, here is question 3?'
+        q3: 'Finally, here is question 3?'
       '#answers': likert_ten_scale
     likert_would_you:
       '#type': likert
       '#title': 'Likert: Would You'
+      '#description': 'Questions are randomly displayed.'
       '#answers': likert_would_you
       '#questions':
         q1: 'Please answer question 1?'
         q2: 'How about now answering question 2?'
-        q3:  'Finally, here is question 3?'
+        q3: 'Finally, here is question 3?'
+      '#questions_randomize': true
   range_options:
     '#title': 'Range Options'
     '#type': details
@@ -146,13 +147,14 @@ settings:
   page: true
   page_submit_path: ''
   page_confirm_path: ''
-  form_closed_message: ''
-  form_exception_message: ''
   form_submit_label: ''
-  form_prepopulate: false
-  form_novalidate: false
+  form_exception_message: ''
+  form_closed_message: ''
   form_confidential: false
   form_confidential_message: ''
+  form_prepopulate: false
+  form_novalidate: false
+  form_autofocus: false
   wizard_progress_bar: true
   wizard_progress_pages: false
   wizard_progress_percentage: false

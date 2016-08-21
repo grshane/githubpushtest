@@ -120,7 +120,7 @@ class ManagedFile extends YamlFormElementBase {
   /**
    * {@inheritdoc}
    */
-  public function save(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
+  public function postSave(array &$element, YamlFormSubmissionInterface $yamlform_submission, $update = TRUE) {
     // Get current value and original value for this element.
     $key = $element['#yamlform_key'];
 
@@ -297,7 +297,7 @@ class ManagedFile extends YamlFormElementBase {
     $form['file'] = [
       '#type' => 'details',
       '#title' => $this->t('File settings'),
-      '#open' => TRUE,
+      '#open' => FALSE,
     ];
     $form['file']['max_filesize'] = [
       '#type' => 'number',

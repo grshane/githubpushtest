@@ -35,7 +35,6 @@ class YamlFormElementPluginTest extends YamlFormTestBase {
     $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest::validate');
     $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest:preSave');
     $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest:postSave insert');
-    $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest:save');
     $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest:postLoad');
 
     // Check update.
@@ -46,7 +45,6 @@ class YamlFormElementPluginTest extends YamlFormTestBase {
     $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest::validate');
     $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest:preSave');
     $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest:postSave update');
-    $this->assertRaw('Invoked: Drupal\yamlform_test\Plugin\YamlFormElement\YamlFormTest:save');
 
     // Check HTML.
     $this->drupalGet('/admin/structure/yamlform/manage/test_element_plugin_test/submission/' . $sid);
