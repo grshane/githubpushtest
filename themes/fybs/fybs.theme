@@ -63,11 +63,3 @@ function HOOK_theme_suggestions_block_alter(array &$suggestions, array $variable
     array_splice($suggestions, 1, 0, 'block__bundle__' . $variables['elements']['content']['#block_content']->bundle());
   }
 }
-
-/**
- * Implements template_preprocess_form
- * @param array $variables
- */
-function fybs_preprocess_input__textfield($variables) {
-    if
-}
