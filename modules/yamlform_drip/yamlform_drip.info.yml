@@ -1,0 +1,7 @@
+name: 'YAML Form Drip'
+type: module
+description: 'Provides integration between YAMLForm and Drip'
+package: 'YAML Form'
+core: 8.x
+dependencies:
+  - yamlform

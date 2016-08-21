@@ -178,7 +178,6 @@ duplicate:
       ];
     }
 
-
     foreach ($tests as $test) {
       $test += [
         'getElementsRaw' => '',
@@ -190,6 +189,7 @@ duplicate:
         'messages' => [],
       ];
 
+      /** @var \Drupal\yamlform\YamlFormInterface $yamlform */
       $yamlform = $this->getMock('\Drupal\yamlform\YamlFormInterface');
       $methods = $test;
       unset($methods['message']);

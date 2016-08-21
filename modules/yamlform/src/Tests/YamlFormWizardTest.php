@@ -4,7 +4,7 @@ namespace Drupal\yamlform\Tests;
 
 use Drupal\simpletest\WebTestBase;
 use Drupal\yamlform\Entity\YamlForm;
-use Symfony\Component\Yaml\Yaml;
+use Drupal\Component\Serialization\Yaml;
 
 /**
  * Tests for YAML form wizard.
@@ -205,10 +205,10 @@ class YamlFormWizardTest extends WebTestBase {
     $this->assertFieldById('edit-next', '{yamlform wizard next}');
 
     // Check custom next and previous button labels.
-    $elements = Yaml::parse($yamlform_wizard_advanced->get('elements'));
+    $elements = Yaml::decode($yamlform_wizard_advanced->get('elements'));
     $elements['contact']['#next_button_label'] = '{elements wizard next}';
     $elements['contact']['#prev_button_label'] = '{elements wizard previous}';
-    $yamlform_wizard_advanced->set('elements', Yaml::dump($elements));
+    $yamlform_wizard_advanced->set('elements', Yaml::encode($elements));
     $yamlform_wizard_advanced->save();
     $this->drupalPostForm('yamlform/test_form_wizard_advanced', [], t('{yamlform wizard next}'));
 

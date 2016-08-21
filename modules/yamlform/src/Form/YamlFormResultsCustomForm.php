@@ -284,7 +284,7 @@ class YamlFormResultsCustomForm extends FormBase {
 
     // Set redirect.
     $route_name = $this->yamlFormRequest->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_table');
-    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity, 'yamlform.results_table');
+    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity);
     $form_state->setRedirect($route_name, $route_parameters);
   }
 

@@ -5,7 +5,7 @@ uid: null
 template: false
 id: example_elements_masks
 title: 'Example: Elements with masks'
-description: 'Examples of form elements with <a href="https://github.com/RobinHerbots/jquery.inputmask">input mask</a>'
+description: 'Examples of form elements with <a href="https://github.com/RobinHerbots/jquery.inputmask">input mask</a>.'
 elements: |
   masks:
     '#type': details
@@ -76,10 +76,11 @@ settings:
   form_submit_label: ''
   form_exception_message: ''
   form_closed_message: ''
-  form_prepopulate: false
-  form_novalidate: false
   form_confidential: false
   form_confidential_message: ''
+  form_prepopulate: false
+  form_novalidate: false
+  form_autofocus: false
   wizard_progress_bar: true
   wizard_progress_pages: false
   wizard_progress_percentage: false

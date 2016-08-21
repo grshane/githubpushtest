@@ -5,6 +5,7 @@ namespace Drupal\yamlform;
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 
 /**
  * Defines the interface for YAML form elements.
@@ -15,7 +16,7 @@ use Drupal\Core\Plugin\PluginFormInterface;
  * @see \Drupal\yamlform\YamlFormElementManagerInterface
  * @see plugin_api
  */
-interface YamlFormElementInterface extends PluginInspectionInterface, PluginFormInterface {
+interface YamlFormElementInterface extends PluginInspectionInterface, PluginFormInterface, ContainerFactoryPluginInterface {
 
   /**
    * Get the URL for the element's API documentation.
@@ -48,6 +49,17 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    *   An associative array containing default element properties.
    */
   public function getDefaultProperties();
+
+  /**
+   * Determine if an element supports a specified property.
+   *
+   * @param string $property_name
+   *   An element's property name.
+   *
+   * @return bool
+   *   TRUE if the element supports a specified property.
+   */
+  public function hasProperty($property_name);
 
   /**
    * Checks if the YAML form element can have a value.
@@ -105,6 +117,17 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
   public function isComposite(array $element);
 
   /**
+   * Checks if YAML form element is hidden.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return bool
+   *   TRUE if the YAML form element is hidden.
+   */
+  public function isHidden(array $element);
+
+  /**
    * Checks if YAML form element value has multiple values.
    *
    * @param array $element
@@ -116,17 +139,28 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
   public function hasMultipleValues(array $element);
 
   /**
-   * Gets the actual configuration form array to be built.
+   * Get related element types.
    *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The current state of the form.
+   * @param array $element
+   *   The element.
    *
    * @return array
-   *   An associative array contain the element's configuration form without
-   *   any default values..
+   *   An array containing related element types.
    */
+  public function getRelatedTypes(array $element);
+
+    /**
+     * Gets the actual configuration form array to be built.
+     *
+     * @param array $form
+     *   An associative array containing the structure of the form.
+     * @param \Drupal\Core\Form\FormStateInterface $form_state
+     *   The current state of the form.
+     *
+     * @return array
+     *   An associative array contain the element's configuration form without
+     *   any default values..
+     */
   public function form(array $form, FormStateInterface $form_state);
 
   /**
@@ -408,18 +442,6 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    *   A YAML form submission.
    */
   public function preSave(array &$element, YamlFormSubmissionInterface $yamlform_submission);
-
-  /**
-   * Save any additional value associated with an element.
-   *
-   * Currently only applicable to file uploads.
-   *
-   * @param array $element
-   *   An element.
-   * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
-   */
-  public function save(array &$element, YamlFormSubmissionInterface $yamlform_submission);
 
   /**
    * Acts on a saved YAML form submission element before the insert or update hook is invoked.

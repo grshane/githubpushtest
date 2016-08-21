@@ -98,33 +98,7 @@ class YamlFormSubmissionStorage extends SqlContentEntityStorage implements YamlF
   public function loadMultiple(array $ids = NULL) {
     /** @var \Drupal\yamlform\YamlFormSubmissionInterface[] $yamlform_submissions */
     $yamlform_submissions = parent::loadMultiple($ids);
-
-    // Load YAML form submission data.
-    if ($sids = array_keys($yamlform_submissions)) {
-      $result = Database::getConnection()->select('yamlform_submission_data', 'sd')
-        ->fields('sd', ['sid', 'name', 'delta', 'value'])
-        ->condition('sd.sid', $sids, 'IN')
-        ->orderBy('sd.sid', 'ASC')
-        ->orderBy('sd.name', 'ASC')
-        ->orderBy('sd.delta', 'ASC')
-        ->execute();
-      $submissions_data = [];
-      while ($record = $result->fetchAssoc()) {
-        if ($record['delta'] === '') {
-          $submissions_data[$record['sid']][$record['name']] = $record['value'];
-        }
-        else {
-          $submissions_data[$record['sid']][$record['name']][$record['delta']] = $record['value'];
-        }
-      }
-
-      // Set YAML form submission data via setData().
-      foreach ($submissions_data as $sid => $submission_data) {
-        $yamlform_submissions[$sid]->setData($submission_data);
-        $yamlform_submissions[$sid]->setOriginalData($submission_data);
-      }
-    }
-
+    $this->loadData($yamlform_submissions);
     return $yamlform_submissions;
   }
 
@@ -193,6 +167,10 @@ class YamlFormSubmissionStorage extends SqlContentEntityStorage implements YamlF
     return reset($result);
   }
 
+  /****************************************************************************/
+  // Paging methods.
+  /****************************************************************************/
+
   /**
    * {@inheritdoc}
    */
@@ -260,6 +238,10 @@ class YamlFormSubmissionStorage extends SqlContentEntityStorage implements YamlF
 
     return ($entity_ids = $query->execute()) ? $this->load(reset($entity_ids)) : NULL;
   }
+
+  /****************************************************************************/
+  // YamlFormSubmissionEntityList methods.
+  /****************************************************************************/
 
   /**
    * {@inheritdoc}
@@ -445,6 +427,254 @@ class YamlFormSubmissionStorage extends SqlContentEntityStorage implements YamlF
     else {
       return $default;
     }
+  }
+
+  /****************************************************************************/
+  // Invoke YamlFormElement and YamlFormHandler plugin methods.
+  /****************************************************************************/
+
+  /**
+   * {@inheritdoc}
+   */
+  public function create(array $values = []) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionInterface $entity */
+    // Pre create is called via the YamlFormSubmission entity.
+    // @see: \Drupal\yamlform\Entity\YamlFormSubmission::preCreate
+    $entity = parent::create($values);
+
+    $this->invokeYamlFormElements('postCreate', $entity);
+    $this->invokeYamlFormHandlers('postCreate', $entity);
+
+    return $entity;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function postLoad(array &$entities) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionInterface $entity */
+    $return = parent::postLoad($entities);
+    foreach ($entities as $entity) {
+      $this->invokeYamlFormElements('postLoad', $entity);
+      $this->invokeYamlFormHandlers('postLoad', $entity);
+    }
+    return $return;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function doPreSave(EntityInterface $entity) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionInterface $entity */
+    $id = parent::doPreSave($entity);
+    $this->invokeYamlFormElements('preSave', $entity);
+    $this->invokeYamlFormHandlers('preSave', $entity);
+    return $id;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function doSave($id, EntityInterface $entity) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionInterface $entity */
+    if ($entity->getYamlForm()->getSetting('results_disabled')) {
+      return YamlFormSubmissionStorageInterface::SAVED_DISABLED;
+    }
+
+    $result = parent::doSave($id, $entity);
+
+    // Save data.
+    $this->saveData($entity);
+    // DEBUG: dsm($entity->getState());
+    // Log transaction.
+    $yamlform = $entity->getYamlForm();
+    $context = [
+      '@id' => $entity->id(),
+      '@form' => $yamlform->label(),
+      'link' => $entity->toLink(t('Edit'), 'edit-form')->toString(),
+    ];
+    switch ($entity->getState()) {
+      case YamlFormSubmissionInterface::STATE_DRAFT;
+        \Drupal::logger('yamlform')->notice('@form:Submission #@id draft saved.', $context);
+        break;
+
+      case YamlFormSubmissionInterface::STATE_UPDATED;
+        \Drupal::logger('yamlform')->notice('@form:Submission #@id updated.', $context);
+        break;
+
+      case YamlFormSubmissionInterface::STATE_COMPLETED;
+        if ($result === SAVED_NEW) {
+          \Drupal::logger('yamlform')->notice('@form:Submission #@id created.', $context);
+        }
+        else {
+          \Drupal::logger('yamlform')->notice('@form:Submission #@id completed.', $context);
+        }
+        break;
+    }
+
+    return $result;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function doPostSave(EntityInterface $entity, $update) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionInterface $entity */
+    parent::doPostSave($entity, $update);
+    $this->invokeYamlFormElements('postSave', $entity, $update);
+    $this->invokeYamlFormHandlers('postSave', $entity, $update);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function delete(array $entities) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionInterface $entity */
+    if (!$entities) {
+      // If no entities were passed, do nothing.
+      return;
+    }
+
+    foreach ($entities as $entity) {
+      $this->invokeYamlFormElements('preDelete', $entity);
+      $this->invokeYamlFormHandlers('preDelete', $entity);
+    }
+
+    $return = parent::delete($entities);
+    $this->deleteData($entities);
+
+    foreach ($entities as $entity) {
+      $this->invokeYamlFormElements('postDelete', $entity);
+      $this->invokeYamlFormHandlers('postDelete', $entity);
+    }
+
+    // Log deleted.
+    foreach ($entities as $entity) {
+      \Drupal::logger('yamlform')
+        ->notice('Deleted @form:Submission #@id.', [
+          '@id' => $entity->id(),
+          '@form' => $entity->getYamlForm()->label(),
+        ]);
+    }
+
+    return $return;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function invokeYamlFormHandlers($method, YamlFormSubmissionInterface $yamlform_submission, &$context1 = NULL, &$context2 = NULL) {
+    $yamlform = $yamlform_submission->getYamlForm();
+    $yamlform->invokeHandlers($method, $yamlform_submission, $context1, $context2);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function invokeYamlFormElements($method, YamlFormSubmissionInterface $yamlform_submission, &$context1 = NULL, &$context2 = NULL) {
+    $yamlform = $yamlform_submission->getYamlForm();
+    $yamlform->invokeElements($method, $yamlform_submission, $context1, $context2);
+  }
+
+  /****************************************************************************/
+  // Data handlers.
+  /****************************************************************************/
+
+  /**
+   * Save YAML form submission data from the 'yamlform_submission_data' table.
+   *
+   * @param array $yamlform_submissions
+   *   An array of YAML form submissions.
+   */
+  protected function loadData(array &$yamlform_submissions) {
+    // Load YAML form submission data.
+    if ($sids = array_keys($yamlform_submissions)) {
+      $result = Database::getConnection()->select('yamlform_submission_data', 'sd')
+        ->fields('sd', ['sid', 'name', 'delta', 'value'])
+        ->condition('sd.sid', $sids, 'IN')
+        ->orderBy('sd.sid', 'ASC')
+        ->orderBy('sd.name', 'ASC')
+        ->orderBy('sd.delta', 'ASC')
+        ->execute();
+      $submissions_data = [];
+      while ($record = $result->fetchAssoc()) {
+        if ($record['delta'] === '') {
+          $submissions_data[$record['sid']][$record['name']] = $record['value'];
+        }
+        else {
+          $submissions_data[$record['sid']][$record['name']][$record['delta']] = $record['value'];
+        }
+      }
+
+      // Set YAML form submission data via setData().
+      foreach ($submissions_data as $sid => $submission_data) {
+        $yamlform_submissions[$sid]->setData($submission_data);
+        $yamlform_submissions[$sid]->setOriginalData($submission_data);
+      }
+    }
+  }
+
+  /**
+   * Save YAML form submission data to the 'yamlform_submission_data' table.
+   *
+   * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
+   *   A YAML form submission.
+   */
+  protected function saveData(YamlFormSubmissionInterface $yamlform_submission) {
+    // Get submission data rows.
+    $data = $yamlform_submission->getData();
+    $yamlform_id = $yamlform_submission->getYamlForm()->id();
+    $sid = $yamlform_submission->id();
+
+    $rows = [];
+    foreach ($data as $name => $item) {
+      if (is_array($item)) {
+        foreach ($item as $key => $value) {
+          $rows[] = [
+            'yamlform_id' => $yamlform_id,
+            'sid' => $sid,
+            'name' => $name,
+            'delta' => (string) $key,
+            'value' => (string) $value,
+          ];
+        }
+      }
+      else {
+        $rows[] = [
+          'yamlform_id' => $yamlform_id,
+          'sid' => $sid,
+          'name' => $name,
+          'delta' => '',
+          'value' => (string) $item,
+        ];
+      }
+    }
+
+    // Delete existing submission data rows.
+    \Drupal::database()->delete('yamlform_submission_data')
+      ->condition('sid', $sid)
+      ->execute();
+
+    // Insert new submission data rows.
+    $query = \Drupal::database()
+      ->insert('yamlform_submission_data')
+      ->fields(['yamlform_id', 'sid', 'name', 'delta', 'value']);
+    foreach ($rows as $row) {
+      $query->values($row);
+    }
+    $query->execute();
+  }
+
+  /**
+   * Delete YAML form submission data fromthe 'yamlform_submission_data' table.
+   *
+   * @param array $yamlform_submissions
+   *   An array of YAML form submissions.
+   */
+  protected function deleteData(array $yamlform_submissions) {
+    Database::getConnection()->delete('yamlform_submission_data')
+      ->condition('sid', array_keys($yamlform_submissions), 'IN')
+      ->execute();
   }
 
 }

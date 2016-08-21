@@ -60,7 +60,8 @@ Form elements include:
 - **Drupal specific** File uploads, Entity References, Table select, Date list, 
   and more...
 - **Custom:** [Likert scale](https://en.wikipedia.org/wiki/Likert_scale), 
-  Credit card number, Select/Checkboxes/Radios with other, and more...
+  Star rating, Toggle, Credit card number, Select/Checkboxes/Radios with other, 
+  and more...
 - **Composite elements:** Address, Contact, and Credit Card 
 
 ### Custom Properties
@@ -233,14 +234,16 @@ Starter templates include:
 
 Administrators can define reusable global options for select menus, checkboxes, 
 and radio buttons. The YAML Form module includes default options for states,
-countries, [likert](https://en.wikipedia.org/wiki/Likert_scale) answers, and more.   
+countries, [likert](https://en.wikipedia.org/wiki/Likert_scale) answers, 
+and more.   
 
 Reusable options include:
 
 - Country codes & names	
 - State/province codes & names	
 - State codes	& names		
-- Likert agreement, comparison, importance, satisfaction, ten scale, and would you
+- Likert agreement, comparison, importance, satisfaction, ten scale, and
+  would you
 
 
 ### Internationalization
@@ -263,12 +266,20 @@ configuration translation system.
 </a>
 </div>
 
-Forms can be attached to nodes or displayed as blocks.  Forms can also have dedicated SEO-friendly URLs. Form elements are simply render arrays that can
+Forms can be attached to nodes or displayed as blocks.  Forms can also have 
+dedicated SEO-friendly URLs. Form elements are simply render arrays that can
 easily be altered using custom hooks and/or plugins.
+
 
 ### Drush Integration
 
-Drush commands are provided to create, export, and purge submissions.
+Drush commands are provided to:
+
+- Generate multiple YAML form submissions.
+- Export YAML form submissions.
+- Purge YAML form submissions.
+- Download and manage third party libraries.
+- Tidy YAML configuration files. 
 
 <!-- Creates the bootstrap modal where the image will appear -->
 <div class="modal fade" id="modal-lightbox" tabindex="-1" role="dialog" aria-labelledby="modal-lightbox-label" aria-hidden="true">

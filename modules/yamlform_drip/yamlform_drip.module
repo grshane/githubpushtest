@@ -1,0 +1,25 @@
+<?php
+
+namespace Drupal\yamlform_drip\YamlFormHandlerDrip;
+
+use Drupal\yamlform\YamlFormHandlerBase;
+
+/**
+ * Defines a Drip plugin for YAML Forms.
+ *
+ * @YamlFormHandler(
+ *   id = "drip",
+ *   description = @Translation("Drip YAML form handler plugin."),
+ * )
+ */
+class DripYamlFormHandler extends YamlFormHandlerBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  function fybs_preprocess_yamlform(&$variables)
+  {
+    $variables['attributes'] =
+  }
+
+}

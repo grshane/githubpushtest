@@ -33,11 +33,13 @@ class YamlFormLikert extends YamlFormElementBase {
       'required' => FALSE,
       'default_value' => '',
       'title_display' => '',
+      'description_display' => '',
       'prefix' => '',
       'suffix' => '',
       'private' => FALSE,
       'format' => $this->getDefaultFormat(),
       'questions' => [],
+      'questions_randomize' => FALSE,
       'answers' => [],
     ];
   }
@@ -301,11 +303,17 @@ class YamlFormLikert extends YamlFormElementBase {
       '#open' => TRUE,
     ];
     $form['likert']['questions'] = [
-      '#title' => $this->t('Questions (YAML)'),
-      '#type' => 'yamlform_codemirror',
-      '#mode' => 'yaml',
-      '#description' => $this->t('Key-value pairs MUST be specified as "safe_key: \'Some readable @type\'". Use of only alphanumeric characters and underscores is recommended in keys. One @type per line.', ['@type' => 'question']),
+      '#title' => $this->t('Questions'),
+      '#type' => 'yamlform_options',
+      '#label' => $this->t('question'),
+      '#labels' => $this->t('questions'),
       '#required' => TRUE,
+    ];
+    $form['likert']['questions_randomize'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Randomize questions'),
+      '#description' => $this->t('Randomizes the order of the questions when they are displayed in the form.'),
+      '#return_value' => TRUE,
     ];
     $form['likert']['answers'] = [
       '#title' => $this->t('Answers'),

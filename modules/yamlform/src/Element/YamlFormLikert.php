@@ -41,6 +41,11 @@ class YamlFormLikert extends FormElement {
       ['question' => FALSE],
     ] + $element['#answers'];
 
+    // Randomize questions.
+    if (!empty($element['#questions_randomize'])) {
+      shuffle($element['#questions']);
+    }
+
     // Build rows.
     $rows = [];
     foreach ($element['#questions'] as $question_key => $question_title) {

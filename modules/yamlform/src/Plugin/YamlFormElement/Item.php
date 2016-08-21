@@ -28,6 +28,7 @@ class Item extends ContainerBase {
       'required' => FALSE,
 
       'title_display' => '',
+      'description_display' => '',
       'prefix' => '',
       'suffix' => '',
       'field_prefix' => '',

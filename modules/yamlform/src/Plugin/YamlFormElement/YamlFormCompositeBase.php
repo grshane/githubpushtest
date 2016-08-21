@@ -17,6 +17,13 @@ use Drupal\yamlform\YamlFormInterface;
 abstract class YamlFormCompositeBase extends YamlFormElementBase {
 
   /**
+   * {@inheritdoc}
+   */
+  public function getRelatedTypes(array $element) {
+    $types = [];
+  }
+
+  /**
    * Get composite elements.
    *
    * @return array
@@ -70,6 +77,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
       'default_value' => [],
       'required' => FALSE,
       'title_display' => '',
+      'description_display' => '',
       'prefix' => '',
       'suffix' => '',
     ];
@@ -123,7 +131,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
       // Add reference to initialized composite element so that it can be
       // used by ::formatTableColumn().
       $columns['element__' . $key . '__' . $composite_key] = [
-        'title' => ($is_title_displayed ? $title . ': ' : '') . ($composite_element['#title'] ?: $composite_key),
+        'title' => ($is_title_displayed ? $title . ': ' : '') . (!empty($composite_element['#title']) ? $composite_element['#title'] : $composite_key),
         'sort' => TRUE,
         'default' => FALSE,
         'key' => $key,
@@ -171,7 +179,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
     $form['composite'] = [
       '#type' => 'details',
       '#title' => $this->t('@title settings', ['@title' => $this->getPluginLabel()]),
-      '#open' => TRUE,
+      '#open' => FALSE,
     ];
 
     $header = [

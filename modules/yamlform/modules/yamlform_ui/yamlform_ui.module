@@ -10,16 +10,30 @@
  */
 function yamlform_ui_entity_type_alter(array &$entity_types) {
   if (isset($entity_types['yamlform'])) {
-    /** @var \Drupal\Core\Entity\ContentEntityTypeInterface $entity_type */
-    $entity_type = $entity_types['yamlform'];
+    /** @var \Drupal\Core\Entity\ContentEntityTypeInterface $yamlform_entity_type */
+    $yamlform_entity_type = $entity_types['yamlform'];
 
     // Swap the 'default' form handler with the YAML form UI entity form
     // and move the old YAML form source entity form to a new 'source'
     // form handler.
-    $handlers = $entity_type->getHandlerClasses();
+    $handlers = $yamlform_entity_type->getHandlerClasses();
     $handlers['form']['source'] = $handlers['form']['default'];
     $handlers['form']['default'] = 'Drupal\yamlform_ui\YamlFormUiEntityForm';
     $handlers['form']['duplicate'] = 'Drupal\yamlform_ui\YamlFormUiEntityForm';
-    $entity_type->setHandlerClass('form', $handlers['form']);
+    $yamlform_entity_type->setHandlerClass('form', $handlers['form']);
   }
+
+  if (isset($entity_types['yamlform_options'])) {
+    /** @var \Drupal\Core\Entity\ContentEntityTypeInterface $yamlform_entity_type */
+    $yamlform_options_entity_type = $entity_types['yamlform_options'];
+
+    // Swap the 'default' form handler with the YAML form UI option form
+    // and move the old YAML form option source entity form to a new 'source'
+    // form handler.
+    $handlers = $yamlform_options_entity_type->getHandlerClasses();
+    $handlers['form']['source'] = $handlers['form']['default'];
+    $handlers['form']['default'] = 'Drupal\yamlform_ui\YamlFormUiOptionsForm';
+    $yamlform_options_entity_type->setHandlerClass('form', $handlers['form']);
+  }
+
 }

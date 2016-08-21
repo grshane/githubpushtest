@@ -36,7 +36,7 @@ class TextFormat extends YamlFormElementBase {
    */
   public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
     parent::prepare($element, $yamlform_submission);
-    $element['#after_build'] = [[$this, 'afterBuild']];
+    $element['#after_build'] = [[get_class($this), 'afterBuild']];
   }
 
   /**
@@ -50,7 +50,7 @@ class TextFormat extends YamlFormElementBase {
    * @return array
    *   The element.
    */
-  public function afterBuild(array $element, FormStateInterface $form_state) {
+  static public function afterBuild(array $element, FormStateInterface $form_state) {
     if (empty($element['format'])) {
       return $element;
     }
@@ -142,7 +142,7 @@ class TextFormat extends YamlFormElementBase {
     $form['text_format'] = [
       '#type' => 'details',
       '#title' => $this->t('Text format settings'),
-      '#open' => TRUE,
+      '#open' => FALSE,
     ];
     $form['text_format']['allowed_formats'] = [
       '#type' => 'checkboxes',

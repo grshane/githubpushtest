@@ -27,9 +27,6 @@ class YamlFormCheckboxesOther extends FormElement {
       ],
       '#theme_wrappers' => ['form_element'],
       '#options' => [],
-      '#other_option_label' => FALSE,
-      '#other_placeholder' => FALSE,
-      '#other_description' => FALSE,
     ];
   }
 
@@ -57,7 +54,8 @@ class YamlFormCheckboxesOther extends FormElement {
    * Processes a checkboxes other form element.
    *
    * See checkboxes form element for checkboxes properties.
-   * \Drupal\Core\Render\Element\Checkboxes
+   *
+   * @see \Drupal\Core\Render\Element\Checkboxes
    */
   public static function processYamlFormCheckboxesOther(&$element, FormStateInterface $form_state, &$complete_form) {
     // Build checkboxes element with selected properties.
@@ -73,14 +71,18 @@ class YamlFormCheckboxesOther extends FormElement {
     ];
     $element['checkboxes']['#type'] = 'checkboxes';
     $element['checkboxes'] += array_intersect_key($element, array_combine($properties, $properties));
-    $element['checkboxes']['#options'][self::OTHER_OPTION] = (!empty($element['#other_option_label'])) ? $element['#other_option_label'] : t('Other...');
+    $element['checkboxes']['#options'][self::OTHER_OPTION] = (!empty($element['#other__option_label'])) ? $element['#other__option_label'] : t('Other...');
     $element['checkboxes']['#error_no_message'] = TRUE;
 
     // Build other textfield.
     $element['other']['#type'] = 'textfield';
-    $element['other']['#placeholder'] = (!empty($element['#other_placeholder'])) ? $element['#other_placeholder'] : t('Enter other...');
-    $element['other']['#description'] = (!empty($element['#other_description'])) ? $element['#other_description'] : NULL;
+    $element['other']['#placeholder'] = t('Enter other...');
     $element['other']['#error_no_message'] = TRUE;
+    foreach ($element as $key => $value) {
+      if (strpos($key, '#other__') === 0) {
+        $element['other'][str_replace('#other__', '#', $key)] = $value;
+      }
+    }
 
     // Remove title and options since they are being moved the
     // checkboxes element.

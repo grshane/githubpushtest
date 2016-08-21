@@ -54,7 +54,11 @@ elements: |
     email_confirm_advanced:
       '#type': email_confirm
       '#title': 'Email confirm advanced'
-      '#confirm_title': 'Please confirm your email address'
+      '#description': 'Please make sure to review your email address'
+      '#placeholder': 'Enter email address'
+      '#confirm__title': 'Please confirm your email address'
+      '#confirm__description': 'Please make sure to review your confirmation email address'
+      '#confirm__placeholder': 'Enter confirmation email address'
   creditcard_number:
     '#type': details
     '#title': 'Credit card number (creditcard_number)'
@@ -85,9 +89,12 @@ elements: |
           Two: Two
         Three: Three
       '#empty_option': Select...
-      '#other_option_label': 'Is there another option you wish to enter?'
-      '#other_placeholder': 'What is this other option'
-      '#other_description': 'Other select description'
+      '#other__option_label': 'Is there another option you wish to enter?'
+      '#other__title': 'Other'
+      '#other__placeholder': 'What is this other option'
+      '#other__description': 'Other select description'
+      '#other__size': 20
+      '#other__maxlength': 20
       '#required': true
     select_other_multiple:
       '#type': select_other
@@ -129,9 +136,9 @@ elements: |
         - Two
         - Four
       '#required': true
-      '#other_option_label': 'Is there another option you wish to enter?'
-      '#other_placeholder': 'What is this other option'
-      '#other_description': 'Other checkbox description'
+      '#other__option_label': 'Is there another option you wish to enter?'
+      '#other__placeholder': 'What is this other option'
+      '#other__description': 'Other checkbox description'
   radios_other:
     '#type': details
     '#title': 'Radios other (radios_other)'
@@ -153,9 +160,39 @@ elements: |
         Three: Three
       '#default_value': Four
       '#required': true
-      '#other_option_label': 'Is there another option you wish to enter?'
-      '#other_placeholder': 'What is this other option'
-      '#other_description': 'Other radio description'
+      '#other__option_label': 'Is there another option you wish to enter?'
+      '#other__placeholder': 'What is this other option'
+      '#other__description': 'Other radio description'
+  toggle_elements:
+    '#type': details
+    '#title': 'Toggle Elements'
+    '#open': true
+    toggle_basic:
+      '#type': toggle
+      '#title': 'This is a basic toggle'
+    toggle_advanced:
+      '#type': toggle
+      '#title': 'This is an advanced toggle'
+      '#title_display': before
+      '#toggle_theme': iphone
+      '#toggle_size': large
+      '#on_text': Yes
+      '#off_text': No
+  rating_elements:
+    '#type': details
+    '#title': 'Rating Elements'
+    '#open': true
+    rating_basic:
+      '#type': rating
+      '#title': 'Rating basic'
+    rating_advanced:
+      '#type': rating
+      '#title': 'Rating advanced'
+      '#star_size': large
+      '#reset': true
+      '#min': 0
+      '#max': 10
+      '#step': .1
   likert_elements:
     '#type': details
     '#title': 'Likert Elements'
@@ -187,6 +224,13 @@ elements: |
         q1: 1
         q2: 2
         q3: 3
+  signature_elements:
+    '#type': details
+    '#title': 'Signature Elements'
+    '#open': true
+    signature_basic:
+      '#type': signature
+      '#title': 'Signature basic'
   codemirror_elements:
     '#type': details
     '#title': 'CodeMirror Elements'
@@ -202,29 +246,6 @@ elements: |
       '#type': codemirror
       '#mode': html
       '#title': 'HTML basic'
-  yamlform_elements:
-    '#type': details
-    '#title': 'YAML Form Elements'
-    '#open': true
-    options:
-      '#type': element_options
-      '#title': 'YAML form element options'
-      '#required': true
-      '#default_value': yes_no
-    options_custom:
-      '#type': element_options
-      '#title': 'YAML form element options (custom)'
-      '#required': true
-      '#default_value':
-        1: one
-        2: two
-        3: three
-    options_likert:
-      '#type': element_options
-      '#title': 'YAML form element options (likert)'
-      '#required': true
-      '#likert': true
-      '#default_value': likert_ten_scale
   table_elements:
     '#type': 'details'
     '#title': 'Table'
@@ -314,13 +335,14 @@ settings:
   page: true
   page_submit_path: ''
   page_confirm_path: ''
-  form_closed_message: ''
-  form_exception_message: ''
   form_submit_label: ''
-  form_prepopulate: false
-  form_novalidate: false
+  form_exception_message: ''
+  form_closed_message: ''
   form_confidential: false
   form_confidential_message: ''
+  form_prepopulate: false
+  form_novalidate: false
+  form_autofocus: false
   wizard_progress_bar: true
   wizard_progress_pages: false
   wizard_progress_percentage: false

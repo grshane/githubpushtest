@@ -28,6 +28,7 @@ class YamlFormCodeMirror extends YamlFormElementBase {
       'required' => FALSE,
       'default_value' => '',
       'title_display' => '',
+      'description_display' => '',
       'prefix' => '',
       'suffix' => '',
       'private' => FALSE,
@@ -87,7 +88,12 @@ class YamlFormCodeMirror extends YamlFormElementBase {
 
       case 'text':
         return "Hello World";
+
+      default:
+        return '';
+
     }
+
   }
 
   /**
@@ -98,7 +104,7 @@ class YamlFormCodeMirror extends YamlFormElementBase {
     $form['codemirror'] = [
       '#type' => 'details',
       '#title' => $this->t('CodeMirror settings'),
-      '#open' => TRUE,
+      '#open' => FALSE,
     ];
     $form['codemirror']['mode'] = [
       '#title' => $this->t('Mode'),

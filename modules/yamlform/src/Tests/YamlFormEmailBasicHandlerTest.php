@@ -33,6 +33,14 @@ class YamlFormEmailBasicHandlerTest extends YamlFormTestBase {
     $this->assertEqual($sent_email['headers']['Cc'], 'cc@example.com');
     $this->assertEqual($sent_email['headers']['Bcc'], 'bcc@example.com');
 
+    // Check sending with the saving of results disabled.
+    $yamlform_handler_email->setSetting('results_disabled', TRUE)->save();
+    $this->postSubmission($yamlform_handler_email, ['first_name' => 'Jane', 'last_name' => 'Doe']);
+    $sent_email = $this->getLastEmail();
+    $this->assertContains($sent_email['body'], 'First name: Jane');
+    $this->assertContains($sent_email['body'], 'Last name: Doe');
+    $yamlform_handler_email->setSetting('results_disabled', FALSE)->save();
+
     // Check sending a custom email using tokens.
     $this->drupalLogin($this->adminFormUser);
     $body = implode("\n", [

@@ -3,6 +3,7 @@
 namespace Drupal\yamlform\Form;
 
 use Drupal\Core\Entity\ContentEntityDeleteForm;
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\yamlform\YamlFormRequestInterface;
@@ -45,10 +46,13 @@ class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
   /**
    * Constructs a new YamlFormSubmissionDeleteForm object.
    *
+   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   *   The entity manager.
    * @param \Drupal\yamlform\YamlFormRequestInterface $yamlform_request
    *   The YAML form request handler.
    */
-  public function __construct(YamlFormRequestInterface $yamlform_request) {
+  public function __construct(EntityManagerInterface $entity_manager, YamlFormRequestInterface $yamlform_request) {
+    parent::__construct($entity_manager);
     $this->yamlFormRequest = $yamlform_request;
   }
 
@@ -57,6 +61,7 @@ class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('entity.manager'),
       $container->get('yamlform.request')
     );
   }
@@ -89,7 +94,7 @@ class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
    */
   public function getCancelUrl() {
     $route_name = $this->yamlFormRequest->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
-    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
+    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity);
     return new Url($route_name, $route_parameters);
   }
 
@@ -98,6 +103,14 @@ class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
    */
   protected function getRedirectUrl() {
     return $this->getCancelUrl();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function logDeletionMessage() {
+    // Deletion logging is handled via YamlFormSubmissionStorage.
+    // @see \Drupal\yamlform\YamlFormSubmissionStorage::delete
   }
 
 }

@@ -72,10 +72,11 @@ class YamlFormEntityForm extends BundleEntityFormBase {
     if ($this->operation == 'duplicate') {
       // Display custom title.
       $form['#title'] = $this->t("Duplicate '@label' form", ['@label' => $yamlform->label()]);
-      // Make sure the new form is not a template.
-      $yamlform->set('template', FALSE);
-      // Remove 'Template:' prefix from the form's title.
-      $yamlform->set('title', preg_replace('/^Template: /', '', $yamlform->label()));
+      // If template, clear template's description and remove template flag.
+      if ($yamlform->isTemplate()) {
+        $yamlform->set('description', '');
+        $yamlform->set('template', FALSE);
+      }
     }
 
     $form = parent::buildForm($form, $form_state);
@@ -136,7 +137,7 @@ class YamlFormEntityForm extends BundleEntityFormBase {
       drupal_set_message($this->t('The %title form has <a href=":translation_href">translations</a> and its elements and properties can not be changed.', $t_args), 'warning');
     }
 
-    // Call the isolated edit form for which can be overridden by the
+    // Call the isolated edit form that can be overridden by the
     // yamlform_ui.module.
     $form = $this->editForm($form, $form_state);
 
@@ -163,7 +164,7 @@ class YamlFormEntityForm extends BundleEntityFormBase {
    * @return array
    *   The form structure.
    */
-  public function editForm(array $form, FormStateInterface $form_state) {
+  protected function editForm(array $form, FormStateInterface $form_state) {
     /** @var \Drupal\yamlform\YamlFormInterface $yamlform */
     $yamlform = $this->getEntity();
 

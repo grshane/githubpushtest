@@ -15,12 +15,12 @@
       $(context).find('#edit-properties-required').once().click(function () {
         // If the main required properties is checked off, check required for
         // all composite elements.
+        var $input = $('input[name$="__required]"]');
         if (this.checked) {
-          $('input[name$="__required]"]').attr('checked', 'checked');
-          $('input[name$="__required]"]').attr('readonly', 'readonly');
+          $input.attr('checked', 'checked').attr('readonly', 'readonly');
         }
         else {
-          $('input[name$="__required]"]').removeAttr('readonly');
+          $input.removeAttr('readonly');
         }
       });
     }

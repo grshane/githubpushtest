@@ -1,0 +1,6 @@
+yamlform_drip:
+  path: /admin/structure/yamlform/drip
+  defaults:
+    _controller: Drupal\yamlform_drip\Controller\YamlformDripController::drip
+  requirements:
+    _pemission: 'access content'

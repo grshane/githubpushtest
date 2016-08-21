@@ -14,16 +14,15 @@ class YamlFormOptionsForm extends EntityForm {
    * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
+    /** @var \Drupal\yamlform\YamlFormOptionsInterface $yamlform_options */
     $yamlform_options = $this->entity;
-
-    $form['#attached']['library'][] = 'yamlform/yamlform.codemirror';
-    $form['#attached']['library'][] = 'yamlform/' . (file_exists(DRUPAL_ROOT . '/libraries/codemirror') ? 'libraries' : 'cdn') . '.codemirror';
 
     $form['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Label'),
       '#maxlength' => 255,
       '#required' => TRUE,
+      '#attributes' => ($yamlform_options->isNew()) ? ['autofocus' => 'autofocus'] : [],
       '#default_value' => $yamlform_options->label(),
     ];
     $form['id'] = [
@@ -36,6 +35,28 @@ class YamlFormOptionsForm extends EntityForm {
       '#default_value' => $yamlform_options->id(),
     ];
 
+    // Call the isolated edit form that can be overridden by the
+    // yamlform_ui.module.
+    $form = $this->editForm($form, $form_state);
+
+    return parent::form($form, $form_state);
+  }
+
+  /**
+   * Edit YAML Form Options source code form.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   *
+   * @return array
+   *   The form structure.
+   */
+  protected function editForm(array $form, FormStateInterface $form_state) {
+    /** @var \Drupal\yamlform\YamlFormOptionsInterface $yamlform_options */
+    $yamlform_options = $this->entity;
+
     $form['options'] = [
       '#type' => 'yamlform_codemirror',
       '#mode' => 'yaml',
@@ -44,8 +65,8 @@ class YamlFormOptionsForm extends EntityForm {
       '#required' => TRUE,
       '#default_value' => $yamlform_options->get('options'),
     ];
-
-    return parent::form($form, $form_state);
+    $form['#attached']['library'][] = 'yamlform/yamlform.codemirror.yaml';
+    return $form;
   }
 
   /**

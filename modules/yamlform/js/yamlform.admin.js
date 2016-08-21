@@ -39,7 +39,7 @@
       // Only attache the click event handler to the entire table and determine
       // which row triggers the event.
       $('.yamlform-results__table', context).once().click(function (event) {
-        if (event.target.tagName == 'A') {
+        if (event.target.tagName == 'A' || event.target.tagName == 'BUTTON') {
           return true;
         }
 

@@ -33,9 +33,6 @@ class YamlFormSelectOther extends FormElement {
       ],
       '#theme_wrappers' => ['form_element'],
       '#options' => [],
-      '#other_option_label' => FALSE,
-      '#other_placeholder' => FALSE,
-      '#other_description' => FALSE,
     ];
   }
 
@@ -77,7 +74,8 @@ class YamlFormSelectOther extends FormElement {
    * Processes a select other list form element.
    *
    * See select list form element for select list properties.
-   * \Drupal\Core\Render\Element\Select
+   *
+   * @see \Drupal\Core\Render\Element\Select
    */
   public static function processYamlFormSelectOther(&$element, FormStateInterface $form_state, &$complete_form) {
     // Build select element with selected properties.
@@ -95,14 +93,18 @@ class YamlFormSelectOther extends FormElement {
     ];
     $element['select']['#type'] = 'select';
     $element['select'] += array_intersect_key($element, array_combine($properties, $properties));
-    $element['select']['#options'][self::OTHER_OPTION] = (!empty($element['#other_option_label'])) ? $element['#other_option_label'] : t('Other...');
+    $element['select']['#options'][self::OTHER_OPTION] = (!empty($element['#other__option_label'])) ? $element['#other__option_label'] : t('Other...');
     $element['select']['#error_no_message'] = TRUE;
 
     // Build other textfield.
     $element['other']['#type'] = 'textfield';
-    $element['other']['#placeholder'] = (!empty($element['#other_placeholder'])) ? $element['#other_placeholder'] : t('Enter other...');
-    $element['other']['#description'] = (!empty($element['#other_description'])) ? $element['#other_description'] : NULL;
+    $element['other']['#placeholder'] = t('Enter other...');
     $element['other']['#error_no_message'] = TRUE;
+    foreach ($element as $key => $value) {
+      if (strpos($key, '#other__') === 0) {
+        $element['other'][str_replace('#other__', '#', $key)] = $value;
+      }
+    }
 
     // Remove title and options since they are being moved the select element.
     unset($element['#title'], $element['#options']);

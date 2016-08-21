@@ -2,9 +2,11 @@
 
 namespace Drupal\yamlform\Element;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Render\Element\FormElement;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\yamlform\Utility\YamlFormElementHelper;
+use Drupal\Core\Render\Element\CompositeFormElementTrait;
 
 /**
  * Provides a form element requiring users to double-element and confirm an email address.
@@ -12,11 +14,11 @@ use Drupal\yamlform\Utility\YamlFormElementHelper;
  * Formats as a pair of email addresses fields, which do not validate unless
  * the two entered email addresses match.
  *
- * Below code is copied from: \Drupal\Core\Render\Element\PasswordConfirm.
- *
  * @FormElement("yamlform_email_confirm")
  */
 class YamlFormEmailConfirm extends FormElement {
+
+  use CompositeFormElementTrait;
 
   /**
    * {@inheritdoc}
@@ -29,7 +31,11 @@ class YamlFormEmailConfirm extends FormElement {
       '#process' => [
         [$class, 'processEmailConfirm'],
       ],
-      '#theme_wrappers' => ['form_element'],
+      '#pre_render' => [
+        [$class, 'preRenderCompositeFormElement'],
+      ],
+      '#theme_wrappers' => ['container'],
+      '#required' => FALSE,
     ];
   }
 
@@ -41,7 +47,7 @@ class YamlFormEmailConfirm extends FormElement {
       if (!isset($element['#default_value'])) {
         $element['#default_value'] = '';
       }
-      $element['mail2'] = $element['mail1'] = $element['#default_value'];
+      $element['mail_2'] = $element['mail_1'] = $element['#default_value'];
       return $element;
     }
     return NULL;
@@ -53,36 +59,47 @@ class YamlFormEmailConfirm extends FormElement {
   public static function processEmailConfirm(&$element, FormStateInterface $form_state, &$complete_form) {
     $element['#tree'] = TRUE;
 
-    if (empty($element['#title'])) {
-      $element['#title'] = t('Email');
-    }
-    if (empty($element['#confirm_title'])) {
-      $element['#confirm_title'] = t('Confirm @title', ['@title' => $element['#title']]);
-    }
-
-    $element['mail1'] = [
-      '#type' => 'email',
-      '#title' => $element['#title'],
-      '#value' => empty($element['#value']) ? NULL : $element['#value']['mail1'],
-      '#required' => $element['#required'],
-      '#attributes' => ['class' => ['email-field']],
+    // Get shared properties.
+    $shared_properties = [
+      '#title_display',
+      '#description_display',
+      '#size',
+      '#maxlength',
+      '#pattern',
+      '#required',
+      '#placeholder',
+      '#attributes',
     ];
-    $element['mail2'] = [
-      '#type' => 'email',
-      '#title' => $element['#confirm_title'],
-      '#value' => empty($element['#value']) ? NULL : $element['#value']['mail2'],
-      '#required' => $element['#required'],
-      '#attributes' => ['class' => ['email-confirm']],
+    $element_shared_properties = ['#type' => 'email'] + array_intersect_key($element, array_combine($shared_properties, $shared_properties));
+
+    // Get mail 1 email element.
+    $mail_1_properties = [
+      '#title',
+      '#description',
     ];
-    $element['#element_validate'] = [[get_called_class(), 'validateEmailConfirm']];
+    $element['mail_1'] = $element_shared_properties + array_intersect_key($element, array_combine($mail_1_properties, $mail_1_properties));
+    $element['mail_1']['#attributes']['class'][] = 'yamlform-email';
+    $element['mail_1']['#value'] = empty($element['#value']) ? NULL : $element['#value']['mail_1'];
 
-    // Set element size.
-    if (isset($element['#size'])) {
-      $element['mail1']['#size'] = $element['mail2']['#size'] = $element['#size'];
+    // Build mail_2 confirm email element.
+    $element['mail_2'] = $element_shared_properties;
+    $element['mail_2']['#title'] = t('Confirm email');
+    foreach ($element as $key => $value) {
+      if (strpos($key, '#confirm__') === 0) {
+        $element['mail_2'][str_replace('#confirm__', '#', $key)] = $value;
+      }
     }
+    $element['mail_2']['#attributes']['class'][] = 'yamlform-email-confirm';
+    $element['mail_2']['#value'] = empty($element['#value']) ? NULL : $element['#value']['mail_2'];
 
-    // Unset element title to prevent duplicate titles.
+    // Remove properties that are being applied to the sub elements.
+    $element['#required'] = FALSE;
     unset($element['#title']);
+    unset($element['#description']);
+    unset($element['#maxlength']);
+    unset($element['#atributes']);
+
+    $element['#element_validate'] = [[get_called_class(), 'validateEmailConfirm']];
 
     // Wrap this $element in a <div> that handle #states.
     YamlFormElementHelper::fixStates($element);
@@ -94,27 +111,33 @@ class YamlFormEmailConfirm extends FormElement {
    * Validates an email confirm element.
    */
   public static function validateEmailConfirm(&$element, FormStateInterface $form_state, &$complete_form) {
-    $mail1 = trim($element['mail1']['#value']);
-    $mail2 = trim($element['mail2']['#value']);
-    if (!empty($mail1) || !empty($mail2)) {
-      if (strcmp($mail1, $mail2)) {
-        $form_state->setError($element['mail2'], t('The specified email addresses do not match.'));
-      }
+    $mail_1 = trim($element['mail_1']['#value']);
+    $mail_2 = trim($element['mail_2']['#value']);
+    if ((!empty($mail_1) || !empty($mail_2)) && strcmp($mail_1, $mail_2)) {
+      $form_state->setError($element['mail_2'], t('The specified email addresses do not match.'));
     }
-    elseif ($element['#required']) {
-      if (empty($mail1)) {
-        $form_state->setError($element['mail1'], t('@name field is required.', ['@name' => $element['mail1']['#title']]));
+    else {
+      // NOTE: Only mail_1 needs to be validated since mail_2 is the same value.
+      // Verify the required value.
+      if ($element['mail_1']['#required'] && empty($mail_1)) {
+        $form_state->setError($element, t('@name field is required.', ['@name' => $element['mail_1']['#title']]));
       }
-      if (empty($mail2)) {
-        $form_state->setError($element['mail2'], t('@name field is required.', ['@name' => $element['mail2']['#title']]));
+      // Verify that the value is not longer than #maxlength.
+      if (isset($element['mail_1']['#maxlength']) && Unicode::strlen($mail_1) > $element['mail_1']['#maxlength']) {
+        $t_args = [
+          '@name' => $element['mail_1']['#title'],
+          '%max' => $element['mail_1']['#maxlength'],
+          '%length' => Unicode::strlen($mail_1),
+        ];
+        $form_state->setError($element, t('@name cannot be longer than %max characters but is currently %length characters long.', $t_args));
       }
     }
 
     // Email field must be converted from a two-element array into a single
     // string regardless of validation results.
-    $form_state->setValueForElement($element['mail1'], NULL);
-    $form_state->setValueForElement($element['mail2'], NULL);
-    $form_state->setValueForElement($element, $mail1);
+    $form_state->setValueForElement($element['mail_1'], NULL);
+    $form_state->setValueForElement($element['mail_2'], NULL);
+    $form_state->setValueForElement($element, $mail_1);
 
     return $element;
   }
