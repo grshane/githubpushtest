@@ -4,7 +4,6 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Mail\MailFormatHelper;
-use Drupal\yamlform\YamlFormSubmissionInterface;
 
 /**
  * Provides a 'processed_text' element.
@@ -12,42 +11,34 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  * @YamlFormElement(
  *   id = "processed_text",
  *   label = @Translation("Processed text"),
- *   category = @Translation("Markup")
+ *   category = @Translation("Markup elements"),
+ *   states_wrapper = TRUE,
  * )
  */
-class ProcessedText extends YamlFormMarkup {
+class ProcessedText extends YamlFormMarkupBase {
 
   /**
    * {@inheritdoc}
    */
   public function getDefaultProperties() {
-    return [
+    return parent::getDefaultProperties() + [
+      // Markup settings.
       'text' => '',
       'format' => filter_default_format(\Drupal::currentUser()),
-      'display_on' => 'form',
-      'private' => FALSE,
     ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
-    // Hide markup element is it should be only displayed on 'view'.
-    if (isset($element['#display_on']) && $element['#display_on'] == 'view') {
-      $element['#access'] = FALSE;
-    }
+  public function getTranslatableProperties() {
+    return array_merge(parent::getTranslatableProperties(), ['text']);
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildText(array &$element, $value, array $options = []) {
-    // Hide markup element if it should be only displayed on a 'form'.
-    if (empty($element['#display_on']) || $element['#display_on'] == 'form') {
-      return [];
-    }
-
     // Copy to element so that we can render it without altering the actual
     // $element.
     $render_element = $element;
@@ -57,17 +48,27 @@ class ProcessedText extends YamlFormMarkup {
     // Must remove #type, #text, and #format.
     unset($element['#type'], $element['#text'], $element['#format']);
 
-    // Must remove #prefix and #suffix.
-    unset($element['#prefix'], $element['#suffix']);
-
-    return $element;
+    return parent::buildText($element, $value, $options);
   }
 
   /**
    * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
+    // Issue #2741877 Nested modals don't work: when using CKEditor in a
+    // modal, then clicking the image button opens another modal,
+    // which closes the original modal.
+    // @todo Remove the below workaround once this issue is resolved.
+    if (!$form_state->getUserInput() && \Drupal::currentUser()->hasPermission('administer yamlform')) {
+      drupal_set_message($this->t('Processed text element can not be opened within a modal. Please see <a href="https://www.drupal.org/node/2741877">Issue #2741877: Nested modals don\'t work</a>.'), 'warning');
+    }
     $form = parent::form($form, $form_state);
+
+    // Remove 'Submission display' since the 'format' property is handled by
+    // the text format element.
+    unset($form['display']);
+
+    $form['markup']['#title'] = $this->t('Processed text settings');
     $form['markup']['text'] = [
       '#type' => 'text_format',
       '#format' => '',
@@ -78,14 +79,14 @@ class ProcessedText extends YamlFormMarkup {
   /**
    * {@inheritdoc}
    */
-  protected function setConfigurationFormDefaultValue(array &$form, array &$element, array &$property_element, $property_name) {
-    // Move get the processed_text element's #format apply it the text_format
-    // element.
-    if ($property_name == 'format') {
-      $form['markup']['text']['#format'] = $element['format'];
+  protected function setConfigurationFormDefaultValue(array &$form, array &$element_properties, array &$property_element, $property_name) {
+    // Apply element.format to the text (text_format) element and unset it.
+    if ($property_name == 'text') {
+      $property_element['#format'] = $element_properties['format'];
+      unset($element_properties['format']);
     }
 
-    parent::setConfigurationFormDefaultValue($form, $element, $property_element, $property_name);
+    parent::setConfigurationFormDefaultValue($form, $element_properties, $property_element, $property_name);
   }
 
   /**

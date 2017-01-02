@@ -5,7 +5,7 @@ namespace Drupal\yamlform\Tests;
 use Drupal\simpletest\WebTestBase;
 
 /**
- * Tests for YAML form (render) elements.
+ * Tests for form elements.
  *
  * @group YamlForm
  */
@@ -16,12 +16,17 @@ class YamlFormElementTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = ['yamlform', 'yamlform_test'];
+  protected static $modules = ['yamlform', 'yamlform_test'];
 
   /**
    * Test element settings.
    */
-  public function testElementSettings() {
+  public function testElements() {
+
+    /**************************************************************************/
+    // Allowed tags
+    /**************************************************************************/
+
     // Check <b> tags is allowed.
     $this->drupalGet('yamlform/test_element_allowed_tags');
     $this->assertRaw('Hello <b>...Goodbye</b>');

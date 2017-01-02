@@ -125,8 +125,8 @@ drush en -y yamlform yamlform_ui yamlform_devel yamlform_examples yamlform_templ
 # Optional.
 drush en -y yamlform_test;
 drush en -y yamlform_test_third_party_settings;
-drush en -y yamlform_translation_test;
-drush pmu -y yamlform_test_third_party_settings yamlform_translation_test;
+drush en -y yamlform_test_translation;
+drush pmu -y yamlform_test_third_party_settings yamlform_test_translation;
 ```
 
 **Reinstall YAML Form Test module.**
@@ -138,32 +138,35 @@ drush yamlform-purge --all -y; drush pmu -y yamlform_test; drush en -y yamlform_
 **Manage YAML Form module configuration using the [Features](https://www.drupal.org/project/features) module**
 
 ```
-# Make sure all YAML form modules that are going to be exported are enabled
+# Make sure all modules that are going to be exported are enabled
 drush en -y yamlform yamlform_examples yamlform_templates yamlform_test yamlform_node;
 
 # Show the difference between the active config and the default config.
 drush features-diff yamlform
 drush features-diff yamlform_test
 
-# Export YAML form configuration from your site.          
+# Export form configuration from your site.          
 drush features-export -y yamlform
-drush features-export -y yamlform_test
 drush features-export -y yamlform_examples
 drush features-export -y yamlform_templates
+drush features-export -y yamlform_test
+drush features-export -y yamlform_test_translation
 drush features-export -y yamlform_node
 
-# Tidy YAML form configuration from your site.          
-drush yamlform-tidy -y yamlform
-drush yamlform-tidy -y yamlform_test
-drush yamlform-tidy -y yamlform_examples
-drush yamlform-tidy -y yamlform_templates
-drush yamlform-tidy -y yamlform_node
+# Tidy form configuration from your site.          
+drush yamlform-tidy -y --dependencies yamlform
+drush yamlform-tidy -y --dependencies yamlform_examples
+drush yamlform-tidy -y --dependencies yamlform_templates
+drush yamlform-tidy -y --dependencies yamlform_test
+drush yamlform-tidy -y --dependencies yamlform_test_translation
+drush yamlform-tidy -y --dependencies yamlform_node
 
-# Re-import all YAML form configuration into your site.      
+# Re-import all form configuration into your site.      
 drush features-import -y yamlform
 drush features-import -y yamlform_examples
 drush features-import -y yamlform_templates
 drush features-import -y yamlform_test
+drush features-import -y yamlform_test_translation
 drush features-import -y yamlform_node
 ```
 
@@ -177,7 +180,7 @@ drush en -y yamlform captcha image_captcha honeypot validators;
 
 ```bash
 drush role-create developer
-drush role-add-perm developer 'view the administration theme,access toolbar,access administration pages,access content overview,access yamlform overview,administer yamlform,administer blocks,administer nodes'
+drush role-add-perm developer 'view the administration theme,access toolbar,access administration pages,access content overview,access yamlform overview,administer yamlform,edit yamlform assets,administer blocks,administer nodes'
 drush user-create developer --password="developer"
 drush user-add-role developer developer
 
@@ -191,18 +194,23 @@ drush role-add-perm manager 'view the administration theme,access toolbar,access
 drush user-create manager --password="manager"
 drush user-add-role manager manager
 
+drush role-create viewer
+drush role-add-perm viewer 'view the administration theme,access toolbar,access administration pages,access content overview,access yamlform overview,view any yamlform submission'
+drush user-create viewer --password="viewer"
+drush user-add-role viewer viewer
+
 drush role-create user
 drush user-create user --password="user"
 drush user-add-role user user
 
 drush role-create any
 drush user-create any --password="any"
-drush role-add-perm any 'view the administration theme,access administration pages,access toolbar,access yamlform overview,create yamlform,edit any yamlform,delete any yamlform,view yamlform node submissions any node,edit yamlform node submissions any node,delete yamlform node submissions any node'
+drush role-add-perm any 'view the administration theme,access administration pages,access toolbar,access yamlform overview,edit yamlform assets,create yamlform,edit any yamlform,delete any yamlform,view yamlform submissions any node,edit yamlform submissions any node,delete yamlform submissions any node'
 drush user-add-role any any
 
 drush role-create own
 drush user-create own --password="own"
-drush role-add-perm own 'view the administration theme,access administration pages,access toolbar,access yamlform overview,create yamlform,edit own yamlform,delete own yamlform,view yamlform node submissions own node,edit yamlform node submissions own node,delete yamlform node submissions own node'
+drush role-add-perm own 'view the administration theme,access administration pages,access toolbar,access yamlform overview,edit yamlform assets,create yamlform,edit own yamlform,delete own yamlform,view yamlform submissions own node,edit yamlform submissions own node,delete yamlform submissions own node'
 drush user-add-role own own
 ```
 
@@ -234,7 +242,7 @@ drush -y site-install\
   --account-name="webmaster"\
   --account-pass="drupal.admin"\
   --site-mail="example@example.com"\
-  --site-name="Drupal 8 (dev)";
+  --site-name="Drupal 8 (YAML Form)";
 
 # Enable core modules
 drush -y pm-enable\
@@ -262,5 +270,40 @@ drush -y pm-enable\
   yamlform_node\
   yamlform_templates\
   yamlform_test\
-  yamlform_translation_test;
+  yamlform_test_translation;
 ```
+
+### How to take a screencast
+
+**Setup**
+
+- Drupal
+    - Install Drupal locally.
+    - Remove all blocks in first sidebar.  
+      http://localhost/d8_dev/admin/structure/block
+- Desktop
+    - Switch to laptop.
+    - Turn 'Hiding on' in the Dock System Preferences.
+    - Set screen display to 'Large Text'
+- Chrome
+    - Hide Bookmarks.
+    - Hide Extra Icons.
+    - Always Show Toolbar in Full Screen.
+    - Delete all yamlform.* keys from local storage.
+
+**Generate list of screencasts**
+
+    $help = _yamlform_help();
+    print '<pre>';
+    foreach ($help as $name => $info) {
+      print "yamlform-" . $name . "\n";
+      print 'YAML Form Help: ' . $info['title'] . "\n";
+      print "\n";
+    }
+    print '</pre>'; exit;
+  
+**Uploading**
+
+- Title : YAML Form Help: {title} [v01]
+- Tags: Drupal 8,YAML Form,Form Builder
+- Privacy: Unlisted

@@ -6,7 +6,7 @@ Frequently Asked Questions (FAQ)
 **Who are you?**
 
 Hi, I am Jacob Rockowitz (aka [jrockowitz](https://www.drupal.org/u/jrockowitz) on D.O)
-and I have building custom enterprise CMS solutions for the past 15 years.
+and I have been building custom enterprise CMS solutions for the past 15 years.
 I have been active in Drupal community since 2009. Please visit 
 [my website](http://thebigbluehouse.com)
 to learn more about me.
@@ -22,25 +22,26 @@ Learn more about [Memorial Sloan Kettering's early adoption of Drupal 8](https:/
 
 **Where did you get this idea?**
 
-The Webform module was not available for Drupal 8, and MSKCC needed a form builder
+The Webform module was not available for Drupal 8 and MSKCC needed a form builder
 and submission manager. We had to come up with a quick and simple D8 replacement
 for the Webform module. 
 
 **How did you build this module?**
 
-The original concept for the YAML Form module was to provide the simplest UI that required the least amount of work for building forms. Building a user interface
+The original concept for the YAML Form module was to provide the simplest UI that
+required the least amount of work for building forms. Building a user interface
 is a lot of work, while editing YAML files required very little work to set up.
 Serializing renders array into editable YAML with some Form API documentation 
-allowed MSK's site builders to build and manage hundreds of forms.
+allows MSK's site builders to build and manage hundreds of forms.
 
 For the past 6+ months, I have been building out and improving this 
-module iteratively, trying to reach feature parity with the Webform module and other online 
-form builders, such as Wufoo and Gravity Forms.
+module iteratively, trying to reach feature parity with the Webform module
+and other online form builders, such as Wufoo and Gravity Forms.
 
 **What are you planning on doing with this module?**
 
 For now my goal is simply to publish a release candidate. In the long term,
-I would like the YAML Form module to continue to leverage improvements in Drupal
+I would like the YAML Form module to continue to leverage improvements in Drupal's
 core and hopefully become an important must-have contrib module for Drupal 8. 
 
 My dream is to convince the Drupal Association to stop using Survey Monkey.
@@ -61,6 +62,10 @@ replacement for the Webform module.
 
 Learn more about the effort to [port Webform to Drupal 8](https://www.drupal.org/node/2075941).
 
+If you are interested in migrating from the Webform module for D6/D7 to 
+the YAML Form module, please checkout the 
+[YAML Form Migrate](https://www.drupal.org/sandbox/dippers/2819169) module.
+ 
 **What Webform & EntityForm features are currently missing from the YAML Form module?**
 
 Form settings 
@@ -81,20 +86,22 @@ Download
 >
 > Analytics and reporting should be handled by a dedicated module, or by a third party service.
 
-**What are the alternatives to YAML form?**
+Learn more about the [currently missing features](https://www.drupal.org/node/2807571).
+
+**What are the alternatives to form?**
 
 In Drupal 7, and now in Drupal 8, there are two primary approaches to form builder 
 modules: Webform and Entity Form. Webform (and now YAML Form) uses Drupal's 
 Form API (FAPI) to build forms with an Entity–attribute–value (EAV) table to 
-store submissions. Entity Forms (now EForm and Contact Storage in D8) uses 
+store submissions. Entity Forms (now EForm and Contact Storage in D8) use
 Drupal's Field API to build forms that store submissions in field-specific 
 tables. There are benefits and downsides to both approaches. Since 
 FAPI and EAV are simpler than the Field API, the YAML Form module is able to 
 provide a leaner and faster UI for building forms and managing submissions. 
-Meanwhile, using Drupal's Field API allows submissions to be customized, 
-formatted, and managed using multiple displays and form modes with full Views 
-integration, with extra functionality provided by Field API related 
-contrib modules.
+On the other hand, using Drupal's Field API allows submissions to be customized,
+formatted, and managed using multiple displays and form modes. Drupal's Field API
+has full Views integration and extra functionality provided by Field API related
+to contrib modules.
 
 If you need robust reporting and submission management, you should use an 
 entity based form builder, such as Contact Storage. If you just want to build a 
@@ -123,7 +130,8 @@ YAML Form module by tweeting and writing blog posts.
 **Can I donate to your cause?**
 
 Right now, I am okay and have steady work with MSKCC. In the long term, I am 
-most likely going to have to ask for donations and sponsorship. My goal for now is to get a stable release out to the Drupal community.
+most likely going to have to ask for donations and sponsorship. My goal for now
+is to get a stable release out to the Drupal community.
 
 Still, it would seem silly for me _not_ to provide a donate button. 
 
@@ -146,9 +154,9 @@ Please [contact me](https://www.drupal.org/user/371407/contact).
 
 ### Troubleshooting
 
-**How to debug issues with YAML form elements/elements**
+**How to debug issues with form elements/elements**
 
-- A YAML form's element is just a [Form API(FAPI)](https://www.drupal.org/node/37775)
+- A form's element is just a [Form API(FAPI)](https://www.drupal.org/node/37775)
   [render array](https://www.drupal.org/developing/api/8/render/arrays). 
 
 - Some issues can be fixed by reading the API documentation associated 
@@ -162,7 +170,7 @@ Please [contact me](https://www.drupal.org/user/371407/contact).
   for similar issues.
 
 - If you need to create a new issue, **please** create and export an example of 
-  the broken YAML form configuration.   
+  the broken form configuration.   
   _This will help guarantee that your issue is reproducible._  
 
 - Please also read [How to create a good issue](https://www.drupal.org/issue-queue/how-to)

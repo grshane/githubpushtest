@@ -1,8 +1,8 @@
-# Schema for the configuration files of the YAML form module.
+# Schema for the configuration files of the YAML Form module.
 
 yamlform.settings:
   type: config_object
-  label: 'YAML form settings'
+  label: 'Form settings'
   mapping:
     settings:
       type: mapping
@@ -26,6 +26,15 @@ yamlform.settings:
         default_form_novalidate:
           type: boolean
           label: 'Disable client-side validation'
+        default_form_unsaved:
+          type: boolean
+          label: 'Warn users about unsaved changes'
+        default_form_disable_back:
+          type: boolean
+          label: 'Disable back button'
+        default_form_details_toggle:
+          type: boolean
+          label: 'Display collapse/expand all details link'
         default_wizard_prev_button_label:
           type: label
           label: 'Default wizard previous page button label'
@@ -59,12 +68,27 @@ yamlform.settings:
         default_confirmation_message:
           type: text
           label: 'Default confirmation message'
+        default_confirmation_back_label:
+          type: text
+          label: 'Default confirmation back label'
         default_limit_total_message:
           type: text
           label: 'Default limit total message'
         default_limit_user_message:
           type: text
           label: 'Default limit user message'
+        form_classes:
+          type: string
+          label: 'Form CSS classes'
+        button_classes:
+          type: string
+          label: 'Button CSS classes'
+        confirmation_classes:
+          type: string
+          label: 'Confirmation CSS classes'
+        confirmation_back_classes:
+          type: string
+          label: 'Confirmation back link CSS classes'
     elements:
       type: mapping
       label: 'Elements default settings'
@@ -81,12 +105,37 @@ yamlform.settings:
         default_description_display:
           type: string
           label: 'Default title display'
+        default_google_maps_api_key:
+          type: string
+          label: 'Default Google Maps API key'
+        excluded_types:
+          type: ignore
+          label: 'Excluded types'
+    file:
+      type: mapping
+      label: 'File upload default settings'
+      mapping:
+        file_public:
+          type: boolean
+          label: 'Allow files to be uploaded to public file system.'
         default_max_filesize:
           type: string
           label: 'Default maximum upload size'
-        default_file_extensions:
+        default_managed_file_extensions:
           type: string
-          label: 'Default allowed file extensions'
+          label: 'Default allowed managed file extensions'
+        default_image_file_extensions:
+          type: string
+          label: 'Default allowed image file extensions'
+        default_video_file_extensions:
+          type: string
+          label: 'Default allowed video file extensions'
+        default_audio_file_extensions:
+          type: string
+          label: 'Default allowed audio file extensions'
+        default_document_file_extensions:
+          type: string
+          label: 'Default allowed document file extensions'
     format:
       type: ignore
       label: 'Format default settings'
@@ -113,12 +162,30 @@ yamlform.settings:
       type: mapping
       label: 'Export default settings'
       mapping:
+        exporter:
+          type: string
+          label: 'Results exporter'
         delimiter:
           type: string
           label: 'Delimiter text format'
-        header_keys:
+        excel:
+          type: boolean
+          label: 'Open HTML table in Excel'
+        file_name:
+          type: string
+          label: 'File name'
+        header_format:
           type: string
           label: 'Column header format'
+        header_prefix:
+          type: boolean
+          label: 'Column header prefix'
+        header_prefix_key_delimiter:
+          type: string
+          label: 'Column header prefix key delimiter'
+        header_prefix_label_delimiter:
+          type: string
+          label: 'Column header prefix label delimiter'
         entity_reference_format:
           type: string
           label: 'Options format'
@@ -128,18 +195,12 @@ yamlform.settings:
         options_item_format:
           type: string
           label: 'Entity reference format'
-        likert_questions_format:
-          type: string
-          label: 'Likert questions format'
         likert_answers_format:
           type: string
           label: 'Likert answers format'
         signature_format:
           type: string
           label: 'Signature format'
-        composite_header_prefix:
-          type: boolean
-          label: 'Composite header prefix'
         composite_element_item_format:
           type: string
           label: 'Composite element item format'
@@ -182,6 +243,13 @@ yamlform.settings:
         details_save:
           type: boolean
           label: 'Save details open/close state'
+    library:
+      type: mapping
+      label: 'Library settings'
+      mapping:
+        cdn:
+          type: boolean
+          label: 'Use CDN'
     third_party_settings:
       type: sequence
       label: 'Third party settings'
@@ -190,7 +258,7 @@ yamlform.settings:
 
 yamlform.yamlform.*:
   type: config_entity
-  label: 'YAML form'
+  label: 'Forms'
   mapping:
     status:
       type: boolean
@@ -213,6 +281,12 @@ yamlform.yamlform.*:
     elements:
       type: text
       label: 'Elements (YAML)'
+    css:
+      type: string
+      label: 'CSS (Cascading Style Sheets)'
+    javascript:
+      type: string
+      label: 'JavaScript'
     settings:
       type: mapping
       label: 'Settings'
@@ -229,6 +303,9 @@ yamlform.yamlform.*:
         form_submit_label:
           type: label
           label: 'Form submit text'
+        form_submit_attributes:
+          type: ignore
+          label: 'Form submit attributes'
         form_closed_message:
           type: text
           label: 'Form closed message'
@@ -247,12 +324,21 @@ yamlform.yamlform.*:
         form_prepopulate_source_entity:
           type: boolean
           label: 'Form prepopulate source entity'
+        form_unsaved:
+          type: boolean
+          label: 'Warn users about unsaved changes'
+        form_disable_back:
+          type: boolean
+          label: 'Disable back button'
         form_novalidate:
           type: boolean
           label: 'Disable client-side validation'
         form_autofocus:
           type: boolean
           label: 'Autofocus'
+        form_details_toggle:
+          type: boolean
+          label: 'Display collapse/expand all details link'
         wizard_progress_bar:
           type: boolean
           label: 'Show wizard progress bar'
@@ -265,6 +351,9 @@ yamlform.yamlform.*:
         wizard_start_label:
           type: label
           label: 'Wizard start label'
+        wizard_start_attributes:
+          type: ignore
+          label: 'Wizard start attributes'
         wizard_complete:
           type: boolean
           label: 'Include confirmation page in progress'
@@ -273,19 +362,31 @@ yamlform.yamlform.*:
           label: 'Wizard complete label'
         wizard_prev_button_label:
           type: label
-          label: 'Default wizard previous page button label'
+          label: 'Wizard previous page button label'
+        wizard_prev_button_attributes:
+          type: ignore
+          label: 'Wizard previous page button attributes'
         wizard_next_button_label:
           type: label
-          label: 'Default wizard next page button label'
+          label: 'Wizard next page button label'
+        wizard_next_button_attributes:
+          type: ignore
+          label: 'Wizard next page button attributes'
         preview:
           type: integer
           label: 'Enable preview page'
         preview_next_button_label:
           type: label
           label: 'Preview button label'
+        preview_next_button_attributes:
+          type: ignore
+          label: 'Preview button attributes'
         preview_prev_button_label:
           type: label
           label: 'Previous page button label'
+        preview_prev_button_attributes:
+          type: ignore
+          label: 'Previous page button attributes'
         preview_message:
           type: text
           label: 'Preview message'
@@ -298,6 +399,9 @@ yamlform.yamlform.*:
         draft_button_label:
           type: label
           label: 'Draft button label'
+        draft_button_attributes:
+          type: ignore
+          label: 'Draft button attributes'
         draft_saved_message:
           type: text
           label: 'Draft saved message'
@@ -313,6 +417,18 @@ yamlform.yamlform.*:
         confirmation_message:
           type: text
           label: 'Confirmation message'
+        confirmation_attributes:
+          type: ignore
+          label: 'Confirmation attributes'
+        confirmation_back:
+          type: boolean
+          label: 'Display back to form link.'
+        confirmation_back_label:
+          type: text
+          label: 'Confirmation back link label'
+        confirmation_back_attributes:
+          type: ignore
+          label: 'Confirmation back link attributes'
         limit_total:
           type: integer
           label: 'Limit total submissions'
@@ -334,13 +450,19 @@ yamlform.yamlform.*:
         results_disabled:
           type: boolean
           label: 'Results disabled'
+        results_disabled_ignore:
+          type: boolean
+          label: 'Ignore disabled results warning'
+        token_update:
+          type: boolean
+          label: 'Allow updates using token'
     access:
       type: mapping
       label: 'Access'
       mapping:
         create:
           type: mapping
-          label: 'Create YAML form submissions'
+          label: 'Create form submissions'
           mapping:
             roles:
               type: sequence
@@ -356,7 +478,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
         view_any:
           type: mapping
-          label: 'View any YAML form submissions'
+          label: 'View any form submissions'
           mapping:
             roles:
               type: sequence
@@ -372,7 +494,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
         update_any:
           type: mapping
-          label: 'Update any YAML form submissions'
+          label: 'Update any form submissions'
           mapping:
             roles:
               type: sequence
@@ -388,7 +510,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
         delete_any:
           type: mapping
-          label: 'Delete any YAML form submissions'
+          label: 'Delete any form submissions'
           mapping:
             roles:
               type: sequence
@@ -404,7 +526,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
         purge_any:
           type: mapping
-          label: 'Purge any YAML form submissions'
+          label: 'Purge any form submissions'
           mapping:
             roles:
               type: sequence
@@ -420,7 +542,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
         view_own:
           type: mapping
-          label: 'View own YAML form submissions'
+          label: 'View own form submissions'
           mapping:
             roles:
               type: sequence
@@ -436,7 +558,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
         update_own:
           type: mapping
-          label: 'Update own YAML form submissions'
+          label: 'Update own form submissions'
           mapping:
             roles:
               type: sequence
@@ -452,7 +574,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
         delete_own:
           type: mapping
-          label: 'Delete own YAML form submissions'
+          label: 'Delete own form submissions'
           mapping:
             roles:
               type: sequence
@@ -468,7 +590,7 @@ yamlform.yamlform.*:
                 label: 'User IDs'
     handlers:
       type: sequence
-      label: 'YAML form handlers'
+      label: 'Form handlers'
       sequence:
         type: mapping
         mapping:
@@ -521,7 +643,7 @@ yamlform.handler.email:
       type: text
     excluded_elements:
       type: sequence
-      label: 'Exclude Elements'
+      label: 'Exclude elements'
       sequence:
         type: string
         label: 'Element name'
@@ -535,9 +657,59 @@ yamlform.handler.email:
       type: boolean
       label: 'Enable debugging'
 
+yamlform.handler.remote_post:
+  type: mapping
+  label: 'Remote Post'
+  mapping:
+    type:
+      label: 'Type'
+      type: string
+    insert_url:
+      label: 'Insert URL'
+      type: uri
+    update_url:
+      label: 'Update URL'
+      type: uri
+    delete_url:
+      label: 'Delete URL'
+      type: uri
+    excluded_data:
+      type: sequence
+      label: 'Excluded data'
+      sequence:
+        type: string
+        label: 'Data name'
+    custom_data:
+      label: 'Custom data'
+      type: string
+    insert_custom_data:
+      label: 'Insert custom data'
+      type: string
+    update_custom_data:
+      label: 'Update custom data'
+      type: string
+    delete_custom_data:
+      label: 'Delete custom data'
+      type: string
+    debug:
+      type: boolean
+      label: 'Enable debugging'
+
+yamlform.exporter.*:
+  type: mapping
+  label: 'Exporter settings'
+
+yamlform.exporter.delimited_text:
+  type: mapping
+  label: 'Delimiter'
+  mapping:
+    delimiter:
+      type: string
+      label: 'Delimiter'
+
 yamlform.yamlform_options.*:
   type: config_entity
-  label: 'YAML form options'
+  label: 'Options'
   mapping:
     id:
       type: string
@@ -551,20 +723,20 @@ yamlform.yamlform_options.*:
 
 block.settings.yamlform_block:
   type: block_settings
-  label: 'YAML form block'
+  label: 'Forms block'
   mapping:
     yamlform_id:
       type: text
-      label: 'YAML form'
+      label: 'Forms'
     default_data:
       type: text
-      label: 'Default YAML form submission data'
+      label: 'Default form submission data'
 
-# Schema for the configuration of the YAML form field type.
+# Schema for the configuration of the form field type.
 
 field.storage_settings.yamlform:
   type: mapping
-  label: 'YAML form field storage settings'
+  label: 'Form field storage settings'
   mapping:
     target_type:
       type: string
@@ -582,18 +754,18 @@ base_yamlform_field_field_settings:
 
 field.field_settings.yamlform:
   type: base_yamlform_field_field_settings
-  label: 'YAML form settings'
+  label: 'Form settings'
   mapping:
     default_data:
       type: string
-      label: 'Default YAML form submission data'
+      label: 'Default form submission data'
     status:
       type: boolean
-      label: 'Status of the YAML form'
+      label: 'Status of the form'
 
 field.widget.settings.yamlform_entity_reference_autocomplete:
   type: mapping
-  label: 'YAML form autocomplete display format settings'
+  label: 'Form autocomplete display format settings'
   mapping:
     match_operator:
       type: string
@@ -607,12 +779,12 @@ field.widget.settings.yamlform_entity_reference_autocomplete:
 
 field.formatter.settings.yamlform_entity_reference_entity_view:
   type: mapping
-  label: 'Display the referenced YAML form with default submission data.'
+  label: 'Display the referenced form with default submission data.'
 
 field.formatter.settings.yamlform_entity_reference_link:
   type: mapping
-  label: 'Display the referenced YAML form as a link.'
+  label: 'Display the referenced form as a link.'
   mapping:
     label:
       type: label
-      label: 'Link label to the referenced YAML form'
+      label: 'Link label to the referenced form'

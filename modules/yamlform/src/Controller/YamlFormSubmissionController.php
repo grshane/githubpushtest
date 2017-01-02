@@ -12,25 +12,25 @@ use Drupal\yamlform\YamlFormRequestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides route responses for YAML form submissions.
+ * Provides route responses for form submissions.
  */
 class YamlFormSubmissionController extends ControllerBase implements ContainerInjectionInterface {
 
   /**
-   * YAML form request handler.
+   * Form request handler.
    *
    * @var \Drupal\yamlform\YamlFormRequestInterface
    */
-  protected $yamlFormRequest;
+  protected $requestHandler;
 
   /**
    * Constructs a new YamlFormSubmissionController object.
    *
-   * @param \Drupal\yamlform\YamlFormRequestInterface $yamlform_request
-   *   The YAML form request handler.
+   * @param \Drupal\yamlform\YamlFormRequestInterface $request_handler
+   *   The form request handler.
    */
-  public function __construct(YamlFormRequestInterface $yamlform_request) {
-    $this->yamlFormRequest = $yamlform_request;
+  public function __construct(YamlFormRequestInterface $request_handler) {
+    $this->requestHandler = $request_handler;
   }
 
   /**
@@ -43,15 +43,15 @@ class YamlFormSubmissionController extends ControllerBase implements ContainerIn
   }
 
   /**
-   * Returns a YAML form submission in a specified format type.
+   * Returns a form submission in a specified format type.
    *
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    * @param string $type
    *   The format type.
    *
    * @return array
-   *   A render array representing a YAML form submission in a specified format
+   *   A render array representing a form submission in a specified format
    *   type.
    */
   public function index(YamlFormSubmissionInterface $yamlform_submission, $type) {
@@ -60,13 +60,11 @@ class YamlFormSubmissionController extends ControllerBase implements ContainerIn
     }
 
     $build = [];
-    $source_entity = $this->yamlFormRequest->getCurrentSourceEntity('yamlform_submission');
+    $source_entity = $this->requestHandler->getCurrentSourceEntity('yamlform_submission');
     // Navigation.
     $build['navigation'] = [
       '#theme' => 'yamlform_submission_navigation',
       '#yamlform_submission' => $yamlform_submission,
-      '#source_entity' => $source_entity,
-      '#rel' => $type,
     ];
 
     // Information.
@@ -74,7 +72,6 @@ class YamlFormSubmissionController extends ControllerBase implements ContainerIn
       '#theme' => 'yamlform_submission_information',
       '#yamlform_submission' => $yamlform_submission,
       '#source_entity' => $source_entity,
-      '#open' => FALSE,
     ];
 
     // Submission.
@@ -99,10 +96,10 @@ class YamlFormSubmissionController extends ControllerBase implements ContainerIn
   }
 
   /**
-   * Toggle YAML form submission sticky.
+   * Toggle form submission sticky.
    *
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    *
    * @return \Drupal\Core\Ajax\AjaxResponse
    *   An AJAX response that toggle the sticky icon.
@@ -120,23 +117,22 @@ class YamlFormSubmissionController extends ControllerBase implements ContainerIn
       new FormattableMarkup('<span class="yamlform-icon yamlform-icon-sticky yamlform-icon-sticky--@state"></span>', ['@state' => $state])
     ));
     return $response;
-
   }
 
   /**
    * Route title callback.
    *
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   The YAML form submission.
+   *   The form submission.
    *
    * @return array
-   *   The YAML form submission as a render array.
+   *   The form submission as a render array.
    */
   public function title(YamlFormSubmissionInterface $yamlform_submission) {
-    $source_entity = $this->yamlFormRequest->getCurrentSourceEntity('yamlform_submission');
+    $source_entity = $this->requestHandler->getCurrentSourceEntity('yamlform_submission');
     $t_args = [
       '@form' => ($source_entity) ? $source_entity->label() : $yamlform_submission->getYamlForm()->label(),
-      '@id' => $yamlform_submission->id(),
+      '@id' => $yamlform_submission->serial(),
     ];
     return $this->t('@form: Submission #@id', $t_args);
   }

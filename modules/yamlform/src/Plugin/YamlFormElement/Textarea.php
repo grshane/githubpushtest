@@ -3,6 +3,7 @@
 namespace Drupal\yamlform\Plugin\YamlFormElement;
 
 use Drupal\Component\Render\HtmlEscapedText;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Provides a 'textarea' element.
@@ -11,8 +12,8 @@ use Drupal\Component\Render\HtmlEscapedText;
  *   id = "textarea",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Textarea.php/class/Textarea",
  *   label = @Translation("Textarea"),
- *   category = @Translation("Basic"),
- *   multiline = TRUE
+ *   category = @Translation("Basic elements"),
+ *   multiline = TRUE,
  * )
  */
 class Textarea extends TextBase {
@@ -23,47 +24,51 @@ class Textarea extends TextBase {
   public function getDefaultProperties() {
     return [
       'title' => '',
+      // General settings.
       'description' => '',
-
-      'required' => FALSE,
-      'required_error' => '',
       'default_value' => '',
-
+      // Form display.
       'title_display' => '',
       'description_display' => '',
       'field_prefix' => '',
       'field_suffix' => '',
       'placeholder' => '',
-
+      'rows' => '',
+      // Form validation.
+      'required' => FALSE,
+      'required_error' => '',
       'unique' => FALSE,
-
-      'admin_title' => '',
-      'private' => FALSE,
-
-      'format' => $this->getDefaultFormat(),
-
       'counter_type' => '',
       'counter_maximum' => '',
       'counter_message' => '',
-      'rows' => '',
+      // Submission display.
+      'format' => $this->getDefaultFormat(),
+    ] + $this->getDefaultBaseProperties();
+  }
 
-      'wrapper_attributes__class' => '',
-      'wrapper_attributes__style' => '',
-      'attributes__class' => '',
-      'attributes__style' => '',
-
-      'flex' => 1,
-    ];
+  /**
+   * {@inheritdoc}
+   */
+  public function getTranslatableProperties() {
+    return array_merge(parent::getTranslatableProperties(), ['counter_message']);
   }
 
   /**
    * {@inheritdoc}
    */
   public function formatHtml(array &$element, $value, array $options = []) {
-    $build = [
+    return [
       '#markup' => nl2br(new HtmlEscapedText($value)),
     ];
-    return \Drupal::service('renderer')->renderPlain($build);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function form(array $form, FormStateInterface $form_state) {
+    $form = parent::form($form, $form_state);
+    $form['general']['default_value']['#type'] = 'textarea';
+    return $form;
   }
 
 }

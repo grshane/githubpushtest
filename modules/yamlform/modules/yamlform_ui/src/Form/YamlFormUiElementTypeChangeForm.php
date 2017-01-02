@@ -9,7 +9,7 @@ use Drupal\yamlform\YamlFormInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Provides a change element type form for a YAML form element.
+ * Provides a change element type form for a form element.
  */
 class YamlFormUiElementTypeChangeForm extends YamlFormUiElementTypeFormBase {
 
@@ -58,6 +58,15 @@ class YamlFormUiElementTypeChangeForm extends YamlFormUiElementTypeFormBase {
           ],
         ],
       ];
+
+      // Issue #2741877 Nested modals don't work: when using CKEditor in a
+      // modal, then clicking the image button opens another modal,
+      // which closes the original modal.
+      // @todo Remove the below workaround once this issue is resolved.
+      if ($related_type_name == 'processed_text') {
+        unset($row['operations']['data']['#links']['change']['attributes']);
+      }
+
       $rows[] = $row;
     }
 

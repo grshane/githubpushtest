@@ -3,21 +3,30 @@
 namespace Drupal\yamlform;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityTypeRepositoryInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Handles YAML form requests.
+ * Handles form requests.
  */
 class YamlFormRequest implements YamlFormRequestInterface {
 
   /**
-   * The entity manager.
+   * The entity type manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $entityManager;
+  protected $entityTypeManager;
+
+  /**
+   * The entity type repository.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeRepositoryInterface
+   */
+  protected $entityTypeRepository;
 
   /**
    * The current route match.
@@ -36,15 +45,16 @@ class YamlFormRequest implements YamlFormRequestInterface {
   /**
    * Constructs a YamlFormSubmissionExporter object.
    *
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
-   *   The entity manager.
+   * @param \Drupal\Core\Entity\EntityTypeRepositoryInterface $entity_type_repository
+   *   The entity type repository.
    * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
    *   The request stack.
    * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
    *   The current route match.
    */
-  public function __construct(EntityManagerInterface $entity_manager, RequestStack $request_stack, RouteMatchInterface $route_match) {
-    $this->entityManager = $entity_manager;
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityTypeRepositoryInterface $entity_type_repository, RequestStack $request_stack, RouteMatchInterface $route_match) {
+    $this->entityTypeManager = $entity_type_manager;
+    $this->entityTypeRepository = $entity_type_repository;
     $this->request = $request_stack->getCurrentRequest();
     $this->routeMatch = $route_match;
   }
@@ -58,7 +68,7 @@ class YamlFormRequest implements YamlFormRequestInterface {
       return $source_entity;
     }
 
-    $entity_types = $this->entityManager->getEntityTypeLabels();
+    $entity_types = $this->entityTypeRepository->getEntityTypeLabels();
     if ($ignored_types) {
       if (is_array($ignored_types)) {
         $entity_types = array_diff_key($entity_types, array_flip($ignored_types));
@@ -122,11 +132,6 @@ class YamlFormRequest implements YamlFormRequestInterface {
    * {@inheritdoc}
    */
   public function getRouteParameters(EntityInterface $yamlform_entity, EntityInterface $source_entity = NULL) {
-    // Get source entity from the YAML form submission.
-    if (!$source_entity && $yamlform_entity instanceof YamlFormSubmissionInterface) {
-      $source_entity = $yamlform_entity->getSourceEntity();
-    }
-
     if (self::isValidSourceEntity($yamlform_entity, $source_entity)) {
       if ($yamlform_entity instanceof YamlFormSubmissionInterface) {
         return [
@@ -155,13 +160,12 @@ class YamlFormRequest implements YamlFormRequestInterface {
   public function getBaseRouteName(EntityInterface $yamlform_entity, EntityInterface $source_entity = NULL) {
     if ($yamlform_entity instanceof YamlFormSubmissionInterface) {
       $yamlform = $yamlform_entity->getYamlForm();
-      $source_entity = $yamlform_entity->getSourceEntity();
     }
     elseif ($yamlform_entity instanceof YamlFormInterface) {
       $yamlform = $yamlform_entity;
     }
     else {
-      throw new \InvalidArgumentException('YAML form entity');
+      throw new \InvalidArgumentException('Form entity');
     }
 
     if (self::isValidSourceEntity($yamlform, $source_entity)) {
@@ -178,13 +182,12 @@ class YamlFormRequest implements YamlFormRequestInterface {
   public function isValidSourceEntity(EntityInterface $yamlform_entity, EntityInterface $source_entity = NULL) {
     if ($yamlform_entity instanceof YamlFormSubmissionInterface) {
       $yamlform = $yamlform_entity->getYamlForm();
-      $source_entity = $yamlform_entity->getSourceEntity();
     }
     elseif ($yamlform_entity instanceof YamlFormInterface) {
       $yamlform = $yamlform_entity;
     }
     else {
-      throw new \InvalidArgumentException('YAML form entity');
+      throw new \InvalidArgumentException('Form entity');
     }
 
     if ($source_entity
@@ -200,13 +203,13 @@ class YamlFormRequest implements YamlFormRequestInterface {
   }
 
   /**
-   * Get YAML form submission source entity from query string.
+   * Get form submission source entity from query string.
    *
    * @return \Drupal\Core\Entity\EntityInterface|null
    *   A source entity.
    */
   protected function getCurrentSourceEntityFromQuery() {
-    // Get and check YAML Form.
+    // Get and check for form.
     $yamlform = $this->routeMatch->getParameter('yamlform');
     if (!$yamlform) {
       return NULL;
@@ -214,7 +217,7 @@ class YamlFormRequest implements YamlFormRequestInterface {
 
     // Get and check source entity type.
     $source_entity_type = $this->request->query->get('source_entity_type');
-    if (!$source_entity_type) {
+    if (!$source_entity_type || !$this->entityTypeManager->hasDefinition($source_entity_type)) {
       return NULL;
     }
 
@@ -225,7 +228,7 @@ class YamlFormRequest implements YamlFormRequestInterface {
     }
 
     // Get and check source entity.
-    $source_entity = \Drupal::entityTypeManager()->getStorage($source_entity_type)->load($source_entity_id);
+    $source_entity = $this->entityTypeManager->getStorage($source_entity_type)->load($source_entity_id);
     if (!$source_entity) {
       return NULL;
     }
@@ -235,21 +238,43 @@ class YamlFormRequest implements YamlFormRequestInterface {
       return NULL;
     }
 
-    // Check that the YAML form is referenced by the source entity.
+    // Check that the form is referenced by the source entity.
     if (!$yamlform->getSetting('form_prepopulate_source_entity')) {
-      // Check that source entity has 'yamlform' field and it is populated.
-      if (!method_exists($source_entity, 'hasField') || !$source_entity->hasField('yamlform') || !$source_entity->yamlform->target_id) {
+      // Get source entity's yamlform field.
+      $yamlform_field_name = $this->getSourceEntityYamlFormFieldName($source_entity);
+      if (!$yamlform_field_name) {
         return NULL;
       }
 
-      // Check that source entity's reference YAML form is the current YAML
+      // Check that source entity's reference form is the current YAML
       // form.
-      if ($source_entity->yamlform->target_id != $yamlform->id()) {
+      if ($source_entity->$yamlform_field_name->target_id != $yamlform->id()) {
         return NULL;
       }
     }
 
     return $source_entity;
+  }
+
+  /**
+   * Get the source entity's yamlform field name.
+   *
+   * @param EntityInterface $source_entity
+   *   A form submission's source entity.
+   *
+   * @return string
+   *   The name of the yamlform field, or an empty string.
+   */
+  protected function getSourceEntityYamlFormFieldName(EntityInterface $source_entity) {
+    if ($source_entity instanceof ContentEntityInterface) {
+      $fields = $source_entity->getFieldDefinitions();
+      foreach ($fields as $field_name => $field_definition) {
+        if ($field_definition->getType() == 'yamlform') {
+          return $field_name;
+        }
+      }
+    }
+    return '';
   }
 
 }

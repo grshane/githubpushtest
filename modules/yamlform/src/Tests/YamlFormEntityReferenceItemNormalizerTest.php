@@ -15,7 +15,7 @@ class YamlFormEntityReferenceItemNormalizerTest extends YamlFormTestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'system',
     'block',
     'node',
@@ -28,7 +28,7 @@ class YamlFormEntityReferenceItemNormalizerTest extends YamlFormTestBase {
   ];
 
   /**
-   * Tests the normalization of a node with a yaml form entity reference.
+   * Tests the normalization of a node with a form entity reference.
    */
   public function testYamlFormEntityReferenceItemNormalization() {
     // Create node.

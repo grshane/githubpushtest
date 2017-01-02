@@ -10,7 +10,8 @@ use Drupal\Core\Form\FormStateInterface;
  * @YamlFormElement(
  *   id = "yamlform_email_confirm",
  *   label = @Translation("Email confirm"),
- *   category = @Translation("Advanced")
+ *   category = @Translation("Advanced elements"),
+ *   states_wrapper = TRUE,
  * )
  */
 class YamlFormEmailConfirm extends Email {
@@ -20,6 +21,7 @@ class YamlFormEmailConfirm extends Email {
    */
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
+      // Email confirm settings.
       'confirm__title' => '',
       'confirm__description' => '',
       'confirm__placeholder' => '',
@@ -49,6 +51,16 @@ class YamlFormEmailConfirm extends Email {
       '#title' => $this->t('Email confirm placeholder'),
     ];
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getElementSelectorInputsOptions(array $element) {
+    return [
+      'mail_1' => $this->getAdminLabel($element) . '1 [' . $this->t('Email') . ']',
+      'mail_2' => $this->getAdminLabel($element) . ' 2 [' . $this->t('Email') . ']',
+    ];
   }
 
 }

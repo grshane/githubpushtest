@@ -9,7 +9,7 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
  *   id = "search",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Search.php/class/Search",
  *   label = @Translation("Search"),
- *   category = @Translation("Advanced")
+ *   category = @Translation("Advanced elements"),
  * )
  */
 class Search extends TextBase {

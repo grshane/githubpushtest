@@ -2,15 +2,15 @@
 
 namespace Drupal\yamlform\Element;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element\FormElement;
 use Drupal\Core\Url;
 use Drupal\yamlform\Entity\YamlFormOptions as YamlFormOptionsEntity;
-use Drupal\yamlform\Utility\YamlFormElementHelper;
 
 /**
- * Provides a form element for managing YAML form element options.
+ * Provides a form element for managing form element options.
  *
  * This element is used by select, radios, checkboxes, and likert elements.
  *
@@ -33,6 +33,7 @@ class YamlFormElementOptions extends FormElement {
         [$class, 'processAjaxForm'],
       ],
       '#theme_wrappers' => ['form_element'],
+      '#custom__type' => 'yamlform_options',
     ];
   }
 
@@ -65,7 +66,7 @@ class YamlFormElementOptions extends FormElement {
   }
 
   /**
-   * Processes a YAML form element options element.
+   * Processes a form element options element.
    */
   public static function processYamlFormElementOptions(&$element, FormStateInterface $form_state, &$complete_form) {
     $element['#tree'] = TRUE;
@@ -99,40 +100,53 @@ class YamlFormElementOptions extends FormElement {
         'class' => ['js-' . $element['#id'] . '-options'],
       ],
       '#error_no_message' => TRUE,
-      '#default_value' => (!is_array($element['#default_value'])) ? $element['#default_value'] : '',
+      '#default_value' => (isset($element['#default_value']) && !is_array($element['#default_value'])) ? $element['#default_value'] : '',
     ];
 
     // Custom options.
-    $element['custom'] = [
-      '#type' => 'yamlform_options',
-      '#title' => $element['#title'],
-      '#title_display' => 'invisible',
-      '#label' => ($element['#likert']) ? t('answer') : t('option'),
-      '#labels' => ($element['#likert']) ? t('answers') : t('options'),
-      '#states' => [
-        'visible' => [
-          'select.js-' . $element['#id'] . '-options' => ['value' => ''],
+    if ($element['#custom__type'] === 'yamlform_multiple') {
+      $element['custom'] = [
+        '#type' => 'yamlform_multiple',
+        '#title' => $element['#title'],
+        '#title_display' => 'invisible',
+        '#states' => [
+          'visible' => [
+            'select.js-' . $element['#id'] . '-options' => ['value' => ''],
+          ],
         ],
-      ],
-      '#error_no_message' => TRUE,
-      '#default_value' => (!is_string($element['#default_value'])) ? $element['#default_value'] : [],
-    ];
+        '#error_no_message' => TRUE,
+        '#default_value' => (isset($element['#default_value']) && !is_string($element['#default_value'])) ? $element['#default_value'] : [],
+      ];
+    }
+    else {
+      $element['custom'] = [
+        '#type' => 'yamlform_options',
+        '#title' => $element['#title'],
+        '#title_display' => 'invisible',
+        '#label' => ($element['#likert']) ? t('answer') : t('option'),
+        '#labels' => ($element['#likert']) ? t('answers') : t('options'),
+        '#states' => [
+          'visible' => [
+            'select.js-' . $element['#id'] . '-options' => ['value' => ''],
+          ],
+        ],
+        '#error_no_message' => TRUE,
+        '#default_value' => (isset($element['#default_value']) && !is_string($element['#default_value'])) ? $element['#default_value'] : [],
+      ];
+    }
 
     $element['#element_validate'] = [[get_called_class(), 'validateYamlFormElementOptions']];
 
-    // Wrap this $element in a <div> that handle #states.
-    YamlFormElementHelper::fixWrapper($element);
-
     return $element;
-
   }
 
   /**
-   * Validates a YAML form element options element.
+   * Validates a form element options element.
    */
   public static function validateYamlFormElementOptions(&$element, FormStateInterface $form_state, &$complete_form) {
-    $options_value = $element['options']['#value'];
-    $custom_value = $element['custom']['#value'];
+    $options_value = NestedArray::getValue($form_state->getValues(), $element['options']['#parents']);
+    $custom_value = NestedArray::getValue($form_state->getValues(), $element['custom']['#parents']);
+
     $value = $options_value;
     if ($options_value == self::CUSTOM_OPTION) {
       try {
@@ -160,8 +174,6 @@ class YamlFormElementOptions extends FormElement {
     $form_state->setValueForElement($element['options'], NULL);
     $form_state->setValueForElement($element['custom'], NULL);
     $form_state->setValueForElement($element, $value);
-
-    return $element;
   }
 
 }

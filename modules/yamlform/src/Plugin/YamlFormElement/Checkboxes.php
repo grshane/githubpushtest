@@ -11,8 +11,8 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *   id = "checkboxes",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Checkboxes.php/class/Checkboxes",
  *   label = @Translation("Checkboxes"),
- *   category = @Translation("Options"),
- *   multiple = TRUE
+ *   category = @Translation("Options elements"),
+ *   multiple = TRUE,
  * )
  */
 class Checkboxes extends OptionsBase {
@@ -22,6 +22,7 @@ class Checkboxes extends OptionsBase {
    */
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
+      // Options settings.
       'options_display' => 'one_column',
     ];
   }
@@ -32,6 +33,17 @@ class Checkboxes extends OptionsBase {
   public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
     parent::prepare($element, $yamlform_submission);
     $element['#element_validate'][] = [get_class($this), 'validateMultipleOptions'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getElementSelectorInputsOptions(array $element) {
+    $selectors = $element['#options'];
+    foreach ($selectors as &$text) {
+      $text .= ' [' . $this->t('Checkbox') . ']';
+    }
+    return $selectors;
   }
 
 }

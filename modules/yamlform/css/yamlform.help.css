@@ -1,7 +1,11 @@
 /**
  * @file
- * YAML form help styling
+ * Help styles.
  */
+
+.yamlform-help-accordion dt {
+  font-weight: bold;
+}
 
 .block-help {
   margin: 1em 0;

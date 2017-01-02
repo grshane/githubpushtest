@@ -11,7 +11,7 @@ use Drupal\yamlform\YamlFormInterface;
  * @YamlFormElement(
  *   id = "yamlform_wizard_page",
  *   label = @Translation("Wizard page"),
- *   category = @Translation("Wizard")
+ *   category = @Translation("Wizard"),
  * )
  */
 class YamlFormWizardPage extends Details {
@@ -21,8 +21,9 @@ class YamlFormWizardPage extends Details {
    */
   public function getDefaultProperties() {
     return [
+      // Page settings.
       'title' => '',
-      'open' => '',
+      'open' => FALSE,
       'prev_button_label' => '',
       'next_button_label' => '',
     ];
@@ -31,7 +32,14 @@ class YamlFormWizardPage extends Details {
   /**
    * {@inheritdoc}
    */
-  public function hasValue(array $element) {
+  public function getTranslatableProperties() {
+    return array_merge(parent::getTranslatableProperties(), ['prev_button_label', 'next_button_label']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isInput(array $element) {
     return FALSE;
   }
 
@@ -45,7 +53,7 @@ class YamlFormWizardPage extends Details {
   /**
    * {@inheritdoc}
    */
-  public function isRoot(array $element) {
+  public function isRoot() {
     return TRUE;
   }
 
@@ -59,9 +67,8 @@ class YamlFormWizardPage extends Details {
     $yamlform = $form_state->getFormObject()->getYamlForm();
 
     $form['wizard_page'] = [
-      '#type' => 'details',
+      '#type' => 'fieldset',
       '#title' => $this->t('Page settings'),
-      '#open' => TRUE,
     ];
     $form['wizard_page']['prev_button_label'] = [
       '#type' => 'textfield',
@@ -79,10 +86,10 @@ class YamlFormWizardPage extends Details {
   }
 
   /**
-   * Get default from YAML form or global settings.
+   * Get default from form or global settings.
    *
    * @param \Drupal\yamlform\YamlFormInterface $yamlform
-   *   A YAML form.
+   *   A form.
    * @param string $name
    *   The name of the setting.
    *

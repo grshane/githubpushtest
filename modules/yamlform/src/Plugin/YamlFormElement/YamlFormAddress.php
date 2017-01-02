@@ -11,10 +11,10 @@ use Drupal\yamlform\Element\YamlFormAddress as YamlFormAddressElement;
  * @YamlFormElement(
  *   id = "yamlform_address",
  *   label = @Translation("Address"),
- *   category = @Translation("Composite"),
+ *   category = @Translation("Composite elements"),
  *   multiline = TRUE,
- *   multiple = TRUE,
  *   composite = TRUE,
+ *   states_wrapper = TRUE,
  * )
  */
 class YamlFormAddress extends YamlFormCompositeBase {

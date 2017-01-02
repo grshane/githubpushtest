@@ -10,12 +10,12 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Defines a form that resends YAML form submission.
+ * Defines a form that resends form submission.
  */
 class YamlFormSubmissionResendForm extends FormBase {
 
   /**
-   * A YAML form submission.
+   * A form submission.
    *
    * @var \Drupal\yamlform\YamlFormSubmissionInterface
    */
@@ -36,20 +36,20 @@ class YamlFormSubmissionResendForm extends FormBase {
   }
 
   /**
-   * YAML form request handler.
+   * Form request handler.
    *
    * @var \Drupal\yamlform\YamlFormRequestInterface
    */
-  protected $yamlFormRequest;
+  protected $requestHandler;
 
   /**
    * Constructs a new YamlFormResultsDeleteBaseForm object.
    *
-   * @param \Drupal\yamlform\YamlFormRequestInterface $yamlform_request
-   *   The YAML form request handler.
+   * @param \Drupal\yamlform\YamlFormRequestInterface $request_handler
+   *   The form request handler.
    */
-  public function __construct(YamlFormRequestInterface $yamlform_request) {
-    $this->yamlFormRequest = $yamlform_request;
+  public function __construct(YamlFormRequestInterface $request_handler) {
+    $this->requestHandler = $request_handler;
   }
 
   /**
@@ -147,7 +147,7 @@ class YamlFormSubmissionResendForm extends FormBase {
     // Message.
     $form['message'] = [
       '#type' => 'details',
-      '#title' => 'Message',
+      '#title' => $this->t('Message'),
       '#open' => TRUE,
       '#tree' => TRUE,
       '#prefix' => '<div id="edit-yamlform-message-wrapper">',
@@ -163,19 +163,16 @@ class YamlFormSubmissionResendForm extends FormBase {
     ];
 
     // Add submission navigation.
-    $source_entity = $this->yamlFormRequest->getCurrentSourceEntity('yamlform_submission');
+    $source_entity = $this->requestHandler->getCurrentSourceEntity('yamlform_submission');
     $form['navigation'] = [
       '#theme' => 'yamlform_submission_navigation',
       '#yamlform_submission' => $yamlform_submission,
-      '#source_entity' => $source_entity,
-      '#rel' => 'email-form',
       '#weight' => -20,
     ];
     $form['information'] = [
       '#theme' => 'yamlform_submission_information',
       '#yamlform_submission' => $yamlform_submission,
       '#source_entity' => $source_entity,
-      '#open' => FALSE,
       '#weight' => -19,
     ];
     $form['#attached']['library'][] = 'yamlform/yamlform.admin';

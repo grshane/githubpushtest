@@ -8,7 +8,7 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
  * @YamlFormElement(
  *   id = "yamlform_email_multiple",
  *   label = @Translation("Email multiple"),
- *   category = @Translation("Advanced")
+ *   category = @Translation("Advanced elements"),
  * )
  */
 class YamlFormEmailMultiple extends Email {
@@ -17,6 +17,10 @@ class YamlFormEmailMultiple extends Email {
    * {@inheritdoc}
    */
   public function formatHtml(array &$element, $value, array $options = []) {
+    if (empty($value)) {
+      return '';
+    }
+
     $format = $this->getFormat($element);
     switch ($format) {
       case 'link':

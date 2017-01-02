@@ -6,7 +6,7 @@ use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Controller for YAML form submission notes.
+ * Controller for form submission notes.
  */
 class YamlFormSubmissionNotesForm extends ContentEntityForm {
 
@@ -16,24 +16,21 @@ class YamlFormSubmissionNotesForm extends ContentEntityForm {
    * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\yamlform\YamlFormRequestInterface $yamlform_request */
-    $yamlform_request = \Drupal::service('yamlform.request');
+    /** @var \Drupal\yamlform\YamlFormRequestInterface $request_handler */
+    $request_handler = \Drupal::service('yamlform.request');
     /** @var \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission */
     /** @var \Drupal\Core\Entity\EntityInterface $source_entity */
-    list($yamlform_submission, $source_entity) = $yamlform_request->getYamlFormSubmissionEntities();
+    list($yamlform_submission, $source_entity) = $request_handler->getYamlFormSubmissionEntities();
 
     $form['navigation'] = [
       '#theme' => 'yamlform_submission_navigation',
       '#yamlform_submission' => $yamlform_submission,
-      '#source_entity' => $source_entity,
-      '#rel' => 'notes-form',
       '#access' => $this->isModalDialog() ? FALSE : TRUE,
     ];
     $form['information'] = [
       '#theme' => 'yamlform_submission_information',
       '#yamlform_submission' => $yamlform_submission,
       '#source_entity' => $source_entity,
-      '#open' => FALSE,
       '#access' => $this->isModalDialog() ? FALSE : TRUE,
     ];
 

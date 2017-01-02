@@ -26,6 +26,14 @@
             offCanvas: {
               zposition: 'next',
               position: position
+            },
+            keyboardNavigation: {
+              enable: true,
+              enhance: true
+            },
+            screenReader: {
+              aria: true,
+              text: true
             }
           }, {
             clone: false

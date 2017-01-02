@@ -10,8 +10,8 @@ use Drupal\yamlform\YamlFormElementBase;
  * @YamlFormElement(
  *   id = "yamlform_creditcard_number",
  *   label = @Translation("Credit card number"),
- *   category = @Translation("Advanced"),
- *   hidden = TRUE
+ *   category = @Translation("Advanced elements"),
+ *   hidden = TRUE,
  * )
  */
 class YamlFormCreditCardNumber extends YamlFormElementBase {

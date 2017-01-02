@@ -9,7 +9,7 @@ use Drupal\yamlform\YamlFormSubmissionExporterInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Form for YAML form results export form.
+ * Form for form results export form.
  */
 class YamlFormResultsExportForm extends FormBase {
 
@@ -21,20 +21,20 @@ class YamlFormResultsExportForm extends FormBase {
   }
 
   /**
-   * The YAML form submission exporter.
+   * The form submission exporter.
    *
    * @var \Drupal\yamlform\YamlFormSubmissionExporterInterface
    */
-  protected $exporter;
+  protected $submissionExporter;
 
   /**
    * Constructs a new YamlFormResultsExportForm object.
    *
    * @param \Drupal\yamlform\YamlFormSubmissionExporterInterface $yamlform_submission_exporter
-   *   The YAML form submission exported.
+   *   The form submission exported.
    */
   public function __construct(YamlFormSubmissionExporterInterface $yamlform_submission_exporter) {
-    $this->exporter = $yamlform_submission_exporter;
+    $this->submissionExporter = $yamlform_submission_exporter;
   }
 
   /**
@@ -50,14 +50,15 @@ class YamlFormResultsExportForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    // Set the merged default (global setting) and saved (Yaml form) values
+    // Set the merged default (global setting), saved, and user export options
     // into the form's state.
-    $default_values = $this->config('yamlform.settings')->get('export');
-    $saved_values = $this->exporter->getYamlFormOptions();
-    $form_state->setValues(NestedArray::mergeDeep($default_values, $saved_values));
+    $settings_options = $this->config('yamlform.settings')->get('export');
+    $saved_options = $this->submissionExporter->getYamlFormOptions();
+    $user_options = $this->submissionExporter->getValuesFromInput($form_state->getUserInput());
+    $export_options = NestedArray::mergeDeep($settings_options, $saved_options, $user_options);
 
     // Build the form.
-    $this->exporter->buildForm($form, $form_state);
+    $this->submissionExporter->buildExportOptionsForm($form, $form_state, $export_options);
 
     // Build actions.
     $form['actions']['#type'] = 'actions';
@@ -77,7 +78,7 @@ class YamlFormResultsExportForm extends FormBase {
       '#attributes' => [
         'class' => ['button', 'button--danger'],
       ],
-      '#access' => ($saved_values) ? TRUE : FALSE,
+      '#access' => ($saved_options) ? TRUE : FALSE,
       '#submit' => ['::delete'],
     ];
     return $form;
@@ -87,21 +88,21 @@ class YamlFormResultsExportForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $values = $this->exporter->getFormValues($form_state);
+    $export_options = $this->submissionExporter->getValuesFromInput($form_state->getValues());
 
     // Implode exclude columns.
-    $values['excluded_columns'] = implode(',', $values['excluded_columns']);
+    $export_options['excluded_columns'] = implode(',', $export_options['excluded_columns']);
 
-    if ($source_entity = $this->exporter->getSourceEntity()) {
+    if ($source_entity = $this->submissionExporter->getSourceEntity()) {
       $entity_type = $source_entity->getEntityTypeId();
       $entity_id = $source_entity->id();
       $route_parameters = [$entity_type => $entity_id];
-      $route_options = ['query' => $values];
+      $route_options = ['query' => $export_options];
       $form_state->setRedirect('entity.' . $entity_type . '.yamlform.results_export', $route_parameters, $route_options);
     }
-    elseif ($yamlform = $this->exporter->getYamlForm()) {
+    elseif ($yamlform = $this->submissionExporter->getYamlForm()) {
       $route_parameters = ['yamlform' => $yamlform->id()];
-      $route_options = ['query' => $values];
+      $route_options = ['query' => $export_options];
       $form_state->setRedirect('entity.yamlform.results_export', $route_parameters, $route_options);
     }
   }
@@ -115,9 +116,9 @@ class YamlFormResultsExportForm extends FormBase {
    *   The current state of the form.
    */
   public function save(array &$form, FormStateInterface $form_state) {
-    // Save the export options to the YAML form's state.
-    $values = $this->exporter->getFormValues($form_state);
-    $this->exporter->setYamlFormOptions($values);
+    // Save the export options to the form's state.
+    $export_options = $this->submissionExporter->getValuesFromInput($form_state->getValues());
+    $this->submissionExporter->setYamlFormOptions($export_options);
     drupal_set_message($this->t('The download settings have been saved.'));
   }
 
@@ -130,7 +131,7 @@ class YamlFormResultsExportForm extends FormBase {
    *   The current state of the form.
    */
   public function delete(array &$form, FormStateInterface $form_state) {
-    $this->exporter->deleteYamlFormOptions();
+    $this->submissionExporter->deleteYamlFormOptions();
     drupal_set_message($this->t('The download settings have been reset.'));
   }
 

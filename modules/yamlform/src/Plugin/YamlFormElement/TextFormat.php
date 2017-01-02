@@ -15,8 +15,9 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *   id = "text_format",
  *   api = "https://api.drupal.org/api/drupal/core!modules!filter!src!Element!TextFormat.php/class/TextFormat",
  *   label = @Translation("Text format"),
- *   category = @Translation("Advanced"),
- *   multiline = TRUE
+ *   category = @Translation("Advanced elements"),
+ *   composite = TRUE,
+ *   multiline = TRUE,
  * )
  */
 class TextFormat extends YamlFormElementBase {
@@ -26,6 +27,7 @@ class TextFormat extends YamlFormElementBase {
    */
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
+      // Text format settings.
       'allowed_formats' => [],
       'hide_help' => FALSE,
     ];
@@ -34,9 +36,17 @@ class TextFormat extends YamlFormElementBase {
   /**
    * {@inheritdoc}
    */
+  public function isInput(array $element) {
+    return TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
     parent::prepare($element, $yamlform_submission);
     $element['#after_build'] = [[get_class($this), 'afterBuild']];
+    $element['#attached']['library'][] = 'yamlform/yamlform.element.text_format';
   }
 
   /**
@@ -50,7 +60,7 @@ class TextFormat extends YamlFormElementBase {
    * @return array
    *   The element.
    */
-  static public function afterBuild(array $element, FormStateInterface $form_state) {
+  public static function afterBuild(array $element, FormStateInterface $form_state) {
     if (empty($element['format'])) {
       return $element;
     }
@@ -75,8 +85,12 @@ class TextFormat extends YamlFormElementBase {
    */
   public function setDefaultValue(array &$element) {
     if (isset($element['#default_value']) && is_array($element['#default_value'])) {
-      $element['#format'] = $element['#default_value']['format'];
-      $element['#default_value'] = $element['#default_value']['value'];
+      if (isset($element['#default_value']['format'])) {
+        $element['#format'] = $element['#default_value']['format'];
+      }
+      if (isset($element['#default_value']['value'])) {
+        $element['#default_value'] = $element['#default_value']['value'];
+      }
     }
   }
 
@@ -84,11 +98,15 @@ class TextFormat extends YamlFormElementBase {
    * {@inheritdoc}
    */
   public function formatHtml(array &$element, $value, array $options = []) {
-    if (isset($value['value']) && isset($value['format'])) {
-      return check_markup($value['value'], $value['format']);
-    }
-    else {
-      return $value;
+    $value = (isset($value['value'])) ? $value['value'] : $value;
+    $format = (isset($value['format'])) ? $value['format'] : $this->getFormat($element);
+    switch ($format) {
+      case 'raw':
+        return $value;
+
+      case 'value':
+      default:
+        return check_markup($value, $format);
     }
   }
 
@@ -96,16 +114,19 @@ class TextFormat extends YamlFormElementBase {
    * {@inheritdoc}
    */
   public function formatText(array &$element, $value, array $options = []) {
-    if (isset($value['value']) && isset($value['format'])) {
-      $html = check_markup($value['value'], $value['format']);
-      // Convert any HTML to plain-text.
-      $html = MailFormatHelper::htmlToText($html);
-      // Wrap the mail body for sending.
-      $html = MailFormatHelper::wrapMail($html);
-      return $html;
-    }
-    else {
-      return $value;
+    $format = (isset($value['format'])) ? $value['format'] : $this->getFormat($element);
+    switch ($format) {
+      case 'raw':
+        return $value;
+
+      case 'value':
+      default:
+        $html = $this->formatHtml($element, $value);
+        // Convert any HTML to plain-text.
+        $html = MailFormatHelper::htmlToText($html);
+        // Wrap the mail body for sending.
+        $html = MailFormatHelper::wrapMail($html);
+        return $html;
     }
   }
 
@@ -131,6 +152,17 @@ class TextFormat extends YamlFormElementBase {
   /**
    * {@inheritdoc}
    */
+  protected function getElementSelectorInputsOptions(array $element) {
+    $title = $this->getAdminLabel($element);
+    return [
+      'value' => $title . ' [' . t('Textarea') . ']',
+      'format' => $title . ' [' . t('Select') . ']',
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
 
@@ -140,9 +172,8 @@ class TextFormat extends YamlFormElementBase {
       $options[$filter->id()] = $filter->label();
     }
     $form['text_format'] = [
-      '#type' => 'details',
+      '#type' => 'fieldset',
       '#title' => $this->t('Text format settings'),
-      '#open' => FALSE,
     ];
     $form['text_format']['allowed_formats'] = [
       '#type' => 'checkboxes',

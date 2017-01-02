@@ -9,6 +9,7 @@ namespace Drupal\responsive_menu\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\Cache\Cache;
 
@@ -39,7 +40,6 @@ class SettingsForm extends ConfigFormBase {
     $form['responsive_menu'] = array(
       '#type' => 'fieldset',
       '#title' => t('Responsive menu'),
-      '#description' => t("Ensure you have placed both the 'Horizontal menu' block and the 'Responsive menu mobile icon' block in a region."),
     );
     $form['responsive_menu']['horizontal_menu'] = array(
       '#type' => 'select',
@@ -73,6 +73,12 @@ class SettingsForm extends ConfigFormBase {
         'div' => 'div',
       ),
     );
+    $form['responsive_menu']['use_breakpoint'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use a breakpoint'),
+      '#description' => t("Unchecking this will disable the breakpoint and your mobile menu icon block will always display (assuming you have placed it on the page). This can be useful if you always want to display the mobile menu icon and don't want a horizontal menu at all, or if you want to control the visibility and breakpoints in your theme's css. Note that the horizontal menu block, if placed, will only be visible if this is checked."),
+      '#default_value' => \Drupal::config('responsive_menu.settings')->get('use_breakpoint'),
+    );
     // Breakpoints.
     $queries = responsive_menu_get_breakpoints();
     $form['responsive_menu']['horizontal_breakpoint'] = array(
@@ -80,6 +86,11 @@ class SettingsForm extends ConfigFormBase {
       '#title' => t('Choose a breakpoint to trigger the desktop format menu at'),
       '#default_value' => \Drupal::config('responsive_menu.settings')->get('horizontal_breakpoint'),
       '#options' => $queries,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="use_breakpoint"]' => array('checked' => TRUE),
+        ),
+      ),
     );
     if (empty($queries)) {
       $form['responsive_menu']['horizontal_breakpoint']['#disabled'] = TRUE;
@@ -195,89 +206,61 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    // Ensure there are breakpoints configured.
+    $values = $form_state->getValues();
+    if ($values['use_breakpoint'] && empty($values['horizontal_breakpoint'])) {
+      $breakpoint_message = Link::fromTextAndUrl('breakpoint file', Url::fromUri('https://www.drupal.org/node/1803874'))->toRenderable();
+      $form_state->setErrorByName('horizontal_breakpoint', $this->t("You have chosen to use a breakpoint but you have not selected one. This may happen if your @breakpoint is not properly set up.", array(
+        '@breakpoint' => render($breakpoint_message),
+      )));
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     $values = $form_state->getValues();
 
-    // Save all the values into config.
+    // Save all the submitted form values into config.
     \Drupal::configFactory()
       ->getEditable('responsive_menu.settings')
       ->set('horizontal_menu', $values['horizontal_menu'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('horizontal_depth', $values['horizontal_depth'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('horizontal_wrapping_element', $values['horizontal_wrapping_element'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
+      ->set('use_breakpoint', $values['use_breakpoint'])
       ->set('include_css', $values['css'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('off_canvas_menus', $values['off_canvas_menus'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('off_canvas_position', $values['position'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('off_canvas_theme', $values['theme'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('horizontal_superfish', $values['superfish'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('horizontal_superfish_delay', $values['superfish_delay'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('horizontal_superfish_speed', $values['superfish_speed'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('horizontal_superfish_speed_out', $values['superfish_speed_out'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('horizontal_superfish_hoverintent', $values['superfish_hoverintent'])
-      ->save();
-    \Drupal::configFactory()
-      ->getEditable('responsive_menu.settings')
       ->set('hammerjs', $values['hammerjs'])
       ->save();
 
     // Handle the breakpoint.
     $queries = responsive_menu_get_breakpoints();
-    // Check if the breakpoint exists.
-    if (isset($queries[$values['horizontal_breakpoint']])) {
+    // Check if the breakpoint exists and the user has chosen
+    // to use a breakpoint.
+    if ($values['use_breakpoint'] && isset($queries[$values['horizontal_breakpoint']])) {
       // Store the breakpoint for using again in the form.
       \Drupal::configFactory()
         ->getEditable('responsive_menu.settings')
         ->set('horizontal_breakpoint', $values['horizontal_breakpoint'])
-        ->save();
-      // Also store the actual breakpoint string for use in calling the stylesheet.
-      \Drupal::configFactory()
-        ->getEditable('responsive_menu.settings')
+        // Also store the actual breakpoint string for use in calling
+        // the stylesheet.
         ->set('horizontal_media_query', $queries[$values['horizontal_breakpoint']])
         ->save();
-    }
-    else {
-      \Drupal::configFactory()
-        ->getEditable('responsive_menu.settings')
-        ->set('horizontal_media_query', $values['horizontal_media_query'])
-        ->save();
-    }
 
-    // Generate the breakpoint css file.
-    $breakpoint = \Drupal::config('responsive_menu.settings')->get('horizontal_media_query');
-    responsive_menu_generate_breakpoint_css($breakpoint);
+      // Generate the breakpoint css file.
+      $breakpoint = \Drupal::config('responsive_menu.settings')->get('horizontal_media_query');
+      responsive_menu_generate_breakpoint_css($breakpoint);
+    }
 
     // Invalidate the block cache for the horizontal menu so these settings get
     // applied when rebuilding the block on view.

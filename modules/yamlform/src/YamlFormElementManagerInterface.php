@@ -8,15 +8,15 @@ use Drupal\Component\Plugin\Discovery\CachedDiscoveryInterface;
 use Drupal\Component\Plugin\PluginManagerInterface;
 
 /**
- * Collects available YAML form elements.
+ * Collects available form elements.
  */
 interface YamlFormElementManagerInterface extends PluginManagerInterface, CachedDiscoveryInterface, FallbackPluginManagerInterface, CategorizingPluginManagerInterface {
 
   /**
-   * Get all available YAML form element plugin instances.
+   * Get all available form element plugin instances.
    *
    * @return \Drupal\yamlform\YamlFormElementInterface[]
-   *   An array of all available YAML form element plugin instances.
+   *   An array of all available form element plugin instances.
    */
   public function getInstances();
 
@@ -53,14 +53,45 @@ interface YamlFormElementManagerInterface extends PluginManagerInterface, Cached
   public function getElementPluginId(array $element);
 
   /**
-   * Get a YAML form element plugin instance for an element.
+   * Get a form element plugin instance for an element.
    *
    * @param array $element
    *   An associative array containing an element with a #type property.
    *
    * @return \Drupal\yamlform\YamlFormElementInterface
-   *   A YAML form element plugin instance
+   *   A form element plugin instance
    */
   public function getElementInstance(array $element);
+
+  /**
+   * Gets sorted plugin definitions.
+   *
+   * @param array[]|null $definitions
+   *   (optional) The plugin definitions to sort. If omitted, all plugin
+   *   definitions are used.
+   * @param string $sort_by
+   *   The property to sort plugin definitions by. Only 'label' and 'category'
+   *   are supported. Defaults to label.
+   *
+   * @return array[]
+   *   An array of plugin definitions, sorted by category and label.
+   */
+  public function getSortedDefinitions(array $definitions = NULL, $sort_by = 'label');
+
+  /**
+   * Get all translatable properties from all elements.
+   *
+   * @return array
+   *   An array of translatable properties.
+   */
+  public function getTranslatableProperties();
+
+  /**
+   * Get all properties for all elements.
+   *
+   * @return array
+   *   An array of all properties.
+   */
+  public function getAllProperties();
 
 }

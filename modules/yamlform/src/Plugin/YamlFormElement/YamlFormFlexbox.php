@@ -9,9 +9,9 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @YamlFormElement(
  *   id = "yamlform_flexbox",
- *   label = @Translation("Flexbox layout (Experimental)"),
- *   category = @Translation("Container")
- *
+ *   label = @Translation("Flexbox layout"),
+ *   category = @Translation("Containers"),
+ *   states_wrapper = TRUE,
  * )
  */
 class YamlFormFlexbox extends Container {
@@ -21,6 +21,7 @@ class YamlFormFlexbox extends Container {
    */
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
+      // Flexbox.
       'align_items' => 'flex-start',
     ];
   }
@@ -28,24 +29,18 @@ class YamlFormFlexbox extends Container {
   /**
    * {@inheritdoc}
    */
+  protected function build($format, array &$element, $value, array $options = []) {
+    return $value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
-    /** @var \Drupal\yamlform_ui\Form\YamlFormUiElementFormInterface $form_object */
-    $form_object = $form_state->getFormObject();
-
-    if ($form_object->isNew()) {
-      $form['messages'] = [
-        '#markup' => $this->t('Flexbox layouts are experimental and provided for testing purposes only. Use at your own risk.'),
-        '#prefix' => '<div class="messages messages--warning">',
-        '#suffix' => '</div>',
-        '#access' => TRUE,
-      ];
-    }
-
     $form['flexbox'] = [
-      '#type' => 'details',
+      '#type' => 'fieldset',
       '#title' => $this->t('Flexbox settings'),
-      '#open' => FALSE,
     ];
     $form['flexbox']['align_items'] = [
       '#type' => 'select',

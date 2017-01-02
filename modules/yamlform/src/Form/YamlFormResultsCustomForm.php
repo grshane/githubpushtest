@@ -9,7 +9,7 @@ use Drupal\yamlform\YamlFormSubmissionStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Form for YAML form results custom(ize) form.
+ * Form for form results custom(ize) form.
  */
 class YamlFormResultsCustomForm extends FormBase {
 
@@ -21,45 +21,45 @@ class YamlFormResultsCustomForm extends FormBase {
   }
 
   /**
-   * The YAML form entity.
+   * The form entity.
    *
    * @var \Drupal\yamlform\YamlFormInterface
    */
   protected $yamlform;
 
   /**
-   * The YAML form source entity.
+   * The form source entity.
    *
    * @var \Drupal\Core\Entity\EntityInterface
    */
   protected $sourceEntity;
 
   /**
-   * The YAML form submission storage.
+   * The form submission storage.
    *
    * @var \Drupal\yamlform\YamlFormSubmissionStorageInterface
    */
   protected $submissionStorage;
 
   /**
-   * YAML form request handler.
+   * Form request handler.
    *
    * @var \Drupal\yamlform\YamlFormRequestInterface
    */
-  protected $yamlFormRequest;
+  protected $requestHandler;
 
   /**
    * Constructs a new YamlFormResultsDeleteBaseForm object.
    *
    * @param \Drupal\yamlform\YamlFormSubmissionStorageInterface $yamlform_submission_storage
-   *   The YAML form submission storage.
-   * @param \Drupal\yamlform\YamlFormRequestInterface $yamlform_request
-   *   The YAML form request handler.
+   *   The form submission storage.
+   * @param \Drupal\yamlform\YamlFormRequestInterface $request_handler
+   *   The form request handler.
    */
-  public function __construct(YamlFormSubmissionStorageInterface $yamlform_submission_storage, YamlFormRequestInterface $yamlform_request) {
+  public function __construct(YamlFormSubmissionStorageInterface $yamlform_submission_storage, YamlFormRequestInterface $request_handler) {
     $this->submissionStorage = $yamlform_submission_storage;
-    $this->yamlFormRequest = $yamlform_request;
-    list($this->yamlform, $this->sourceEntity) = $this->yamlFormRequest->getYamlFormEntities();
+    $this->requestHandler = $request_handler;
+    list($this->yamlform, $this->sourceEntity) = $this->requestHandler->getYamlFormEntities();
   }
 
   /**
@@ -84,54 +84,39 @@ class YamlFormResultsCustomForm extends FormBase {
       $custom_columns['sid']['title'] = $this->t('Submission ID');
     }
 
-    $weight = 0;
-    $delta = count($available_columns);
-    $rows = [];
-
-    // Display custom columns first.
-    foreach ($custom_columns as $column_name => $column) {
-      $rows[$column_name] = $this->buildRow($column_name, $column, TRUE, $weight++, $delta);
+    // Columns.
+    $columns_options = [];
+    foreach ($available_columns as $column_name => $column) {
+      $title = (strpos($column_name, 'element__') === 0) ? ['data' => ['#markup' => '<b>' . $column['title'] . '</b>']] : $column['title'];
+      $key = (isset($column['key'])) ? str_replace('yamlform_', '', $column['key']) : $column['name'];
+      $columns_options[$column_name] = ['title' => $title, 'key' => $key];
     }
+    $columns_keys = array_keys($custom_columns);
+    $columns_default_value = array_combine($columns_keys, $columns_keys);
+    $form['columns'] = [
+      '#type' => 'yamlform_tableselect_sort',
+      '#header' => [
+        'title' => $this->t('Title'),
+        'key' => $this->t('Key'),
+      ],
+      '#options' => $columns_options,
+      '#default_value' => $columns_default_value,
+    ];
 
-    // Display available columns sorted alphabetically.
     // Get available sort options.
     $sort_options = [];
     $sort_columns = $available_columns;
     ksort($sort_columns);
     foreach ($sort_columns as $column_name => $column) {
-      if (!isset($custom_columns[$column_name])) {
-        $rows[$column_name] = $this->buildRow($column_name, $column, FALSE, $weight++, $delta);
-      }
-
       if (!isset($column['sort']) || $column['sort'] === TRUE) {
         $sort_options[$column_name] = (string) $column['title'];
       };
     }
     asort($sort_options);
 
-    // Please note, 'tableselect' element did not work correctly with
-    // drag-n-drop behavior, so for now we are going to use a simple table.
-    $form['columns'] = [
-      '#type' => 'table',
-      '#header' => [
-        'name' => [
-          'width' => '40px',
-        ],
-        'title' => $this->t('Title'),
-        'key' => $this->t('Key'),
-        'weight' => $this->t('Weight'),
-      ],
-      '#tabledrag' => [
-        [
-          'action' => 'order',
-          'relationship' => 'sibling',
-          'group' => 'table-sort-weight',
-        ],
-      ],
-    ] + $rows;
-
     // Sort and direction.
-    $sort = $this->yamlform->getState($this->getStateKey('sort'), 'sid');
+    // Display available columns sorted alphabetically.
+    $sort = $this->yamlform->getState($this->getStateKey('sort'), 'serial');
     $direction = $this->yamlform->getState($this->getStateKey('direction'), 'desc');
     $form['sort'] = [
       '#prefix' => '<div class="container-inline">',
@@ -281,30 +266,17 @@ class YamlFormResultsCustomForm extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     $columns = $form_state->getValue('columns');
-    foreach ($columns as $column) {
-      if ($column['name']) {
-        return;
-      }
+    if (empty($columns)) {
+      $form_state->setErrorByName('columns', $this->t('At least once column is required'));
     }
-    $form_state->setErrorByName('columns', $this->t('At least once column is required'));
   }
 
   /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Column.
-    // Get custom columns are a simple sorted array.
-    $columns = $form_state->getValue('columns');
-    $custom_columns = [];
-    foreach ($columns as $name => $column) {
-      if ($column['name'] == 1) {
-        $custom_columns[$column['weight']] = $name;
-      }
-    }
-    ksort($custom_columns);
-    array_values($custom_columns);
-    $this->yamlform->setState($this->getStateKey('columns'), $custom_columns);
+    // Set columns.
+    $this->yamlform->setState($this->getStateKey('columns'), $form_state->getValue('columns'));
 
     // Set sort, direction, limit.
     $this->yamlform->setState($this->getStateKey('sort'), $form_state->getValue('sort'));
@@ -321,8 +293,8 @@ class YamlFormResultsCustomForm extends FormBase {
     drupal_set_message($this->t('The customized table has been saved.'));
 
     // Set redirect.
-    $route_name = $this->yamlFormRequest->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_table');
-    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity);
+    $route_name = $this->requestHandler->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_table');
+    $route_parameters = $this->requestHandler->getRouteParameters($this->yamlform, $this->sourceEntity);
     $form_state->setRedirect($route_name, $route_parameters);
   }
 

@@ -11,10 +11,11 @@ use Drupal\yamlform\Element\YamlFormCreditCard as YamlFormCreditCardElement;
  * @YamlFormElement(
  *   id = "yamlform_creditcard",
  *   label = @Translation("Credit card"),
- *   category = @Translation("Composite"),
+ *   category = @Translation("Composite elements"),
+ *   hidden = TRUE,
  *   multiline = TRUE,
- *   multiple = TRUE,
  *   composite = TRUE,
+ *   states_wrapper = TRUE,
  * )
  */
 class YamlFormCreditCard extends YamlFormCompositeBase {

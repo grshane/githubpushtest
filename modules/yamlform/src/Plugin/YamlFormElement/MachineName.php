@@ -12,7 +12,7 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *   id = "machine_name",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!MachineName.php/class/MachineName",
  *   label = @Translation("Machine name"),
- *   hidden = TRUE
+ *   hidden = TRUE,
  * )
  */
 class MachineName extends YamlFormElementBase {
@@ -43,7 +43,7 @@ class MachineName extends YamlFormElementBase {
    * @return bool
    *   Always returns TRUE.
    */
-  static public function exists() {
+  public static function exists() {
     return FALSE;
   }
 

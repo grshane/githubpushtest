@@ -28,9 +28,33 @@ abstract class YamlFormCompositeBase extends FormElement {
       '#pre_render' => [
         [$class, 'preRenderCompositeFormElement'],
       ],
+      '#theme' => str_replace('yamlform_', 'yamlform_composite_', $this->getPluginId()),
       '#theme_wrappers' => ['container'],
+      '#title_display' => 'invisible',
       '#required' => FALSE,
+      '#flexbox' => TRUE,
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
+    $composite_elements = static::getCompositeElements();
+    $default_value = [];
+    foreach ($composite_elements as $composite_key => $composite_element) {
+      if (isset($composite_element['#type']) && $composite_element['#type'] != 'label') {
+        $default_value[$composite_key] = '';
+      }
+    }
+
+    if ($input === FALSE) {
+      if (empty($element['#default_value']) || !is_array($element['#default_value'])) {
+        $element['#default_value'] = [];
+      }
+      return $element['#default_value'] + $default_value;
+    }
+    return (is_array($input)) ? $input + $default_value : $default_value;
   }
 
   /**
@@ -42,6 +66,20 @@ abstract class YamlFormCompositeBase extends FormElement {
    */
   public static function getCompositeElements() {
     return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function preRenderCompositeFormElement($element) {
+    $element = CompositeFormElementTrait::preRenderCompositeFormElement($element);
+
+    // Add class name to wrapper attributes.
+    $class_name = str_replace('_', '-', $element['#type']);
+    $element['#attributes']['class'][] = 'js-' . $class_name;
+    $element['#attributes']['class'][] = $class_name;
+
+    return $element;
   }
 
   /**
@@ -69,46 +107,51 @@ abstract class YamlFormCompositeBase extends FormElement {
         $composite_element['#value'] = $element['#value'][$composite_key];
       }
 
-      // If composite element does not specified #required see if the $element
-      // is required.
-      if (!isset($composite_element['#required']) && !empty($element['#required'])) {
-        $composite_element['#required'] = TRUE;
-      }
+      // Always set #access which is used to hide/show the elements container.
+      $composite_element += [
+        '#access' => TRUE,
+      ];
 
       // Never required hidden composite elements.
-      if (isset($composite_element['#access']) && $composite_element['#access'] == FALSE) {
+      if ($composite_element['#access'] == FALSE) {
         unset($composite_element['#required']);
       }
 
+      // Load options.
       if (isset($composite_element['#options'])) {
         $composite_element['#options'] = YamlFormOptionsEntity::getElementOptions($composite_element);
+      }
+
+      // Handle #type specific customizations.
+      if (isset($composite_element['#type'])) {
+        switch ($composite_element['#type']) {
+          case 'select':
+          case 'yamlform_select_other':
+            // Always include an empty option, even if the composite element
+            // is not required.
+            // @see https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Select.php/class/Select/8.2.x
+            // Use placeholder as empty option.
+            if (!isset($composite_element['#empty_option'])) {
+              if (isset($composite_element['#placeholder'])) {
+                $composite_element['#empty_option'] = $composite_element['#placeholder'];
+              }
+              elseif (empty($composite_element['#required'])) {
+                $composite_element['#empty_option'] = t('- None -');
+              }
+            }
+            break;
+        }
       }
     }
 
     $element += $composite_elements;
     $element['#element_validate'] = [[get_called_class(), 'validateYamlFormComposite']];
+
+    if (!empty($element['#flexbox'])) {
+      $element['#attached']['library'][] = 'yamlform/yamlform.element.flexbox';
+    }
+
     return $element;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
-    $composite_elements = static::getCompositeElements();
-    $default_value = [];
-    foreach ($composite_elements as $composite_key => $composite_element) {
-      if (isset($composite_element['#type']) && $composite_element['#type'] != 'label') {
-        $default_value[$composite_key] = '';
-      }
-    }
-
-    if ($input === FALSE) {
-      if (empty($element['#default_value']) || !is_array($element['#default_value'])) {
-        $element['#default_value'] = [];
-      }
-      return $element['#default_value'] + $default_value;
-    }
-    return $input + $default_value;
   }
 
   /**
@@ -126,8 +169,6 @@ abstract class YamlFormCompositeBase extends FormElement {
         }
       }
     }
-
-    return $element;
   }
 
 }

@@ -2,22 +2,23 @@
 
 namespace Drupal\yamlform\Controller;
 
+use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Url;
 use Drupal\yamlform\Utility\YamlFormDialogHelper;
 use Drupal\yamlform\YamlFormHandlerInterface;
 use Drupal\yamlform\YamlFormInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Component\Plugin\PluginManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Controller for all YAML form handlers.
+ * Controller for all form handlers.
  */
-class YamlFormPluginHandlerController extends ControllerBase {
+class YamlFormPluginHandlerController extends ControllerBase implements ContainerInjectionInterface {
 
   /**
-   * A YAML form handler plugin manager.
+   * A form handler plugin manager.
    *
    * @var \Drupal\Component\Plugin\PluginManagerInterface
    */
@@ -27,7 +28,7 @@ class YamlFormPluginHandlerController extends ControllerBase {
    * Constructs a YamlFormPluginBaseController object.
    *
    * @param \Drupal\Component\Plugin\PluginManagerInterface $plugin_manager
-   *   A YAML form handler plugin manager.
+   *   A form handler plugin manager.
    */
   public function __construct(PluginManagerInterface $plugin_manager) {
     $this->pluginManager = $plugin_manager;
@@ -80,12 +81,12 @@ class YamlFormPluginHandlerController extends ControllerBase {
   }
 
   /**
-   * Shows a list of YAML form handlers that can be added to a form.
+   * Shows a list of form handlers that can be added to a form.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The current request.
    * @param \Drupal\yamlform\YamlFormInterface $yamlform
-   *   A YAML form.
+   *   A form.
    *
    * @return array
    *   A render array as expected by the renderer.

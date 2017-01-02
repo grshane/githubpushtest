@@ -19,22 +19,6 @@ class YamlFormElement extends YamlFormElementBase {
   /**
    * {@inheritdoc}
    */
-  public function isContainer(array $element) {
-    // Set if a render element (ie #type) is an #input.
-    if (isset($element['#type'])) {
-      /** @var \Drupal\Core\Render\ElementInfoManagerInterface $element_manager */
-      $element_manager = \Drupal::service('plugin.manager.element_info');
-      $element_info = $element_manager->getInfo($element['#type']);
-      return (!$element_info || empty($element_info['#input'])) ? TRUE : FALSE;
-    }
-
-    // Unless the element is an #input it safer to assume it is a container.
-    return TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getDefaultProperties() {
     return [];
   }
@@ -69,6 +53,13 @@ class YamlFormElement extends YamlFormElementBase {
       $form['custom']['#description'] = $this->t('Read the the %label template\'s <a href=":href">API documentation</a>.', $t_args);
     }
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getElementSelectorOptions(array $element) {
+    return [];
   }
 
 }

@@ -2,14 +2,14 @@
 
 namespace Drupal\yamlform_ui;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\yamlform\Element\YamlFormOptions;
 use Drupal\yamlform\YamlFormOptionsForm;
 
 /**
- * Base for controller for YAML form option UI.
+ * Base for controller for form option UI.
  */
 class YamlFormUiOptionsForm extends YamlFormOptionsForm {
 
@@ -17,8 +17,6 @@ class YamlFormUiOptionsForm extends YamlFormOptionsForm {
    * {@inheritdoc}
    */
   public function editForm(array $form, FormStateInterface $form_state) {
-    $yamlform_options = $this->entity;
-
     $form['options'] = [
       '#type' => 'yamlform_options',
       '#mode' => 'yaml',
@@ -27,7 +25,7 @@ class YamlFormUiOptionsForm extends YamlFormOptionsForm {
       '#empty_options' => 10,
       '#add_more' => 10,
       '#required' => TRUE,
-      '#default_value' => Yaml::decode($yamlform_options->get('options')),
+      '#default_value' => $this->getOptions($form, $form_state),
     ];
     return $form;
   }

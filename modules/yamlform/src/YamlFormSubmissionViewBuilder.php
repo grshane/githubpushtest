@@ -13,7 +13,7 @@ use Drupal\Core\Utility\Token;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Render controller for YAML form submissions.
+ * Render controller for form submissions.
  */
 class YamlFormSubmissionViewBuilder extends EntityViewBuilder implements YamlFormSubmissionViewBuilderInterface {
 
@@ -27,30 +27,30 @@ class YamlFormSubmissionViewBuilder extends EntityViewBuilder implements YamlFor
   /**
    * The token handler.
    *
-   * @var \Drupal\Core\Utility\Token $token
+   * @var \Drupal\Core\Utility\Token
    */
   protected $token;
 
   /**
-   * YAML form request handler.
+   * Form request handler.
    *
    * @var \Drupal\yamlform\YamlFormRequestInterface
    */
-  protected $yamlFormRequest;
+  protected $requestManager;
 
   /**
-   * The YAML form handler manager service.
+   * The form handler manager service.
    *
    * @var \Drupal\yamlform\YamlFormHandlerManagerInterface
    */
-  protected $yamlFormHandlerManager;
+  protected $handlerManager;
 
   /**
-   * The YAML form element manager service.
+   * The form element manager service.
    *
    * @var \Drupal\yamlform\YamlFormElementManagerInterface
    */
-  protected $yamlFormElementManager;
+  protected $elementManager;
 
   /**
    * Constructs a new YamlFormSubmissionViewBuilder.
@@ -66,19 +66,19 @@ class YamlFormSubmissionViewBuilder extends EntityViewBuilder implements YamlFor
    * @param \Drupal\Core\Utility\Token $token
    *   The token handler.
    * @param \Drupal\yamlform\YamlFormRequestInterface $yamlform_request
-   *   The YAML form request handler.
-   * @param \Drupal\yamlform\YamlFormHandlerManagerInterface $yamlform_handler_manager
-   *   The YAML form handler manager service.
-   * @param \Drupal\yamlform\YamlFormElementManagerInterface $yamlform_element_manager
-   *   The YAML form element manager service.
+   *   The form request handler.
+   * @param \Drupal\yamlform\YamlFormHandlerManagerInterface $handler_manager
+   *   The form handler manager service.
+   * @param \Drupal\yamlform\YamlFormElementManagerInterface $element_manager
+   *   The form element manager service.
    */
-  public function __construct(EntityTypeInterface $entity_type, EntityManagerInterface $entity_manager, LanguageManagerInterface $language_manager, ConfigFactoryInterface $config_factory, Token $token, YamlFormRequestInterface $yamlform_request, YamlFormHandlerManagerInterface $yamlform_handler_manager, YamlFormElementManagerInterface $yamlform_element_manager) {
+  public function __construct(EntityTypeInterface $entity_type, EntityManagerInterface $entity_manager, LanguageManagerInterface $language_manager, ConfigFactoryInterface $config_factory, Token $token, YamlFormRequestInterface $yamlform_request, YamlFormHandlerManagerInterface $handler_manager, YamlFormElementManagerInterface $element_manager) {
     parent::__construct($entity_type, $entity_manager, $language_manager);
     $this->configFactory = $config_factory;
     $this->token = $token;
-    $this->yamlFormRequest = $yamlform_request;
-    $this->yamlFormHandlerManager = $yamlform_handler_manager;
-    $this->yamlFormElementManager = $yamlform_element_manager;
+    $this->requestManager = $yamlform_request;
+    $this->handlerManager = $handler_manager;
+    $this->elementManager = $element_manager;
   }
 
   /**
@@ -106,7 +106,7 @@ class YamlFormSubmissionViewBuilder extends EntityViewBuilder implements YamlFor
     if (empty($entities)) {
       return;
     }
-    $source_entity = $this->yamlFormRequest->getCurrentSourceEntity('yamlform_submission');
+    $source_entity = $this->requestManager->getCurrentSourceEntity('yamlform_submission');
     parent::buildComponents($build, $entities, $displays, $view_mode);
 
     // If the view mode is default then display the HTML version.
@@ -136,9 +136,15 @@ class YamlFormSubmissionViewBuilder extends EntityViewBuilder implements YamlFor
         continue;
       }
 
-      $plugin_id = $this->yamlFormElementManager->getElementPluginId($element);
+      $plugin_id = $this->elementManager->getElementPluginId($element);
       /** @var \Drupal\yamlform\YamlFormElementInterface $yamlform_element */
-      $yamlform_element = $this->yamlFormElementManager->createInstance($plugin_id);
+      $yamlform_element = $this->elementManager->createInstance($plugin_id);
+
+      // Check element view access.
+      if (!$yamlform_element->checkAccessRules('view', $element)) {
+        continue;
+      }
+
       if ($yamlform_element->isContainer($element)) {
         $children = $this->buildElements($element, $data, $options, $format);
         if ($children) {
@@ -185,9 +191,14 @@ class YamlFormSubmissionViewBuilder extends EntityViewBuilder implements YamlFor
         continue;
       }
 
-      $plugin_id = $this->yamlFormElementManager->getElementPluginId($element);
+      $plugin_id = $this->elementManager->getElementPluginId($element);
       /** @var \Drupal\yamlform\YamlFormElementInterface $yamlform_element */
-      $yamlform_element = $this->yamlFormElementManager->createInstance($plugin_id);
+      $yamlform_element = $this->elementManager->createInstance($plugin_id);
+
+      // Check element view access.
+      if (!$yamlform_element->checkAccessRules('view', $element)) {
+        continue;
+      }
 
       $title = $element['#admin_title'] ?: $element['#title'] ?: '(' . $key . ')';
       $value = (isset($data[$key])) ? $yamlform_element->formatHtml($element, $data[$key], $options) : '';

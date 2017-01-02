@@ -2,13 +2,14 @@
 
 namespace Drupal\yamlform\Utility;
 
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\Xss;
 use Drupal\Core\Render\Element;
-use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\Attribute;
 
 /**
- * Helper class YAML form element methods.
+ * Helper class form element methods.
  */
 class YamlFormElementHelper {
 
@@ -20,7 +21,7 @@ class YamlFormElementHelper {
   public static $ignoredProperties = [
     // Properties that will allow code injection.
     '#allowed_tags' => '#allowed_tags',
-      // Properties that will break YAML form data handling.
+      // Properties that will break form data handling.
     '#tree' => '#tree',
     '#array_parents' => '#array_parents',
     '#parents' => '#parents',
@@ -55,34 +56,6 @@ class YamlFormElementHelper {
    */
   public static function isTitleDisplayed(array $element) {
     return (!empty($element['#title']) && (empty($element['#title_display']) || !in_array($element['#title_display'], ['invisible', ['attribute']]))) ? TRUE : FALSE;
-  }
-
-  /**
-   * Replaces all tokens in a given render element with appropriate values.
-   *
-   * @param array $element
-   *   A render element.
-   * @param array $data
-   *   (optional) An array of keyed objects.
-   * @param array $options
-   *   (optional) A keyed array of settings and flags to control the token
-   *   replacement process.
-   * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
-   *   (optional) An object to which static::generate() and the hooks and
-   *   functions that it invokes will add their required bubbleable metadata.
-   *
-   * @see \Drupal\Core\Utility\Token::replace()
-   */
-  public static function replaceTokens(array &$element, array $data = [], array $options = [], BubbleableMetadata $bubbleable_metadata = NULL) {
-    foreach ($element as $element_property => &$element_value) {
-      // Most strings won't contain tokens so lets check and return ASAP.
-      if (is_string($element_value) && strpos($element_value, '[') !== FALSE) {
-        $element[$element_property] = \Drupal::token()->replace($element_value, $data, $options);
-      }
-      elseif (is_array($element_value)) {
-        self::replaceTokens($element_value, $data, $options, $bubbleable_metadata);
-      }
-    }
   }
 
   /**
@@ -123,82 +96,34 @@ class YamlFormElementHelper {
   }
 
   /**
-   * Add prefix to all top level keys in an associative array.
-   *
-   * @param array $array
-   *   An associative array.
-   * @param string $prefix
-   *   Prefix to be prepended to all keys.
-   *
-   * @return array
-   *   An associative array with all top level keys prefixed.
-   */
-  public static function addPrefix(array $array, $prefix = '#') {
-    $prefixed_array = [];
-    foreach ($array as $key => $value) {
-      if ($key[0] != $prefix) {
-        $key = $prefix . $key;
-      }
-      $prefixed_array[$key] = $value;
-    }
-    return $prefixed_array;
-  }
-
-  /**
-   * Remove prefix from all top level keys in an associative array.
-   *
-   * @param array $array
-   *   An associative array.
-   * @param string $prefix
-   *   Prefix to be remove from to all keys.
-   *
-   * @return array
-   *   An associative array with prefix removed from all top level keys.
-   */
-  public static function removePrefix(array $array, $prefix = '#') {
-    $unprefixed_array = [];
-    foreach ($array as $key => $value) {
-      if ($key[0] == $prefix) {
-        $key = preg_replace('/^' . $prefix . '/', '', $key);
-      }
-      $unprefixed_array[$key] = $value;
-    }
-    return $unprefixed_array;
-  }
-
-  /**
-   * Fix form element #states and #flex wrapper handling.
+   * Fix form element #states handling.
    *
    * @param array $element
    *   A form element that is missing the 'data-drupal-states' attribute.
-   * @param array $options
-   *   Options to be fixed, states and/or flexbox.
    */
-  public static function fixWrapper(array &$element, array $options = []) {
-    $options += [
-      'states' => TRUE,
-      'flexbox' => TRUE,
-    ];
+  public static function fixStatesWrapper(array &$element) {
+    if (empty($element['#states'])) {
+      return;
+    }
 
     $attributes = [];
-    if ($options['states'] && isset($element['#states'])) {
-      $attributes['class'][] = 'js-form-wrapper';
-      $attributes['data-drupal-states'] = Json::encode($element['#states']);
-    }
+    $attributes['class'][] = 'js-form-wrapper';
+    $attributes['data-drupal-states'] = Json::encode($element['#states']);
 
-    if ($options['states'] && !empty($element['#yamlform_parent_flexbox'])) {
-      $flex = (isset($element['#flex'])) ? $element['#flex'] : 1;
-      $attributes['class'][] = 'js-yamlform-flex';
-      $attributes['class'][] = 'yamlform-flex';
-      $attributes['class'][] = 'js-yamlform-flex--' . $flex;
-      $attributes['class'][] = 'yamlform-flex--' . $flex;
-    }
+    $element += ['#prefix' => '', '#suffix' => ''];
 
-    if ($attributes) {
-      $element += ['#prefix' => '', '#suffix' => ''];
-      $element['#prefix'] = '<div ' . new Attribute($attributes) . '>' . $element['#prefix'];
-      $element['#suffix'] = $element['#suffix'] . '</div>';
-    }
+    // ISSUE: JSON is being corrupted when the prefix is rendered.
+    // $element['#prefix'] = '<div ' . new Attribute($attributes) . '>' . $element['#prefix'];
+    // WORKAROUND: Safely set filtered #prefix to FormattableMarkup.
+    $allowed_tags = isset($element['#allowed_tags']) ? $element['#allowed_tags'] : Xss::getHtmlTagList();
+    $element['#prefix'] = new FormattableMarkup('<div' . new Attribute($attributes) . '>' . Xss::filter($element['#prefix'], $allowed_tags), []);
+    $element['#suffix'] = $element['#suffix'] . '</div>';
+
+    // Attach library.
+    $element['#attached']['library'][] = 'core/drupal.states';
+
+    // Remove #states property to prevent nesting.
+    unset($element['#states']);
   }
 
   /**
@@ -219,7 +144,7 @@ class YamlFormElementHelper {
         }
       }
       elseif (is_array($value)) {
-        $ignored_properties += self::getIgnoredProperties($value, $ignored_properties);
+        $ignored_properties += self::getIgnoredProperties($value);
       }
     }
     return $ignored_properties;
@@ -260,7 +185,7 @@ class YamlFormElementHelper {
   protected static function isIgnoredProperty($property) {
     // Build cached ignored properties regular expression.
     if (!isset(self::$ignoredPropertiesRegExp)) {
-      self::$ignoredPropertiesRegExp = '/__(' . implode('|', array_keys(self::removePrefix(self::$ignoredProperties))) . ')$/';
+      self::$ignoredPropertiesRegExp = '/__(' . implode('|', array_keys(YamlFormArrayHelper::removePrefix(self::$ignoredProperties))) . ')$/';
     }
 
     if (isset(self::$ignoredProperties[$property])) {
@@ -272,6 +197,88 @@ class YamlFormElementHelper {
     else {
       return FALSE;
     }
+  }
+
+  /**
+   * Merge element properties.
+   *
+   * @param array $elements
+   *   An array of elements.
+   * @param array $source_elements
+   *   An array of elements to be merged.
+   */
+  public static function merge(array &$elements, array $source_elements) {
+    foreach ($elements as $key => &$element) {
+      if (!isset($source_elements[$key])) {
+        continue;
+      }
+
+      $source_element = $source_elements[$key];
+      if (gettype($element) !== gettype($source_element)) {
+        continue;
+      }
+
+      if (is_array($element)) {
+        self::merge($element, $source_element);
+      }
+      elseif (is_scalar($element)) {
+        $elements[$key] = $source_element;
+      }
+    }
+  }
+
+  /**
+   * Apply translation to element.
+   *
+   * IMPORTANT: This basically a modified version YamlFormElementHelper::merge()
+   * that initially only merge element properties and ignores sub-element.
+   *
+   * @param array $element
+   *   An element.
+   * @param array $translation
+   *   An associative array of translated element properties.
+   */
+  public static function applyTranslation(array &$element, array $translation) {
+    foreach ($element as $key => &$value) {
+      // Make sure to only merge properties.
+      if (!Element::property($key) || empty($translation[$key])) {
+        continue;
+      }
+
+      $translation_value = $translation[$key];
+      if (gettype($value) !== gettype($translation_value)) {
+        continue;
+      }
+
+      if (is_array($value)) {
+        self::merge($value, $translation_value);
+      }
+      elseif (is_scalar($value)) {
+        $element[$key] = $translation_value;
+      }
+    }
+  }
+
+  /**
+   * Flatten a nested array of elements.
+   *
+   * @param array $elements
+   *   An array of elements.
+   *
+   * @return array
+   *   A flattened array of elements.
+   */
+  public static function getFlattened(array $elements) {
+    $flattened_elements = [];
+    foreach ($elements as $key => &$element) {
+      if (Element::property($key) || !is_array($element)) {
+        continue;
+      }
+
+      $flattened_elements[$key] = self::getProperties($element);
+      $flattened_elements += self::getFlattened($element);
+    }
+    return $flattened_elements;
   }
 
 }

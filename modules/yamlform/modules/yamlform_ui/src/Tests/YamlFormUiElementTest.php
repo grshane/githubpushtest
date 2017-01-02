@@ -6,7 +6,7 @@ use Drupal\yamlform\Tests\YamlFormTestBase;
 use Drupal\yamlform\Entity\YamlForm;
 
 /**
- * Tests for YAML form UI element.
+ * Tests for form UI element.
  *
  * @group YamlFormUi
  */
@@ -48,6 +48,7 @@ class YamlFormUiElementTest extends YamlFormTestBase {
     $this->drupalPostForm('admin/structure/yamlform/manage/contact', $edit, t('Save elements'));
 
     \Drupal::entityTypeManager()->getStorage('yamlform_submission')->resetCache();
+    \Drupal::entityTypeManager()->getStorage('yamlform')->resetCache();
     $yamlform_contact = YamlForm::load('contact');
     $this->assertEqual(['message', 'subject', 'email', 'name'], array_keys($yamlform_contact->getElementsDecodedAndFlattened()));
 
@@ -126,7 +127,7 @@ class YamlFormUiElementTest extends YamlFormTestBase {
 
     // Check change element type.
     $this->drupalGet('admin/structure/yamlform/manage/contact/element/test/edit', ['query' => ['type' => 'value']]);
-    // Check value has not description.
+    // Check value has no description.
     $this->assertNoRaw(t('A short description of the element used as help for the user when he/she uses the form.'));
     $this->assertRaw('Value<a href="' . $base_path . 'admin/structure/yamlform/manage/contact/element/test/edit" class="button button--small use-ajax" data-dialog-type="modal" data-dialog-options="{&quot;width&quot;:800}" data-drupal-selector="edit-cancel" id="edit-cancel">Cancel</a>');
     $this->assertRaw('(Changing from <em class="placeholder">Text field</em>)');
@@ -144,37 +145,17 @@ class YamlFormUiElementTest extends YamlFormTestBase {
     $this->drupalPostForm('admin/structure/yamlform/manage/contact/element/add/color', ['key' => 'test_color', 'properties[title]' => 'Test color'], t('Save'));
     $this->drupalGet('admin/structure/yamlform/manage/contact/element/test_color/change');
     $this->assertResponse(404);
-  }
 
-  /**
-   * Tests element properties.
-   */
-  public function testElementProperties() {
-    $this->drupalLogin($this->adminFormUser);
+    /**************************************************************************/
+    // Date
+    /**************************************************************************/
 
-    // Loops through all the elements, edits them via the UI, and check that
-    // the element's render array has not be altered.
-    // This verifies that the edit element form it not expectedly altering
-    // an elements render array.
-    $yamlform_ids = ['example_elements', 'example_layout_basic', 'test_element_extras'];
-    foreach ($yamlform_ids as $yamlform_id) {
-      /** @var \Drupal\yamlform\YamlFormInterface $yamlform_elements */
-      $yamlform_elements = YamlForm::load($yamlform_id);
-      $original_elements = $yamlform_elements->getElementsDecodedAndFlattened();
-      foreach ($original_elements as $key => $original_element) {
-        $this->drupalPostForm('admin/structure/yamlform/manage/' . $yamlform_elements->id() . '/element/' . $key . '/edit', [], t('Save'));
-
-        // Must reset the YAML form entity cache so that the update elements can
-        // be loaded.
-        \Drupal::entityTypeManager()->getStorage('yamlform_submission')->resetCache();
-
-        /** @var \Drupal\yamlform\YamlFormInterface $yamlform_elements */
-        $yamlform_elements = YamlForm::load($yamlform_id);
-        $updated_element = $yamlform_elements->getElementsDecodedAndFlattened()[$key];
-
-        $this->assertEqual($original_element, $updated_element, "'$key'' properties is equal.");
-      }
-    }
+    // Check GNU Date Input Format validation.
+    $edit = [
+      'properties[default_value]' => 'not a valid date',
+    ];
+    $this->drupalPostForm('admin/structure/yamlform/manage/test_element_dates/element/date_min_max_dynamic/edit', $edit, t('Save'));
+    $this->assertRaw('The Default value could not be interpreted in <a href="https://www.gnu.org/software/tar/manual/html_chapter/tar_7.html#Date-input-formats">GNU Date Input Format</a>.');
   }
 
   /**

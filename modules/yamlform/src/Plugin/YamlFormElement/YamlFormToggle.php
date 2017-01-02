@@ -2,18 +2,18 @@
 
 namespace Drupal\yamlform\Plugin\YamlFormElement;
 
-use Drupal\Core\Form\FormStateInterface;
-
 /**
  * Provides a 'toggle' element.
  *
  * @YamlFormElement(
  *   id = "yamlform_toggle",
  *   label = @Translation("Toggle"),
- *   category = @Translation("Advanced"),
+ *   category = @Translation("Advanced elements"),
  * )
  */
 class YamlFormToggle extends Checkbox {
+
+  use YamlFormToggleTrait;
 
   /**
    * {@inheritdoc}
@@ -45,49 +45,6 @@ class YamlFormToggle extends Checkbox {
       default:
         return ($value) ? 1 : 0;
     }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function form(array $form, FormStateInterface $form_state) {
-    $form = parent::form($form, $form_state);
-    $form['toggle'] = [
-      '#type' => 'details',
-      '#title' => $this->t('toggle settings'),
-      '#open' => FALSE,
-    ];
-    $form['toggle']['toggle_theme'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Toggle theme'),
-      '#options' => [
-        'light' => $this->t('Light'),
-        'dark' => $this->t('Dark'),
-        'iphone' => $this->t('iPhone'),
-        'modern' => $this->t('Modern'),
-        'soft' => $this->t('Soft'),
-      ],
-      '#required' => TRUE,
-    ];
-    $form['toggle']['toggle_size'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Toggle size'),
-      '#options' => [
-        'small' => $this->t('Small (@size)', ['@size' => '16px']),
-        'medium' => $this->t('Medium (@size)', ['@size' => '24px']),
-        'large' => $this->t('Large (@size)', ['@size' => '32px']),
-      ],
-      '#required' => TRUE,
-    ];
-    $form['toggle']['on_text'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Toggle on text'),
-    ];
-    $form['toggle']['off_text'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Toggle off text'),
-    ];
-    return $form;
   }
 
 }

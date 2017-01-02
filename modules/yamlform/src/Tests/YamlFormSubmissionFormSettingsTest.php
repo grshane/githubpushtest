@@ -6,7 +6,7 @@ use Drupal\yamlform\Entity\YamlForm;
 use Drupal\yamlform\Entity\YamlFormSubmission;
 
 /**
- * Tests for YAML form submission form settings.
+ * Tests for form submission form settings.
  *
  * @group YamlForm
  */
@@ -17,77 +17,47 @@ class YamlFormSubmissionFormSettingsTest extends YamlFormTestBase {
    *
    * @var array
    */
-  public static $modules = ['system', 'block', 'filter', 'node', 'user', 'yamlform', 'yamlform_test'];
+  protected static $modules = ['system', 'block', 'filter', 'node', 'user', 'yamlform', 'yamlform_test'];
 
   /**
-   * Tests YAML form setting including confirmation.
+   * Tests form setting including confirmation.
    */
   public function testSettings() {
-
     // Login the admin user.
     $this->drupalLogin($this->adminFormUser);
 
-    /* Test confirmation message (confirmation_type=message) */
+    /* Test assets (CSS / JS) */
 
-    // Check confirmation message.
-    $this->drupalPostForm('yamlform/test_confirmation_message', [], t('Submit'));
-    $this->assertRaw('This is a <b>custom</b> confirmation message.');
-    $this->assertUrl('yamlform/test_confirmation_message');
+    $yamlform_assets = YamlForm::load('test_form_assets');
 
-    // Check confirmation page with custom query parameters.
-    $this->drupalPostForm('yamlform/test_confirmation_message', [], t('Submit'), ['query' => ['custom' => 'param']]);
-    $this->assertUrl('yamlform/test_confirmation_message', ['query' => ['custom' => 'param']]);
+    // Check has CSS and JavaScript.
+    $this->drupalGet('yamlform/test_form_assets');
+    $this->assertRaw('<link rel="stylesheet" href="' . base_path() . 'yamlform/test_form_assets/assets/css?v=');
+    $this->assertRaw('<script src="' . base_path() . 'yamlform/test_form_assets/assets/javascript?v=');
 
-    /* Test confirmation inline (confirmation_type=inline) */
+    // Clear CSS and JavaScript.
+    $yamlform_assets->setCss('')->setJavaScript('')->save();
 
-    $yamlform_confirmation_inline = YamlForm::load('test_confirmation_inline');
+    // Check has no CSS or JavaScript.
+    $this->drupalGet('yamlform/test_form_assets');
+    $this->assertNoRaw('<link rel="stylesheet" href="' . base_path() . 'yamlform/test_form_assets/assets/css?v=');
+    $this->assertNoRaw('<script src="' . base_path() . 'yamlform/test_form_assets/assets/javascript?v=');
 
-    // Check confirmation inline.
-    $this->drupalPostForm('yamlform/test_confirmation_inline', [], t('Submit'));
-    $this->assertRaw('This is a custom inline confirmation message.');
-    $this->assertRaw('<a href="' . $yamlform_confirmation_inline->toUrl()->toString() . '" data-drupal-selector="edit-back-to" id="edit-back-to">Back to form</a>');
-    $this->assertUrl('yamlform/test_confirmation_inline', ['query' => ['yamlform_id' => $yamlform_confirmation_inline->id()]]);
+    /* Test next_serial */
 
-    // Check confirmation inline with custom query parameters.
-    $this->drupalPostForm('yamlform/test_confirmation_inline', [], t('Submit'), ['query' => ['custom' => 'param']]);
-    $this->assertRaw('<a href="' . $yamlform_confirmation_inline->toUrl()->toString() . '?custom=param" data-drupal-selector="edit-back-to" id="edit-back-to">Back to form</a>');
-    $this->assertUrl('yamlform/test_confirmation_inline', ['query' => ['custom' => 'param', 'yamlform_id' => $yamlform_confirmation_inline->id()]]);
+    $yamlform_contact = YamlForm::load('contact');
 
-    /* Test confirmation page (confirmation_type=page) */
+    // Set next serial to 99.
+    $this->drupalPostForm('admin/structure/yamlform/manage/contact/settings', ['next_serial' => 99], t('Save'));
 
-    $yamlform_confirmation_page = YamlForm::load('test_confirmation_page');
+    // Check next serial is 99.
+    $sid = $this->postSubmissionTest($yamlform_contact, [], t('Send message'));
+    $yamlform_submission = YamlFormSubmission::load($sid);
+    $this->assertEqual($yamlform_submission->serial(), 99);
 
-    // Check confirmation page.
-    $this->drupalPostForm('yamlform/test_confirmation_page', [], t('Submit'));
-    $this->assertRaw('This is a custom confirmation page.');
-    $this->assertRaw('<a href="' . $yamlform_confirmation_page->toUrl()->toString() . '">Back to form</a>');
-    $this->assertUrl('yamlform/test_confirmation_page/confirmation');
-
-    // Check that the confirmation page's 'Back to form 'link includes custom
-    // query parameters.
-    $this->drupalGet('yamlform/test_confirmation_page/confirmation', ['query' => ['custom' => 'param']]);
-
-    // Check confirmation page with custom query parameters.
-    $this->drupalPostForm('yamlform/test_confirmation_page', [], t('Submit'), ['query' => ['custom' => 'param']]);
-    $this->assertUrl('yamlform/test_confirmation_page/confirmation', ['query' => ['custom' => 'param']]);
-
-    // TODO: (TESTING)  Figure out why the inline confirmation link is not including the query string parameters.
-    // $this->assertRaw('<a href="' . $yamlform_confirmation_page->toUrl()->toString() . '?custom=param">Back to form</a>');
-
-    /* Test confirmation URL (confirmation_type=url) */
-
-    // Check confirmation URL.
-    $this->drupalPostForm('yamlform/test_confirmation_url', [], t('Submit'));
-    $this->assertNoRaw('<h2 class="visually-hidden">Status message</h2>');
-    $this->assertUrl('<front>');
-
-    /* Test confirmation URL (confirmation_type=url_message) */
-
-    // Check confirmation URL.
-    $this->drupalPostForm('yamlform/test_confirmation_url_message', [], t('Submit'));
-    $this->assertRaw('<h2 class="visually-hidden">Status message</h2>');
-    $this->assertRaw('This is a custom confirmation message.');
-    $this->assertUrl('<front>');
+    // Check that next serial is set to max serial.
+    $this->drupalPostForm('admin/structure/yamlform/manage/contact/settings', ['next_serial' => 1], t('Save'));
+    $this->assertRaw('The next submission number was increased to 100 to make it higher than existing submissions.');
 
     /* Test form closed (status=false) */
 
@@ -170,6 +140,74 @@ class YamlFormSubmissionFormSettingsTest extends YamlFormTestBase {
     $submission = YamlFormSubmission::load($sid);
     $this->assert(!$submission->getSourceEntity());
 
+    /* Test form disable back button (form_disable_back) */
+
+    $yamlform_form_disable_back = YamlForm::load('test_form_disable_back');
+
+    // Check form has yamlform.form.disable_back.js.
+    $this->drupalGet('yamlform/test_form_disable_back');
+    $this->assertRaw('yamlform.form.disable_back.js');
+
+    // Disable YAML specific form_disable_back setting.
+    $yamlform_form_disable_back->setSetting('form_disable_back', FALSE);
+    $yamlform_form_disable_back->save();
+
+    // Check novalidate checkbox is enabled.
+    $this->drupalGet('admin/structure/yamlform/manage/test_form_disable_back/settings');
+    $this->assertRaw('<input data-drupal-selector="edit-form-disable-back" aria-describedby="edit-form-disable-back--description" type="checkbox" id="edit-form-disable-back" name="form_disable_back" value class="form-checkbox" />');
+
+    // Check form no longer has yamlform.form.disable_back.js.
+    $this->drupalGet('yamlform/test_form_disable_back');
+    $this->assertNoRaw('yamlform.form.disable_back.js');
+
+    // Enable default (global) disable_back on all forms.
+    \Drupal::configFactory()->getEditable('yamlform.settings')
+      ->set('settings.default_form_disable_back', TRUE)
+      ->save();
+
+    // Check disable_back checkbox is disabled.
+    $this->drupalGet('admin/structure/yamlform/manage/test_form_disable_back/settings');
+    $this->assertRaw('<input data-drupal-selector="edit-form-disable-back-disabled" aria-describedby="edit-form-disable-back-disabled--description" disabled="disabled" type="checkbox" id="edit-form-disable-back-disabled" name="form_disable_back_disabled" value="1" checked="checked" class="form-checkbox" />');
+    $this->assertRaw('Back button is disabled for all forms.');
+
+    // Check form has yamlform.form.disable_back.js.
+    $this->drupalGet('yamlform/test_form_disable_back');
+    $this->assertRaw('yamlform.form.disable_back.js');
+
+    /* Test form (client-side) unsaved (form_unsaved) */
+
+    $yamlform_form_unsaved = YamlForm::load('test_form_unsaved');
+
+    // Check form has .js-yamlform-unsaved class.
+    $this->drupalGet('yamlform/test_form_unsaved');
+    $this->assertCssSelect('form.js-yamlform-unsaved', t('Form has .js-yamlform-unsaved class.'));
+
+    // Disable YAML specific form unsaved setting.
+    $yamlform_form_unsaved->setSetting('form_unsaved', FALSE);
+    $yamlform_form_unsaved->save();
+
+    // Check novalidate checkbox is enabled.
+    $this->drupalGet('admin/structure/yamlform/manage/test_form_unsaved/settings');
+    $this->assertRaw('<input data-drupal-selector="edit-form-unsaved" aria-describedby="edit-form-unsaved--description" type="checkbox" id="edit-form-unsaved" name="form_unsaved" value class="form-checkbox" />');
+
+    // Check form no longer has .js-yamlform-unsaved class.
+    $this->drupalGet('yamlform/test_form_novalidate');
+    $this->assertNoCssSelect('form.js-yamlform-unsaved', t('Form does not have .js-yamlform-unsaved class.'));
+
+    // Enable default (global) unsaved on all forms.
+    \Drupal::configFactory()->getEditable('yamlform.settings')
+      ->set('settings.default_form_unsaved', TRUE)
+      ->save();
+
+    // Check unsaved checkbox is disabled.
+    $this->drupalGet('admin/structure/yamlform/manage/test_form_unsaved/settings');
+    $this->assertRaw('<input data-drupal-selector="edit-form-unsaved-disabled" aria-describedby="edit-form-unsaved-disabled--description" disabled="disabled" type="checkbox" id="edit-form-unsaved-disabled" name="form_unsaved_disabled" value="1" checked="checked" class="form-checkbox" />');
+    $this->assertRaw('Unsaved warning is enabled for all forms.');
+
+    // Check unsaved attribute added to form.
+    $this->drupalGet('yamlform/test_form_unsaved');
+    $this->assertCssSelect('form.js-yamlform-unsaved', t('Form has .js-yamlform-unsaved class.'));
+
     /* Test form (client-side) novalidate (form_novalidate) */
 
     $yamlform_form_novalidate = YamlForm::load('test_form_novalidate');
@@ -185,7 +223,7 @@ class YamlFormSubmissionFormSettingsTest extends YamlFormTestBase {
     // Check novalidate checkbox is enabled.
     $this->drupalGet('admin/structure/yamlform/manage/test_form_novalidate/settings');
     $this->assertRaw('<input data-drupal-selector="edit-form-novalidate" aria-describedby="edit-form-novalidate--description" type="checkbox" id="edit-form-novalidate" name="form_novalidate" value class="form-checkbox" />');
-    $this->assertRaw('If checked, the <a href="http://www.w3schools.com/tags/att_form_novalidate.asp">novalidate</a> attribute, which disables client-side validation, will be added to this forms.');
+    $this->assertRaw('If checked, the <a href="http://www.w3schools.com/tags/att_form_novalidate.asp">novalidate</a> attribute, which disables client-side validation, will be added to this form.');
 
     // Check form no longer has novalidate attribute.
     $this->drupalGet('yamlform/test_form_novalidate');
@@ -198,14 +236,48 @@ class YamlFormSubmissionFormSettingsTest extends YamlFormTestBase {
 
     // Check novalidate checkbox is disabled.
     $this->drupalGet('admin/structure/yamlform/manage/test_form_novalidate/settings');
-    $this->assertNoRaw('If checked, the <a href="http://www.w3schools.com/tags/att_form_novalidate.asp">novalidate</a> attribute, which disables client-side validation, will be added to this forms.');
+    $this->assertNoRaw('If checked, the <a href="http://www.w3schools.com/tags/att_form_novalidate.asp">novalidate</a> attribute, which disables client-side validation, will be added to this form.');
     $this->assertRaw('<input data-drupal-selector="edit-form-novalidate-disabled" aria-describedby="edit-form-novalidate-disabled--description" disabled="disabled" type="checkbox" id="edit-form-novalidate-disabled" name="form_novalidate_disabled" value="1" checked="checked" class="form-checkbox" />');
     $this->assertRaw('Client-side validation is disabled for all forms.');
 
     // Check novalidate attribute added to form.
     $this->drupalGet('yamlform/test_form_novalidate');
-    $element = $this->cssSelect('form#yamlform-submission-test-form-novalidate-form[novalidate="novalidate"]');
-    $this->assertTrue(!empty($element), t('Default client-side validation setting added form novalidate attribute.'));
+    $this->assertCssSelect('form[novalidate="novalidate"]', t('Form has the proper novalidate attribute.'));
+
+    /* Test form details toggle (form_details_toggle) */
+
+    $yamlform_form_details_toggle = YamlForm::load('test_form_details_toggle');
+
+    // Check form has .yamlform-details-toggle class.
+    $this->drupalGet('yamlform/test_form_details_toggle');
+    $this->assertCssSelect('form.yamlform-details-toggle', t('Form has the .yamlform-details-toggle class.'));
+
+    // Check details toggle checkbox is disabled.
+    $this->drupalGet('admin/structure/yamlform/manage/test_form_details_toggle/settings');
+    $this->assertRaw('<input data-drupal-selector="edit-form-details-toggle-disabled" aria-describedby="edit-form-details-toggle-disabled--description" disabled="disabled" type="checkbox" id="edit-form-details-toggle-disabled" name="form_details_toggle_disabled" value="1" checked="checked" class="form-checkbox" />');
+    $this->assertRaw('Expand/collapse all (details) link is automatically added to all forms.');
+
+    // Disable default (global) details toggle on all forms.
+    \Drupal::configFactory()->getEditable('yamlform.settings')
+      ->set('settings.default_form_details_toggle', FALSE)
+      ->save();
+
+    // Check .yamlform-details-toggle class still added to form.
+    $this->drupalGet('yamlform/test_form_details_toggle');
+    $this->assertCssSelect('form.yamlform-details-toggle', t('Form has the .yamlform-details-toggle class.'));
+
+    // Check details toggle checkbox is enabled.
+    $this->drupalGet('admin/structure/yamlform/manage/test_form_details_toggle/settings');
+    $this->assertRaw('<input data-drupal-selector="edit-form-details-toggle" aria-describedby="edit-form-details-toggle--description" type="checkbox" id="edit-form-details-toggle" name="form_details_toggle" value checked="checked" class="form-checkbox" />');
+    $this->assertRaw('If checked, an expand/collapse all (details) link will be added to this form when there are two or more details elements available on the form.');
+
+    // Disable YAML specific form details toggle setting.
+    $yamlform_form_details_toggle->setSetting('form_details_toggle', FALSE);
+    $yamlform_form_details_toggle->save();
+
+    // Check form does not hav .yamlform-details-toggle class.
+    $this->drupalGet('yamlform/test_form_details_toggle');
+    $this->assertNoCssSelect('form.yamlform-details-toggle', t('Form does not have the .yamlform-details-toggle class.'));
 
     /* Test autofocus (form_autofocus) */
 
@@ -279,7 +351,7 @@ class YamlFormSubmissionFormSettingsTest extends YamlFormTestBase {
     $submission = $this->postSubmission($yamlform_disabled);
     $this->assertFalse($submission, 'Submission not saved to the database.');
 
-    // Check error message form admins.
+    // Check error message for admins.
     $this->drupalGet('yamlform/test_submission_disabled');
     $this->assertRaw(t('This form is currently not saving any submitted data.'));
     $this->assertFieldByName('op', 'Submit');
@@ -292,29 +364,77 @@ class YamlFormSubmissionFormSettingsTest extends YamlFormTestBase {
     $this->assertNoFieldByName('op', 'Submit');
     $this->assertRaw(t('Unable to display this form. Please contact the site administrator.'));
 
-    /* Test limits */
+    // Enabled ignore disabled results.
+    $yamlform_disabled->setSetting('results_disabled_ignore', TRUE);
+    $yamlform_disabled->save();
+    $this->drupalLogin($this->adminFormUser);
+
+    // Check no error message for admins.
+    $this->drupalGet('yamlform/test_submission_disabled');
+    $this->assertNoRaw(t('This form is currently not saving any submitted data.'));
+    $this->assertNoRaw(t('Unable to display this form. Please contact the site administrator.'));
+    $this->assertFieldByName('op', 'Submit');
+
+    // Check form not disabled and not messages for everyone else.
+    $this->drupalLogout();
+    $this->drupalGet('yamlform/test_submission_disabled');
+    $this->assertNoRaw(t('This form is currently not saving any submitted data.'));
+    $this->assertNoRaw(t('Unable to display this form. Please contact the site administrator.'));
+    $this->assertFieldByName('op', 'Submit');
+
+    /* Test token update (form_token_update) */
+
+    // Post test submission.
+    $this->drupalLogin($this->adminFormUser);
+    $yamlform_token_update = YamlForm::load('test_token_update');
+    $sid = $this->postSubmissionTest($yamlform_token_update);
+    $yamlform_submission = YamlFormSubmission::load($sid);
+
+    // Check token update access allowed.
+    $this->drupalLogin($this->normalUser);
+    $this->drupalGet($yamlform_submission->getTokenUrl());
+    $this->assertResponse(200);
+    $this->assertRaw('Submission information');
+    $this->assertFieldByName('textfield', $yamlform_submission->getData('textfield'));
+
+    // Check token update access denied.
+    $yamlform_token_update->setSetting('token_update', FALSE)->save();
+    $this->drupalLogin($this->normalUser);
+    $this->drupalGet($yamlform_submission->getTokenUrl());
+    $this->assertResponse(200);
+    $this->assertNoRaw('Submission information');
+    $this->assertNoFieldByName('textfield', $yamlform_submission->getData('textfield'));
+
+    /* Test limits (test_submission_limit) */
+
     $yamlform_limit = YamlForm::load('test_submission_limit');
 
     // Check form available.
     $this->drupalGet('yamlform/test_submission_limit');
     $this->assertFieldByName('op', 'Submit');
 
-    // Check user limit for authenticated user.
     $this->drupalLogin($this->normalUser);
-    $this->postSubmission($yamlform_limit);
+
+    // Check that draft does not count toward limit.
+    $this->postSubmission($yamlform_limit, [], t('Save Draft'));
+    $this->drupalGet('yamlform/test_submission_limit');
+    $this->assertFieldByName('op', 'Submit');
+    $this->assertRaw('A partially-completed form was found. Please complete the remaining portions.');
+    $this->assertNoRaw('You are only allowed to have 1 submission for this form.');
 
     // Check limit reached and form not available for authenticated user.
+    $this->postSubmission($yamlform_limit);
     $this->drupalGet('yamlform/test_submission_limit');
     $this->assertNoFieldByName('op', 'Submit');
     $this->assertRaw('You are only allowed to have 1 submission for this form.');
 
     $this->drupalLogout();
 
-    // Check admin can still edit even their submission.
+    // Check admin can still edit their submission.
     $this->drupalLogin($this->adminFormUser);
     $sid = $this->postSubmission($yamlform_limit);
     $this->drupalGet("admin/structure/yamlform/manage/test_submission_limit/submission/$sid/edit");
-    $this->assertFieldByName('op', 'Submit');
+    $this->assertFieldByName('op', 'Save');
     $this->assertNoRaw('No more submissions are permitted.');
     $this->drupalLogout();
 

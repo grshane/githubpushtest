@@ -11,10 +11,10 @@ use Drupal\yamlform\Element\YamlFormContact as YamlFormContactElement;
  * @YamlFormElement(
  *   id = "yamlform_contact",
  *   label = @Translation("Contact"),
- *   category = @Translation("Composite"),
+ *   category = @Translation("Composite elements"),
  *   multiline = TRUE,
- *   multiple = TRUE,
  *   composite = TRUE,
+ *   states_wrapper = TRUE,
  * )
  */
 class YamlFormContact extends YamlFormAddress {

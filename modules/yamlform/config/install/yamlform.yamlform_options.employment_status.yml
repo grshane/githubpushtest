@@ -1,6 +1,9 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  enforced:
+    module:
+      - yamlform
 id: employment_status
 label: 'Employment status'
 options: |
@@ -9,5 +12,3 @@ options: |
   'Military': 'Military'
   Unemployed: Unemployed
   Retired: Retired
-
-

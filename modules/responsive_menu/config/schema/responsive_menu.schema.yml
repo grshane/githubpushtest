@@ -34,3 +34,5 @@ responsive_menu.settings:
       type: boolean
     breakpoint_css_filepath:
       type: string
+    use_breakpoint:
+      type: boolean

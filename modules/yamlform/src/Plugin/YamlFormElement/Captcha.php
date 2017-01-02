@@ -13,7 +13,8 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *   id = "captcha",
  *   api = "https://www.drupal.org/project/captcha",
  *   label = @Translation("CAPTCHA"),
- *   category = @Translation("Advanced")
+ *   category = @Translation("Advanced elements"),
+ *   states_wrapper = TRUE,
  * )
  */
 class Captcha extends YamlFormElementBase {
@@ -23,16 +24,19 @@ class Captcha extends YamlFormElementBase {
    */
   public function getDefaultProperties() {
     return [
+      // Captcha settings.
       'captcha_type' => 'default',
       'captcha_admin_mode' => FALSE,
+      // Flexbox.
       'flex' => 1,
+      // Conditional logic.
     ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function hasValue(array $element) {
+  public function isInput(array $element) {
     return FALSE;
   }
 
@@ -67,7 +71,7 @@ class Captcha extends YamlFormElementBase {
    * {@inheritdoc}
    */
   public function preSave(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
-    // Remove all captcha related keys from the YAML form submission's data.
+    // Remove all captcha related keys from the form submission's data.
     $key = $element['#yamlform_key'];
     $data = $yamlform_submission->getData();
     unset($data[$key]);
@@ -93,9 +97,8 @@ class Captcha extends YamlFormElementBase {
       $captcha_types = ['default' => $this->t('Default challenge type')];
     }
     $form['captcha'] = [
-      '#type' => 'details',
+      '#type' => 'fieldset',
       '#title' => $this->t('CAPTCHA settings'),
-      '#open' => FALSE,
     ];
     $form['captcha']['captcha_type'] = [
       '#type' => 'select',

@@ -13,7 +13,7 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  * @YamlFormElement(
  *   id = "yamlform_signature",
  *   label = @Translation("Signature"),
- *   category = @Translation("Advanced")
+ *   category = @Translation("Advanced elements"),
  * )
  */
 class YamlFormSignature extends YamlFormElementBase {
@@ -23,6 +23,7 @@ class YamlFormSignature extends YamlFormElementBase {
    */
   public function getDefaultProperties() {
     return [
+      // General settings.
       'description' => $this->t('Sign above'),
     ] + parent::getDefaultProperties();
   }
@@ -115,7 +116,7 @@ class YamlFormSignature extends YamlFormElementBase {
   /**
    * {@inheritdoc}
    */
-  public function buildExportOptionsForm(array &$form, FormStateInterface $form_state, array $default_values) {
+  public function buildExportOptionsForm(array &$form, FormStateInterface $form_state, array $export_options) {
     if (isset($form['options'])) {
       return;
     }
@@ -129,19 +130,19 @@ class YamlFormSignature extends YamlFormElementBase {
       '#type' => 'radios',
       '#title' => $this->t('Signature format'),
       '#options' => [
-        'image' => $this->t('Image: The signature\'s <a href="@href">Data URI</a>.', ['@href' => 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs']),
+        'image' => $this->t('Image: The signature\'s <a href=":href">Data URI</a>.', [':href' => 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs']),
         'status' => $this->t("Status: 'signed' or 'no signed'."),
       ],
-      '#default_value' => $default_values['signature_format'],
+      '#default_value' => $export_options['signature_format'],
     ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildExportRecord(array $element, $value, array $options) {
-    $element['#format'] = ($options['signature_format'] == 'status') ? 'image' : 'raw';
-    return [$this->formatText($element, $value, $options)];
+  public function buildExportRecord(array $element, $value, array $export_options) {
+    $element['#format'] = ($export_options['signature_format'] == 'status') ? 'image' : 'raw';
+    return [$this->formatText($element, $value, $export_options)];
   }
 
   /**

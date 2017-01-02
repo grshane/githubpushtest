@@ -1,13 +1,16 @@
-name: 'YAML form module tests'
+name: 'YAML Form module tests'
 type: module
-description: 'Support module for YAML form that provides working examples for all supported features.'
+description: 'Support module for form that provides working examples for all supported features.'
 package: Testing
 # core: 8.x
 dependencies:
+  - node
+  - user
+  - views
   - yamlform
 
-# Information added by Drupal.org packaging script on 2016-09-03
-version: '8.x-1.0-beta15'
+# Information added by Drupal.org packaging script on 2016-12-26
+version: '8.x-1.0-beta29'
 core: '8.x'
 project: 'yamlform'
-datestamp: 1472936941
+datestamp: 1482752287
