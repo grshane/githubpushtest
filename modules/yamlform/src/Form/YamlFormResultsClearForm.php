@@ -5,7 +5,7 @@ namespace Drupal\yamlform\Form;
 use Drupal\Core\Url;
 
 /**
- * Form for YAML form results clear form.
+ * Form for form results clear form.
  */
 class YamlFormResultsClearForm extends YamlFormSubmissionsDeleteFormBase {
 
@@ -26,15 +26,15 @@ class YamlFormResultsClearForm extends YamlFormSubmissionsDeleteFormBase {
     else {
       $t_args = ['%title' => $this->yamlform->label()];
     }
-    return $this->t('Are you sure you want to delete all submissions to %title form?', $t_args);
+    return $this->t('Are you sure you want to delete all submissions to the %title form?', $t_args);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    $route_name = $this->yamlFormRequest->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
-    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity);
+    $route_name = $this->requestHandler->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
+    $route_parameters = $this->requestHandler->getRouteParameters($this->yamlform, $this->sourceEntity);
     return new Url($route_name, $route_parameters);
   }
 

@@ -6,7 +6,7 @@ use Drupal\simpletest\WebTestBase;
 use Drupal\yamlform\Entity\YamlForm;
 
 /**
- * Tests for YAML form draft.
+ * Tests for form draft.
  *
  * @group YamlForm
  */
@@ -19,7 +19,7 @@ class YamlFormDraftTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = ['system', 'user', 'yamlform', 'yamlform_test'];
+  protected static $modules = ['system', 'user', 'yamlform', 'yamlform_test'];
 
   /**
    * {@inheritdoc}
@@ -37,7 +37,7 @@ class YamlFormDraftTest extends WebTestBase {
   }
 
   /**
-   * Test YAML form draft with autosave.
+   * Test form draft with autosave.
    */
   public function testDraftWithAutosave() {
     $account = $this->drupalCreateUser(['administer yamlform']);

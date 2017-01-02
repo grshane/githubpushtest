@@ -6,9 +6,10 @@ use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Session\AccountInterface;
 
 /**
- * Defines the interface for YAML form elements.
+ * Defines the interface for form elements.
  *
  * @see \Drupal\yamlform\Annotation\YamlFormElement
  * @see \Drupal\yamlform\YamlFormElementBase
@@ -43,12 +44,28 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
   public function getPluginLabel();
 
   /**
+   * Gets the type name (aka id) of the plugin instance with the 'yamlform_' prefix.
+   *
+   * @return string
+   *   The type name of the plugin instance.
+   */
+  public function getTypeName();
+
+  /**
    * Get default properties.
    *
    * @return array
    *   An associative array containing default element properties.
    */
   public function getDefaultProperties();
+
+  /**
+   * Get translatable properties.
+   *
+   * @return array
+   *   An associative array containing translatable element properties.
+   */
+  public function getTranslatableProperties();
 
   /**
    * Determine if an element supports a specified property.
@@ -62,92 +79,109 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
   public function hasProperty($property_name);
 
   /**
-   * Checks if the YAML form element can have a value.
+   * Checks if the element carries a value.
    *
    * @param array $element
    *   An element.
    *
    * @return bool
-   *   TRUE if the YAML form element can have a value.
+   *   TRUE if the element carries a value.
    */
-  public function hasValue(array $element);
+  public function isInput(array $element);
 
   /**
-   * Checks if the YAML form element has a wrapper.
+   * Checks if the element has a wrapper.
    *
    * @param array $element
    *   An element.
    *
    * @return bool
-   *   TRUE if the YAML form element has a wrapper.
+   *   TRUE if the element has a wrapper.
    */
   public function hasWrapper(array $element);
 
   /**
-   * Checks if YAML form element is a container that can contain elements.
+   * Checks if element is a container that can contain elements.
    *
    * @param array $element
    *   An element.
    *
    * @return bool
-   *   TRUE if the YAML form element is a container that can contain elements.
+   *   TRUE if the element is a container that can contain elements.
    */
   public function isContainer(array $element);
 
   /**
-   * Checks if YAML form element is a root element.
-   *
-   * @param array $element
-   *   An element.
+   * Checks if element is a root element.
    *
    * @return bool
-   *   TRUE if the YAML form element is a root element.
+   *   TRUE if the element is a root element.
    */
-  public function isRoot(array $element);
+  public function isRoot();
 
   /**
-   * Checks if YAML form element value could contain multiple lines.
+   * Checks if element value could contain multiple lines.
    *
    * @param array $element
    *   An element.
    *
    * @return bool
-   *   TRUE if the YAML form element value could contain multiple lines.
+   *   TRUE if the element value could contain multiple lines.
    */
   public function isMultiline(array $element);
 
   /**
-   * Checks if YAML form element is a composite element.
-   *
-   * @param array $element
-   *   An element.
+   * Checks if element is a composite element.
    *
    * @return bool
-   *   TRUE if the YAML form element is a composite element.
+   *   TRUE if the element is a composite element.
    */
-  public function isComposite(array $element);
+  public function isComposite();
 
   /**
-   * Checks if YAML form element is hidden.
-   *
-   * @param array $element
-   *   An element.
+   * Checks if element is hidden.
    *
    * @return bool
-   *   TRUE if the YAML form element is hidden.
+   *   TRUE if the element is hidden.
    */
-  public function isHidden(array $element);
+  public function isHidden();
 
   /**
-   * Checks if YAML form element value has multiple values.
+   * Checks if element is enabled.
+   *
+   * @return bool
+   *   TRUE if the element is enabled.
+   */
+  public function isEnabled();
+
+  /**
+   * Checks if element is disabled.
+   *
+   * @return bool
+   *   TRUE if the element is disabled.
+   */
+  public function isDisabled();
+
+  /**
+   * Checks if element value has multiple values.
    *
    * @param array $element
    *   An element.
    *
    * @return bool
-   *   TRUE if YAML form element value has multiple values.
+   *   TRUE if element value has multiple values.
    */
   public function hasMultipleValues(array $element);
+
+  /**
+   * Retrieves the default properties for the defined element type.
+   *
+   * @return array
+   *   An associative array describing the element types being defined.
+   *
+   * @see \Drupal\Core\Render\ElementInfoManagerInterface::getInfo
+   */
+  public function getInfo();
 
   /**
    * Get related element types.
@@ -188,9 +222,36 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    * @param array $element
    *   An element.
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    */
   public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission);
+
+  /**
+   * Check element access (rules).
+   *
+   * @param string $operation
+   *   The operation access should be checked for.
+   *   Usually "create", "update", or "view".
+   * @param array $element
+   *   An element.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The user session for which to check access.
+   *
+   * @return bool
+   *   TRUE is the element can be accessed by the user.
+   *
+   * @see \Drupal\yamlform\Entity\YamlForm::checkAccessRules
+   * @see \Drupal\yamlform\Entity\YamlForm::checkAccessRule
+   */
+  public function checkAccessRules($operation, array $element, AccountInterface $account = NULL);
+
+  /**
+   * Display element disabled warning.
+   *
+   * @param array $element
+   *   An element.
+   */
+  public function displayDisabledWarning(array $element);
 
   /**
    * Set an element's default value using saved data.
@@ -299,7 +360,7 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    * @param array $element
    *   An element.
    * @param \Drupal\yamlform\YamlFormInterface $yamlform
-   *   A YAML form.
+   *   A form.
    *
    * @return mixed
    *   A test value for an element.
@@ -374,13 +435,13 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    *   An associative array containing the structure of the form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
-   * @param array $default_values
+   * @param array $export_options
    *   An associative array of default values.
    *
    * @return array
    *   An associative array contain an element's export option form.
    */
-  public function buildExportOptionsForm(array &$form, FormStateInterface $form_state, array $default_values);
+  public function buildExportOptionsForm(array &$form, FormStateInterface $form_state, array $export_options);
 
   /**
    * Get an associative array of element properties from configuration form.
@@ -415,7 +476,7 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    *
    * @param array $element
    *   An element.
-   * @param array $options
+   * @param array $export_options
    *   An associative array of export options.
    *
    * @return array
@@ -423,7 +484,26 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    *
    * @see \Drupal\yamlform\YamlFormSubmissionExporterInterface::getDefaultExportOptions
    */
-  public function buildExportRecord(array $element, $value, array $options);
+  public function buildExportRecord(array $element, $value, array $export_options);
+
+  /**
+   * Get an element's supported states as options.
+   *
+   * @return array
+   *   An array of element states.
+   */
+  public function getElementStateOptions();
+
+  /**
+   * Get an element's selectors as options.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return array
+   *   An array of element selectors.
+   */
+  public function getElementSelectorOptions(array $element);
 
   /**
    * Changes the values of an entity before it is created.
@@ -436,42 +516,42 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
   public function preCreate(array &$element, array $values);
 
   /**
-   * Acts on a YAML form submission element after it is created.
+   * Acts on a form submission element after it is created.
    *
    * @param array $element
    *   An element.
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    */
   public function postCreate(array &$element, YamlFormSubmissionInterface $yamlform_submission);
 
   /**
-   * Acts on loaded YAML form submission.
+   * Acts on loaded form submission.
    *
    * @param array $element
    *   An element.
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    */
   public function postLoad(array &$element, YamlFormSubmissionInterface $yamlform_submission);
 
   /**
-   * Acts on a YAML form submission element before the presave hook is invoked.
+   * Acts on a form submission element before the presave hook is invoked.
    *
    * @param array $element
    *   An element.
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    */
   public function preSave(array &$element, YamlFormSubmissionInterface $yamlform_submission);
 
   /**
-   * Acts on a saved YAML form submission element before the insert or update hook is invoked.
+   * Acts on a saved form submission element before the insert or update hook is invoked.
    *
    * @param array $element
    *   An element.
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    * @param bool $update
    *   TRUE if the entity has been updated, or FALSE if it has been inserted.
    */
@@ -485,7 +565,7 @@ interface YamlFormElementInterface extends PluginInspectionInterface, PluginForm
    * @param array $element
    *   An element.
    * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
-   *   A YAML form submission.
+   *   A form submission.
    */
   public function postDelete(array &$element, YamlFormSubmissionInterface $yamlform_submission);
 

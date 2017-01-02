@@ -2,12 +2,14 @@
 
 namespace Drupal\yamlform_ui\Form;
 
+use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Component\Utility\Xss;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\yamlform\YamlFormInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Provides an edit form for a YAML form element.
+ * Provides an edit form for a form element.
  */
 class YamlFormUiElementEditForm extends YamlFormUiElementFormBase {
 
@@ -31,8 +33,10 @@ class YamlFormUiElementEditForm extends YamlFormUiElementFormBase {
       $this->element['#type'] = $type;
     }
 
+    // Issue: #title is display as modal dialog's title and can't be escaped.
+    // Workaround: Filter and define @title as safe markup.
     $form['#title'] = $this->t('Edit @title element', [
-      '@title' => (!empty($this->element['#title'])) ? $this->element['#title'] : $key,
+      '@title' => (!empty($this->element['#title'])) ? new FormattableMarkup(Xss::filterAdmin($this->element['#title']), []) : $key,
     ]);
 
     $this->action = $this->t('updated');

@@ -20,9 +20,13 @@ As an administrator visit `/admin/config/user-interface/responsive-menu`
 
 You can set the various options. Some of the options will require the libraries to be present before allowing configuration.
 
+There is an option to _not use_ the breakpoint which in turn will not add the breakpoint css file to the page. This will allow you to use the off-canvas menu at any screen size. Alternatively you might want to use your own menu at desktop screen widths and control the visibility of both with your own css.
+
 ## Block placement
 
 The module provides two blocks, one for the horizontal menu, labeled in the block UI as "Horizontal menu". The other is labeled as "Responsive menu mobile icon" and is the 'burger' menu icon and text which allows the user to toggle the mobile menu open and closed. Both blocks should be placed in an appropriate region, like the header region. The horizontal menu is designed to replace any existing main menu block you might already have in your theme.
+
+The placement of the horizontal menu block is optional, the off-canvas menu will work regardless of the existence of the horizontal menu block.
 
 ## Theming and theme compatibility
 

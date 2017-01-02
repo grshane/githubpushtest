@@ -5,7 +5,7 @@ namespace Drupal\yamlform\Tests;
 use Drupal\yamlform\Entity\YamlForm;
 
 /**
- * Tests for YAML form submission form.
+ * Tests for form submission form.
  *
  * @group YamlForm
  */
@@ -16,7 +16,7 @@ class YamlFormSubmissionFormTest extends YamlFormTestBase {
    *
    * @var array
    */
-  public static $modules = ['system', 'user', 'yamlform', 'yamlform_test'];
+  protected static $modules = ['system', 'user', 'yamlform', 'yamlform_test'];
 
   /**
    * Tests prepare elements.

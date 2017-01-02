@@ -9,7 +9,7 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
  *   id = "radios",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Radios.php/class/Radios",
  *   label = @Translation("Radios"),
- *   category = @Translation("Options")
+ *   category = @Translation("Options elements"),
  * )
  */
 class Radios extends OptionsBase {
@@ -19,6 +19,7 @@ class Radios extends OptionsBase {
    */
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
+      // Form display.
       'options_display' => 'one_column',
     ];
   }

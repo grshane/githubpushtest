@@ -22,7 +22,6 @@ class YamlFormContact extends YamlFormAddress {
       '#type' => 'textfield',
       '#title' => t('Company'),
     ];
-    $elements += parent::getCompositeElements();
     $elements['email'] = [
       '#type' => 'email',
       '#title' => t('Email'),
@@ -31,6 +30,7 @@ class YamlFormContact extends YamlFormAddress {
       '#type' => 'tel',
       '#title' => t('Phone'),
     ];
+    $elements += parent::getCompositeElements();
     return $elements;
   }
 

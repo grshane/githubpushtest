@@ -11,7 +11,8 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  * @YamlFormElement(
  *   id = "password_confirm",
  *   label = @Translation("Password confirm"),
- *   category = @Translation("Advanced")
+ *   category = @Translation("Advanced elements"),
+ *   states_wrapper = TRUE,
  * )
  */
 class PasswordConfirm extends Password {
@@ -22,6 +23,16 @@ class PasswordConfirm extends Password {
   public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
     parent::prepare($element, $yamlform_submission);
     $element['#element_validate'][] = [get_class($this), 'validate'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getElementSelectorInputsOptions(array $element) {
+    return [
+      'pass1' => $this->getAdminLabel($element) . ' 1 [' . $this->t('Password') . ']',
+      'pass2' => $this->getAdminLabel($element) . ' 2 [' . $this->t('Password') . ']',
+    ];
   }
 
   /**

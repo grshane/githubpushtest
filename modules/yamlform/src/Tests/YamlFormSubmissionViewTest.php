@@ -3,13 +3,12 @@
 namespace Drupal\yamlform\Tests;
 
 use Drupal\Component\Render\FormattableMarkup;
-use Drupal\filter\Entity\FilterFormat;
 use Drupal\user\Entity\User;
 use Drupal\yamlform\Entity\YamlForm;
 use Drupal\yamlform\Entity\YamlFormSubmission;
 
 /**
- * Tests for YAML form submission view as HTML, YAML, and plain text.
+ * Tests for form submission view as HTML, YAML, and plain text.
  *
  * @group YamlForm
  */
@@ -20,20 +19,14 @@ class YamlFormSubmissionViewTest extends YamlFormTestBase {
    *
    * @var array
    */
-  public static $modules = ['system', 'block', 'filter', 'node', 'user', 'yamlform', 'yamlform_test'];
+  protected static $modules = ['system', 'block', 'filter', 'node', 'user', 'yamlform', 'yamlform_test'];
 
   /**
    * {@inheritdoc}
    */
   public function setUp() {
     parent::setUp();
-
-    // Create Full HTML text format.
-    $full_html_format = FilterFormat::create([
-      'format' => 'full_html',
-      'name' => 'Full HTML',
-    ]);
-    $full_html_format->save();
+    $this->createFilters();
   }
 
   /**

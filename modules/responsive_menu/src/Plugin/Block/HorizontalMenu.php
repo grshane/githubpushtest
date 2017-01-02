@@ -64,6 +64,10 @@ class HorizontalMenu extends BlockBase implements ContainerFactoryPluginInterfac
   public function build() {
     $depth = \Drupal::config('responsive_menu.settings')->get('horizontal_depth');
     $menu_name = \Drupal::config('responsive_menu.settings')->get('horizontal_menu');
+
+    // Allow other modules to modify the menu name.
+    \Drupal::ModuleHandler()->alter('responsive_menu_horizontal_menu_name', $menu_name);
+
     $menu_tree = \Drupal::menuTree();
     $parameters = $menu_tree->getCurrentRouteMenuTreeParameters($menu_name);
     $parameters->setMaxDepth($depth);
@@ -81,25 +85,16 @@ class HorizontalMenu extends BlockBase implements ContainerFactoryPluginInterfac
     );
     $tree = $menu_tree->transform($tree, $manipulators);
     $menu = $menu_tree->build($tree);
+
+    // Allow other modules to manipulate the built tree data.
+    \Drupal::ModuleHandler()->alter('responsive_menu_horizontal_tree', $menu);
+
     $menu['#theme'] = 'responsive_menu_horizontal';
     $output = array(
       '#theme' => 'responsive_menu_block_wrapper',
       '#element_type' => \Drupal::config('responsive_menu.settings')->get('horizontal_wrapping_element'),
       '#content' => $menu,
     );
-
-    // Check whether the generated breakpoint css exists and if not create it.
-    if (!file_exists(_get_breakpoint_css_filepath() . RESPONSIVE_MENU_BREAKPOINT_FILENAME)) {
-      $breakpoint = \Drupal::config('responsive_menu.settings')->get('horizontal_media_query');
-      responsive_menu_generate_breakpoint_css($breakpoint);
-    }
-    // Add the dynamically generated library with breakpoint styles.
-    $output['#attached']['library'][] = 'responsive_menu/responsive_menu.breakpoint';
-
-    // Add the module's css file if the user does not want to disable it.
-    if (\Drupal::config('responsive_menu.settings')->get('include_css')) {
-      $output['#attached']['library'][] = 'responsive_menu/responsive_menu.styling';
-    }
 
     // Add the superfish library if the user has requested it.
     $superfish_setting = \Drupal::config('responsive_menu.settings')->get('horizontal_superfish');
@@ -111,27 +106,6 @@ class HorizontalMenu extends BlockBase implements ContainerFactoryPluginInterfac
     if ($superfish_setting && \Drupal::config('responsive_menu.settings')->get('horizontal_superfish_hoverintent')) {
       $output['#attached']['library'][] = 'responsive_menu/responsive_menu.superfish_hoverintent';
     }
-
-    // Add the hammerjs library if the user has requested it.
-    $hammerjs_setting = \Drupal::config('responsive_menu.settings')->get('hammerjs');
-    if ($hammerjs_setting) {
-      $output['#attached']['library'][] = 'responsive_menu/responsive_menu.hammerjs';
-    }
-
-    // Add the javascript behaviours.
-    $output['#attached']['library'][] = 'responsive_menu/responsive_menu.javascript';
-
-    $output['#attached']['drupalSettings']['responsive_menu'] = array(
-      'position' => \Drupal::config('responsive_menu.settings')->get('off_canvas_position'),
-      'theme' => \Drupal::config('responsive_menu.settings')->get('off_canvas_theme'),
-      'breakpoint' => \Drupal::config('responsive_menu.settings')->get('horizontal_media_query'),
-      'superfish' => array(
-        'active' => \Drupal::config('responsive_menu.settings')->get('horizontal_superfish'),
-        'delay' => \Drupal::config('responsive_menu.settings')->get('horizontal_superfish_delay'),
-        'speed' => \Drupal::config('responsive_menu.settings')->get('horizontal_superfish_speed'),
-        'speedOut' => \Drupal::config('responsive_menu.settings')->get('horizontal_superfish_speed_out'),
-      ),
-    );
 
     $media_query = \Drupal::config('responsive_menu.settings')->get('horizontal_media_query');
     // Attempt to clean up a media query in case it isn't properly enclosed in
@@ -166,6 +140,9 @@ class HorizontalMenu extends BlockBase implements ContainerFactoryPluginInterfac
     // Additional cache contexts, e.g. those that determine link text or
     // accessibility of a menu, will be bubbled automatically.
     $menu_name = \Drupal::config('responsive_menu.settings')->get('horizontal_menu');
+    // Allow other modules to modify the menu name.
+    \Drupal::ModuleHandler()->alter('responsive_menu_horizontal_menu_name', $menu_name);
+
     return Cache::mergeContexts(parent::getCacheContexts(), ['route.menu_active_trails:' . $menu_name]);
   }
 

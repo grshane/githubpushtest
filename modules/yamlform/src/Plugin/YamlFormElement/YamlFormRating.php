@@ -4,6 +4,7 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\yamlform\Element\YamlFormRating as YamlFormRatingElement;
+use Drupal\yamlform\YamlFormSubmissionInterface;
 
 /**
  * Provides a 'rating' element.
@@ -11,7 +12,7 @@ use Drupal\yamlform\Element\YamlFormRating as YamlFormRatingElement;
  * @YamlFormElement(
  *   id = "yamlform_rating",
  *   label = @Translation("Rating"),
- *   category = @Translation("Advanced")
+ *   category = @Translation("Advanced elements"),
  * )
  */
 class YamlFormRating extends Range {
@@ -20,14 +21,30 @@ class YamlFormRating extends Range {
    * {@inheritdoc}
    */
   public function getDefaultProperties() {
-    return [
+    $properties = parent::getDefaultProperties();
+    unset(
+      $properties['range__output'],
+      $properties['range__output_prefix'],
+      $properties['range__output_suffix']
+    );
+    $properties += [
+      // General settings.
       'default_value' => 0,
-      'min' => 0,
-      'max' => 5,
-      'step' => 1,
+      // Rating settings.
       'star_size' => 'medium',
       'reset' => FALSE,
-    ] + parent::getDefaultProperties();
+    ];
+    return $properties;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
+    if (!isset($element['#step'])) {
+      $element['#step'] = 1;
+    }
+    parent::prepare($element, $yamlform_submission);
   }
 
   /**
@@ -76,12 +93,8 @@ class YamlFormRating extends Range {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
-    $form['rating'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Rating settings'),
-      '#open' => FALSE,
-    ];
-    $form['rating']['star_size'] = [
+    $form['number']['#title'] = $this->t('Rating settings');
+    $form['number']['star_size'] = [
       '#type' => 'select',
       '#title' => $this->t('Star size'),
       '#options' => [
@@ -91,7 +104,7 @@ class YamlFormRating extends Range {
       ],
       '#required' => TRUE,
     ];
-    $form['rating']['reset'] = [
+    $form['number']['reset'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Show reset button'),
       '#description' => $this->t('If checked, a reset button will be placed before the rating element.'),

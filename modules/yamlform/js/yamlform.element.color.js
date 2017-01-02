@@ -1,15 +1,20 @@
 /**
  * @file
- * Javascript behaviors for YAML form color element integration.
+ * Javascript behaviors for color element integration.
  */
 
 (function ($, Drupal) {
 
   'use strict';
 
+  /**
+   * Enhance HTML5 color element.
+   *
+   * @type {Drupal~behavior}
+   */
   Drupal.behaviors.yamlFormColor = {
     attach: function (context) {
-      $(context).find('.form-color').once().each(function () {
+      $(context).find('.form-color:not(.form-color-output)').once('yamlform-color').each(function () {
         var $element = $(this);
         // Handle browser that don't support the HTML5 color input.
         if (Modernizr.inputtypes.color === false) {

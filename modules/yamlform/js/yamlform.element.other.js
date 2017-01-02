@@ -1,6 +1,6 @@
 /**
  * @file
- * YAML form (select|checkboxes|radios_)other element handler.
+ * Javascript behaviors for other elements.
  */
 
 (function ($, Drupal) {
@@ -12,32 +12,46 @@
    *
    * @param {boolean} show
    *   TRUE will display the text field. FALSE with hide and clear the text field.
-   * @param {object} $input
+   * @param {object} $element
    *   The input (text) field to be toggled.
    */
-  function toggleOther(show, $input) {
+  function toggleOther(show, $element) {
+    var $input = $element.find('input');
     if (show) {
       // Limit the other inputs width to the parent's container.
-      $input.width($input.parent().width());
-      // Display the input.
-      $input.slideDown().find('input').focus();
+      $element.width($element.parent().width());
+      // Display the element.
+      $element.slideDown();
+      // Focus and require the input.
+      $input.focus().prop('required', true);
+      // Restore the input's value.
+      var value = $input.data('yamlform-value');
+      if (value !== undefined) {
+        $input.val(value);
+        $input.get(0).setSelectionRange(0, 0);
+      }
       // Refresh CodeMirror used as other element.
-      $input.parent().find('.CodeMirror').each(function (index, $element) {
+      $element.parent().find('.CodeMirror').each(function (index, $element) {
         $element.CodeMirror.refresh();
       });
     }
     else {
-      $input.slideUp();
-      $input.find('input').val('');
+      $element.slideUp();
+      // Save the input's value.
+      $input.data('yamlform-value', $input.val());
+      // Empty and un-required the input.
+      $input.find('input').val('').prop('required', false);
     }
   }
 
   /**
    * Attach handlers to select other elements.
+   *
+   * @type {Drupal~behavior}
    */
   Drupal.behaviors.yamlFormSelectOther = {
     attach: function (context) {
-      $(context).find('.form-type-yamlform-select-other').once().each(function () {
+      $(context).find('.js-yamlform-select-other').once('yamlform-select-other').each(function () {
         var $element = $(this);
 
         var $select = $element.find('.form-type-select');
@@ -45,7 +59,7 @@
         var $input = $element.find('.js-yamlform-select-other-input');
 
         if ($otherOption.is(':selected')) {
-          $input.show();
+          $input.show().find('input').prop('required', true);
         }
 
         $select.on('change', function () {
@@ -57,19 +71,21 @@
 
   /**
    * Attach handlers to checkboxes other elements.
+   *
+   * @type {Drupal~behavior}
    */
   Drupal.behaviors.yamlFormCheckboxesOther = {
     attach: function (context) {
-      $(context).find('.form-type-yamlform-checkboxes-other').once().each(function () {
+      $(context).find('.js-yamlform-checkboxes-other').once('yamlform-checkboxes-other').each(function () {
         var $element = $(this);
         var $checkbox = $element.find('input[value="_other_"]');
         var $input = $element.find('.js-yamlform-checkboxes-other-input');
 
         if ($checkbox.is(':checked')) {
-          $input.show();
+          $input.show().find('input').prop('required', true);
         }
 
-        $checkbox.on('click', function () {
+        $checkbox.on('change', function () {
           toggleOther(this.checked, $input);
         });
       });
@@ -78,21 +94,54 @@
 
   /**
    * Attach handlers to radios other elements.
+   *
+   * @type {Drupal~behavior}
    */
   Drupal.behaviors.yamlFormRadiosOther = {
     attach: function (context) {
-      $(context).find('.form-type-yamlform-radios-other').once().each(function () {
+      $(context).find('.js-yamlform-radios-other').once('yamlform-radios-other').each(function () {
         var $element = $(this);
 
         var $radios = $element.find('input[type="radio"]');
-        var input = $element.find('.js-yamlform-radios-other-input');
+        var $input = $element.find('.js-yamlform-radios-other-input');
 
         if ($radios.filter(':checked').val() === '_other_') {
-          input.show();
+          $input.show().find('input').prop('required', true);
         }
 
-        $radios.on('click', function () {
-          toggleOther(($radios.filter(':checked').val() === '_other_'), input);
+        $radios.on('change', function () {
+          toggleOther(($radios.filter(':checked').val() === '_other_'), $input);
+        });
+      });
+    }
+  };
+
+  /**
+   * Attach handlers to buttons other elements.
+   *
+   * @type {Drupal~behavior}
+   */
+  Drupal.behaviors.yamlFormButtonsOther = {
+    attach: function (context) {
+      $(context).find('.js-yamlform-buttons-other').once('yamlform-buttons-other').each(function () {
+        var $element = $(this);
+
+        var $buttons = $element.find('input[type="radio"]');
+        var $input = $element.find('.js-yamlform-buttons-other-input');
+
+        if ($buttons.filter(':checked').val() === '_other_') {
+          $input.show().find('input').prop('required', true);
+        }
+
+        // Note: Initializing buttonset here so that we can set the onchange
+        // event handler.
+        // @see Drupal.behaviors.yamlFormButtons
+        var $container = $(this).find('.form-radios');
+        // Remove all div and classes around radios and labels.
+        $container.html($container.find('input[type="radio"], label').removeClass());
+        // Create buttonset and set onchange handler.
+        $container.buttonset().change(function () {
+          toggleOther(($(this).find(':radio:checked').val() === '_other_'), $input);
         });
       });
     }

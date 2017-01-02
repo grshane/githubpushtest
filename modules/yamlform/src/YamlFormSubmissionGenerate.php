@@ -2,12 +2,12 @@
 
 namespace Drupal\yamlform;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Utility\Token;
 
 /**
- * YAML form submission generator.
+ * Form submission generator.
  *
  * @see \Drupal\yamlform\YamlFormSubmissionGenerateInterface
  * @see \Drupal\yamlform\Plugin\DevelGenerate\YamlFormSubmissionDevelGenerate
@@ -29,7 +29,7 @@ class YamlFormSubmissionGenerate implements YamlFormSubmissionGenerateInterface 
   protected $token;
 
   /**
-   * The YAML form element manager.
+   * The form element manager.
    *
    * @var \Drupal\yamlform\YamlFormElementManagerInterface
    */
@@ -57,7 +57,7 @@ class YamlFormSubmissionGenerate implements YamlFormSubmissionGenerateInterface 
    * @param \Drupal\Core\Utility\Token $token
    *   The token service.
    * @param \Drupal\yamlform\YamlFormElementManagerInterface $element_manager
-   *   The YAML form element manager.
+   *   The form element manager.
    */
   public function __construct(ConfigFactoryInterface $config_factory, Token $token, YamlFormElementManagerInterface $element_manager) {
     $this->configFactory = $config_factory;
@@ -93,7 +93,7 @@ class YamlFormSubmissionGenerate implements YamlFormSubmissionGenerateInterface 
     $element_handler = $this->elementManager->createInstance($plugin_id);
 
     // Exit if element does not have a value.
-    if (!$element_handler->hasValue($element)) {
+    if (!$element_handler->isInput($element)) {
       return NULL;
     }
 
@@ -131,10 +131,10 @@ class YamlFormSubmissionGenerate implements YamlFormSubmissionGenerateInterface 
   }
 
   /**
-   * Get test values from a YAML form element.
+   * Get test values from a form element.
    *
    * @param \Drupal\yamlform\YamlFormInterface $yamlform
-   *   A YAML form.
+   *   A form.
    * @param string $name
    *   The name of the element.
    * @param array $element

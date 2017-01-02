@@ -11,8 +11,8 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *
  * @YamlFormElement(
  *   id = "yamlform_test",
- *   label = @Translation("YAML form test"),
- *   description = @Translation("Test YAML form element.")
+ *   label = @Translation("Test element"),
+ *   description = @Translation("Test element.")
  * )
  */
 class YamlFormTest extends YamlFormElementBase {

@@ -17,7 +17,7 @@ function responsive_menu_help($route_name, RouteMatchInterface $route_match) {
       $readme = Link::fromTextAndUrl('README.md', Url::fromUri('base:' . drupal_get_path('module', 'responsive_menu') . '/README.md'))->toRenderable();
       return '<p>' . t('3rd party libraries are required to enable some of the features. See the @readme file for more information about where to download and place them.', array(
         '@readme' => render($readme),
-      )) . '</p><p>' . t("You must also place both the 'Horizontal menu' block and the 'Responsive menu mobile icon' block in a region.") . '</p>';
+      )) . '</p><p>' . t("At a minimum you need to place the 'Responsive menu mobile icon' block in a region. If you want to display a horizontal menu at a specified breakpoint then you also need to place the 'Horizontal menu' block, although this is optional.") . '</p>';
   }
 }
 
@@ -70,6 +70,8 @@ function responsive_menu_preprocess_block(&$variables) {
 
 /**
  * Implements hook_page_bottom().
+ *
+ * Used to place the off-canvas menu and supporting libraries and configuration.
  */
 function responsive_menu_page_bottom(&$page) {
   // Don't apply this for admin routes.
@@ -77,7 +79,103 @@ function responsive_menu_page_bottom(&$page) {
     return;
   }
 
-  $off_canvas_menus = \Drupal::config('responsive_menu.settings')->get('off_canvas_menus');
+  // Prepare the output of the off-canvas menu.
+  $output = array(
+    '#prefix' => '<div class="off-canvas-wrapper"><div id="off-canvas">',
+    '#suffix' => '</div></div>',
+    '#pre_render' => array('responsive_menu_off_canvas_pre_render'),
+  );
+
+  // Get the configuration.
+  $config = \Drupal::config('responsive_menu.settings');
+
+  // Determine whether the breakpoint code should be used.
+  if ($config->get('use_breakpoint')) {
+    // Check whether the generated breakpoint css exists and if not create it.
+    if (!file_exists(_get_breakpoint_css_filepath() . RESPONSIVE_MENU_BREAKPOINT_FILENAME)) {
+      $breakpoint = $config->get('horizontal_media_query');
+      responsive_menu_generate_breakpoint_css($breakpoint);
+    }
+    // Add the dynamically generated library with breakpoint styles.
+    $output['#attached']['library'][] = 'responsive_menu/responsive_menu.breakpoint';
+  }
+
+  // Add the hammerjs library if the user has requested it.
+  $hammerjs_setting = $config->get('hammerjs');
+  if ($hammerjs_setting) {
+    $output['#attached']['library'][] = 'responsive_menu/responsive_menu.hammerjs';
+  }
+
+  // Add the javascript behaviours.
+  $output['#attached']['library'][] = 'responsive_menu/responsive_menu.javascript';
+
+  // Add the module's css file if the user does not want to disable it.
+  if ($config->get('include_css')) {
+    $output['#attached']['library'][] = 'responsive_menu/responsive_menu.styling';
+  }
+
+  // Add some of the config as javascript settings.
+  $output['#attached']['drupalSettings']['responsive_menu'] = array(
+    'position' => $config->get('off_canvas_position'),
+    'theme' => $config->get('off_canvas_theme'),
+    'breakpoint' => $config->get('horizontal_media_query'),
+    'superfish' => array(
+      'active' => $config->get('horizontal_superfish'),
+      'delay' => $config->get('horizontal_superfish_delay'),
+      'speed' => $config->get('horizontal_superfish_speed'),
+      'speedOut' => $config->get('horizontal_superfish_speed_out'),
+    ),
+  );
+
+  $output['#cache']['keys'] = array(
+    'responsive_menu',
+    'off_canvas',
+  );
+
+  // Get the menu names. These are used to build the
+  // cache keys so we can cache different variations of the menu.
+  $off_canvas_menus = \Drupal::config('responsive_menu.settings')
+    ->get('off_canvas_menus');
+
+  // Other modules can modify the menu names so we need to take this into
+  // account when setting the cache keys.
+  \Drupal::ModuleHandler()
+    ->alter('responsive_menu_off_canvas_menu_names', $off_canvas_menus);
+
+  $menus = explode(',', $off_canvas_menus);
+
+  $output['#cache']['keys'] += $menus;
+
+  foreach ($menus as $menu_name) {
+    // If any of the menus' config changes the render cache should
+    // be invalidated.
+    $output['#cache']['tags'][] = 'config:system.menu.' . $menu_name;
+    // The menu will also vary depending on the active trail of each merged menu
+    // so this will be added as a cache context.
+    $output['#cache']['context'][] = 'route.menu_active_trails:' . $menu_name;
+  }
+
+  $page['page_bottom']['off_canvas'] = $output;
+}
+
+/**
+ * Pre render callback to assemble the menu as markup.
+ *
+ * @param array $build
+ *   The render array to modify.
+ *
+ * @return array
+ *   The built render array.
+ */
+function responsive_menu_off_canvas_pre_render(array $build) {
+  $off_canvas_menus = \Drupal::config('responsive_menu.settings')
+    ->get('off_canvas_menus');
+
+  // Other modules can modify the menu names so we need to take this into
+  // account when building the menu.
+  \Drupal::ModuleHandler()
+    ->alter('responsive_menu_off_canvas_menu_names', $off_canvas_menus);
+
   $menus = explode(',', $off_canvas_menus);
 
   $combined_tree = array();
@@ -95,7 +193,7 @@ function responsive_menu_page_bottom(&$page) {
   // empty array.
   $parameters->expandedParents = array();
   // Iterate over the menus and merge them together.
-  foreach($menus as $menu_name) {
+  foreach ($menus as $menu_name) {
     $tree_items = $menu_tree->load(trim($menu_name), $parameters);
     $tree_manipulated = $menu_tree->transform($tree_items, $manipulators);
     $combined_tree = array_merge($combined_tree, $tree_manipulated);
@@ -103,15 +201,15 @@ function responsive_menu_page_bottom(&$page) {
 
   $menu = $menu_tree->build($combined_tree);
 
-  $page['page_bottom']['off_canvas'] = array(
-    '#prefix' => '<div class="off-canvas-wrapper"><div id="off-canvas">',
-    '#suffix' => '</div></div>',
-    '#markup' => \Drupal::service("renderer")->renderRoot($menu),
-  );
+  // Allow other modules to manipulate the built tree data.
+  \Drupal::ModuleHandler()->alter('responsive_menu_off_canvas_tree', $menu);
+
+  $build['#markup'] = \Drupal::service("renderer")->renderRoot($menu);
+  return $build;
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter()
  *
  * @see \Drupal\menu_link_content\Form\MenuLinkContentForm method buildForm at /var/www/docroot/core/lib/Drupal/Core/Entity/EntityForm.php
  */
@@ -185,7 +283,6 @@ function responsive_menu_assign_attributes_to_item(&$item) {
     }
   }
 }
-
 
 /**
  * Determines whether the flyleft menu link attribute has been set.
@@ -290,9 +387,6 @@ function responsive_menu_library_info_build() {
       'theme' => array(
         _get_breakpoint_css_filepath() . RESPONSIVE_MENU_BREAKPOINT_FILENAME => array(),
       ),
-    ),
-    'dependencies' => array(
-      'responsive_menu/responsive_menu.styling',
     ),
   );
 

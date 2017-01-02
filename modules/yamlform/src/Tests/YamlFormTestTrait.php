@@ -2,7 +2,7 @@
 
 namespace Drupal\yamlform\Tests;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Component\Utility\UrlHelper;
@@ -12,32 +12,42 @@ use Drupal\yamlform\Entity\YamlFormSubmission;
 use Drupal\yamlform\YamlFormInterface;
 
 /**
- * Defines YAML form test trait.
+ * Defines form test trait.
  */
 trait YamlFormTestTrait {
 
   /**
    * A normal user to submit forms.
+   *
+   * @var \Drupal\user\UserInterface
    */
   protected $normalUser;
 
   /**
-   * An YAML form administrator.
+   * A form administrator.
+   *
+   * @var \Drupal\user\UserInterface
    */
   protected $adminFormUser;
 
   /**
-   * An YAML form submission administrator.
+   * A form submission administrator.
+   *
+   * @var \Drupal\user\UserInterface
    */
   protected $adminSubmissionUser;
 
   /**
-   * An YAML form own access.
+   * A form own access.
+   *
+   * @var \Drupal\user\UserInterface
    */
   protected $ownFormUser;
 
   /**
-   * An YAML form any access.
+   * A form any access.
+   *
+   * @var \Drupal\user\UserInterface
    */
   protected $anyFormUser;
 
@@ -49,7 +59,14 @@ trait YamlFormTestTrait {
   protected $basicHtmlFilter;
 
   /**
-   * Create YAML form test users.
+   * Full HTML filter format.
+   *
+   * @var \Drupal\filter\FilterFormatInterface
+   */
+  protected $fullHtmlFilter;
+
+  /**
+   * Create form test users.
    */
   protected function createUsers() {
     $this->normalUser = $this->drupalCreateUser([
@@ -63,6 +80,7 @@ trait YamlFormTestTrait {
       'administer blocks',
       'administer nodes',
       'administer users',
+      'create yamlform',
     ]);
     $this->ownFormUser = $this->drupalCreateUser([
       'access content',
@@ -98,7 +116,7 @@ trait YamlFormTestTrait {
   /**
    * Create basic HTML filter format.
    */
-  protected function createFilter() {
+  protected function createFilters() {
     $this->basicHtmlFilter = FilterFormat::create([
       'format' => 'basic_html',
       'name' => 'Basic HTML',
@@ -112,6 +130,12 @@ trait YamlFormTestTrait {
       ],
     ]);
     $this->basicHtmlFilter->save();
+
+    $this->fullHtmlFilter = FilterFormat::create([
+      'format' => 'full_html',
+      'name' => 'Full HTML',
+    ]);
+    $this->fullHtmlFilter->save();
   }
 
   /**
@@ -122,16 +146,16 @@ trait YamlFormTestTrait {
   }
 
   /**
-   * Post a new submission to a YAML form.
+   * Post a new submission to a form.
    *
    * @param \Drupal\yamlform\YamlFormInterface $yamlform
-   *   A YAML form.
+   *   A form.
    * @param array $edit
    *   Submission values.
    * @param string $submit
    *   Value of the submit button whose click is to be emulated.
    *
-   * @return int $sid
+   * @return int
    *   The created submission's sid.
    */
   protected function postSubmission(YamlFormInterface $yamlform, array $edit = [], $submit = NULL) {
@@ -141,16 +165,16 @@ trait YamlFormTestTrait {
   }
 
   /**
-   * Post a new test submission to a YAML form.
+   * Post a new test submission to a form.
    *
    * @param \Drupal\yamlform\YamlFormInterface $yamlform
-   *   A YAML form.
+   *   A form.
    * @param array $edit
    *   Submission values.
    * @param string $submit
    *   Value of the submit button whose click is to be emulated.
    *
-   * @return int $sid
+   * @return int
    *   The created test submission's sid.
    */
   protected function postSubmissionTest(YamlFormInterface $yamlform, array $edit = [], $submit = NULL) {
@@ -198,15 +222,15 @@ trait YamlFormTestTrait {
   }
 
   /**
-   * Create a YAML form with submissions.
+   * Create a form with submissions.
    *
    * @param array|null $elements
    *   (optional) Array of elements.
    * @param array $settings
-   *   (optional) YAML form settings.
+   *   (optional) Form settings.
    *
    * @return \Drupal\yamlform\YamlFormInterface
-   *   A YAML form.
+   *   A form.
    */
   protected function createYamlForm($elements = NULL, array $settings = []) {
     if ($elements === NULL) {
@@ -279,10 +303,10 @@ trait YamlFormTestTrait {
   }
 
   /**
-   * Create a YAML form with submissions.
+   * Create a form with submissions.
    *
    * @return array
-   *   Array containing the YAML form and submissions.
+   *   Array containing the form and submissions.
    */
   protected function createYamlFormWithSubmissions() {
     $yamlform = $this->createYamlForm();
@@ -299,7 +323,7 @@ trait YamlFormTestTrait {
         $nodes[0],
         ['white'],
         ['q1' => 1, 'q2' => 1, 'q3' => 1],
-        ['address' => '{Address}', 'city' => '{City}', 'state_province' => 'New York', 'country' => 'United States of America', 'postal_code' => '11111-1111'],
+        ['address' => '{Address}', 'city' => '{City}', 'state_province' => 'New York', 'country' => 'United States', 'postal_code' => '11111-1111'],
       ],
       [
         'Abraham',
@@ -309,7 +333,7 @@ trait YamlFormTestTrait {
         $nodes[1],
         ['red', 'white', 'blue'],
         ['q1' => 2, 'q2' => 2, 'q3' => 2],
-        ['address' => '{Address}', 'city' => '{City}', 'state_province' => 'New York', 'country' => 'United States of America', 'postal_code' => '11111-1111'],
+        ['address' => '{Address}', 'city' => '{City}', 'state_province' => 'New York', 'country' => 'United States', 'postal_code' => '11111-1111'],
       ],
       [
         'Hillary',
@@ -319,7 +343,7 @@ trait YamlFormTestTrait {
         $nodes[2],
         ['red'],
         ['q1' => 2, 'q2' => 2, 'q3' => 2],
-        ['address' => '{Address}', 'city' => '{City}', 'state_province' => 'New York', 'country' => 'United States of America', 'postal_code' => '11111-1111'],
+        ['address' => '{Address}', 'city' => '{City}', 'state_province' => 'New York', 'country' => 'United States', 'postal_code' => '11111-1111'],
       ],
     ];
     $sids = [];
@@ -364,6 +388,40 @@ trait YamlFormTestTrait {
     $sent_email = end($sent_emails);
     $this->debug($sent_email);
     return $sent_email;
+  }
+
+  /**
+   * Request a form results export CSV.
+   *
+   * @param \Drupal\yamlform\YamlFormInterface $yamlform
+   *   A form.
+   * @param array $options
+   *   An associative array of export options.
+   */
+  protected function getExport(YamlFormInterface $yamlform, array $options = []) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionExporterInterface $exporter */
+    $exporter = \Drupal::service('yamlform_submission.exporter');
+    $options += $exporter->getDefaultExportOptions();
+    $this->drupalGet('admin/structure/yamlform/manage/' . $yamlform->id() . '/results/download', ['query' => $options]);
+  }
+
+  /**
+   * Get form export columns.
+   *
+   * @param \Drupal\yamlform\YamlFormInterface $yamlform
+   *   A form.
+   *
+   * @return array
+   *   An array of exportable columns.
+   */
+  protected function getExportColumns(YamlFormInterface $yamlform) {
+    /** @var \Drupal\yamlform\YamlFormSubmissionStorageInterface $submission_storage */
+    $submission_storage = \Drupal::entityTypeManager()->getStorage('yamlform_submission');
+    $columns = array_merge(
+      array_keys($submission_storage->getFieldDefinitions()),
+      array_keys($yamlform->getElementsInitializedAndFlattened())
+    );
+    return array_combine($columns, $columns);
   }
 
   /****************************************************************************/
@@ -412,6 +470,9 @@ trait YamlFormTestTrait {
    */
   protected function assertCssSelect($selector, $message = '') {
     $element = $this->cssSelect($selector);
+    if (!$message) {
+      $message = new FormattableMarkup('Found @selector', ['@selector' => $selector]);
+    }
     $this->assertTrue(!empty($element), $message);
   }
 

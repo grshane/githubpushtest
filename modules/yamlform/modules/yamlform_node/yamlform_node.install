@@ -2,17 +2,17 @@
 
 /**
  * @file
- * Install, update and uninstall functions for the YAML form node module.
+ * Install, update and uninstall functions for the form node module.
  */
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\node\Entity\NodeType;
 
 /**
  * Implements hook_uninstall().
  */
 function yamlform_node_uninstall() {
-  // Delete the YAML form node type.
+  // Delete the form node type.
   if ($node_type = NodeType::load('yamlform')) {
     $node_type->delete();
   }

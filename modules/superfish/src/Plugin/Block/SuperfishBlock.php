@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Plugin\Block\SuperfishBlock.
- */
-
 namespace Drupal\superfish\Plugin\Block;
 
 use Drupal\system\Plugin\Block\SystemMenuBlock;
@@ -40,12 +35,12 @@ class SuperfishBlock extends SystemMenuBlock {
     $form['sf']['superfish_type'] = array(
       '#type' => 'radios',
       '#title' => $this->t('Menu type'),
-      '#description' => '<em>(' . $this->t('Default') . ': ' . $this->t('Horizontal') . ')</em>',
+      '#description' => '<em>(' . $this->t('Default') . ': ' . $this->t('Horizontal (single row)') . ')</em>',
       '#default_value' => $this->configuration['menu_type'],
       '#options' => array(
-        'horizontal' => $this->t('Horizontal'),
-        'vertical' => $this->t('Vertical'),
-        'navbar' => $this->t('NavBar'),
+        'horizontal' => $this->t('Horizontal (single row)'),
+        'navbar' => $this->t('Horizontal (double row)'),
+        'vertical' => $this->t('Vertical (stack)')
       ),
     );
     $form['sf']['superfish_style'] = array(
@@ -72,24 +67,10 @@ class SuperfishBlock extends SystemMenuBlock {
       '#title' => $this->t('Drop shadows'),
       '#default_value' => $this->configuration['shadow'],
     );
-    $form['sf']['superfish_speed'] = array(
-      '#type' => 'textfield',
-      '#title' => $this->t('Animation speed'),
-      '#description' => $this->t('The speed of the animation either in <strong>milliseconds</strong> or pre-defined values (<strong>slow, normal, fast</strong>).') . ' <em>(' . $this->t('Default') . ': fast)</em>',
-      '#default_value' => $this->configuration['speed'],
-      '#size' => 15,
-    );
-    $form['sf']['superfish_delay'] = array(
-      '#type' => 'number',
-      '#title' => $this->t('Mouse delay'),
-      '#description' => $this->t('The delay in <strong>milliseconds</strong> that the mouse can remain outside a sub-menu without it closing.') . ' <em>(' . $this->t('Default') . ': 800)</em>',
-      '#default_value' => $this->configuration['delay'],
-      '#size' => 15,
-    );
     $form['sf']['superfish_slide'] = array(
       '#type' => 'select',
       '#title' => $this->t('Slide-in effect'),
-      '#description' => '<em>(' . $this->t('Default') . ': ' . $this->t('Vertical') . ')</em><br />' . ((count(superfish_effects()) == 4) ? $this->t('jQuery Easing plugin is not installed.') . '<br />' . $this->t('The plugin provides a handful number of animation effects, they can be used by uploading the \'jquery.easing.js\' file to the libraries directory within the \'easing\' directory (for example: sites/all/libraries/easing/jquery.easing.js). Refresh this page after the plugin is uploaded, this will make more effects available in the above list.') . '<br />' : '') . '<strong>' . $this->t('Important') . ':</strong> ' . $this->t('Easing effects require jQuery 1.6.1 or higher. If you need to update your jQuery to version 1.6.1 or higher, please use the jQuery Update module.'),
+      '#description' => '<em>(' . $this->t('Default') . ': ' . $this->t('Vertical') . ')</em><br />' . ((count(superfish_effects()) == 4) ? $this->t('jQuery Easing plugin is not installed.') . '<br />' . $this->t('The plugin provides a handful number of animation effects, they can be used by uploading the \'jquery.easing.js\' file to the libraries directory within the \'easing\' directory (for example: sites/all/libraries/easing/jquery.easing.js). Refresh this page after the plugin is uploaded, this will make more effects available in the above list.') . '<br />' : ''),
       '#default_value' => $this->configuration['slide'],
       '#options' => superfish_effects(),
     );
@@ -403,10 +384,29 @@ class SuperfishBlock extends SystemMenuBlock {
       '#title' => $this->t('Advanced settings'),
       '#open' => FALSE,
     );
-    $form['sf-advanced']['superfish_pathlevels'] = array(
+    $form['sf-advanced']['sf-settings'] = array(
+      '#type' => 'details',
+      '#title' => $this->t('Superfish'),
+      '#open' => FALSE,
+    );
+    $form['sf-advanced']['sf-settings']['superfish_speed'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('Animation speed'),
+      '#description' => $this->t('The speed of the animation either in <strong>milliseconds</strong> or pre-defined values (<strong>slow, normal, fast</strong>).') . ' <em>(' . $this->t('Default') . ': fast)</em>',
+      '#default_value' => $this->configuration['speed'],
+      '#size' => 15,
+    );
+    $form['sf-advanced']['sf-settings']['superfish_delay'] = array(
+      '#type' => 'number',
+      '#title' => $this->t('Mouse delay'),
+      '#description' => $this->t('The delay in <strong>milliseconds</strong> that the mouse can remain outside a sub-menu without it closing.') . ' <em>(' . $this->t('Default') . ': 800)</em>',
+      '#default_value' => $this->configuration['delay'],
+      '#size' => 15,
+    );
+    $form['sf-advanced']['sf-settings']['superfish_pathlevels'] = array(
       '#type' => 'select',
       '#title' => $this->t('Path levels'),
-      '#description' => $this->t('The amount of sub-menu levels that remain open or are restored using <strong>Path class</strong>.') . ' <em>(' . $this->t('Default') . ': 1)</em><br />' . t('There is no need to change this.'),
+      '#description' => $this->t('The amount of sub-menu levels that remain open or are restored using the ".active-trail" class.') . ' <em>(' . $this->t('Default') . ': 1)</em><br />' . $this->t('Change this setting <strong>only and only</strong> if you are <strong>totally sure</strong> of what you are doing.'),
       '#default_value' => $this->configuration['pathlevels'],
       '#options' => array_combine(range(0, 10),range(0, 10)),
     );
@@ -428,19 +428,17 @@ class SuperfishBlock extends SystemMenuBlock {
     );
     $form['sf-advanced']['sf-hyperlinks']['superfish_hide_linkdescription'] = array(
       '#type' => 'checkbox',
-      '#disabled' => TRUE,
       '#title' => $this->t('Disable hyperlink descriptions ("title" attribute)') . ' <em>(' . $this->t('Default') . ': ' . $this->t('disabled') . ')</em>',
-      '#description' => $this->t('(Not working at the moment.)'),
       '#default_value' => $this->configuration['hide_linkdescription'],
     );
     $form['sf-advanced']['sf-hyperlinks']['superfish_add_linkdescription'] = array(
       '#type' => 'checkbox',
-      '#title' => $this->t('Insert hyperlink descriptions ("title" attribute) into hyperlink texts.'),
+      '#title' => $this->t('Insert hyperlink descriptions ("title" attribute) into hyperlink texts.') . ' <em>(' . $this->t('Default') . ': ' . $this->t('disabled') . ')</em>',
       '#default_value' => $this->configuration['add_linkdescription'],
     );
     $form['sf-advanced']['sf-hyperlinks']['superfish_itemdepth'] = array(
       '#type' => 'checkbox',
-      '#title' => $this->t('Add <strong>item depth</strong> class to menu items and their hyperlinks.') . '<em>(sf-depth-1, sf-depth-2, sf-depth-3, ...)</em>',
+      '#title' => $this->t('Add <strong>item depth</strong> class to menu items and their hyperlinks.') . '<em>(sf-depth-1, sf-depth-2, sf-depth-3, ...)</em> <em>(' . $this->t('Default') . ': ' . $this->t('enabled') . ')</em>',
       '#default_value' => $this->configuration['link_depth_class'],
     );
     $form['sf-advanced']['sf-custom-classes'] = array(
@@ -482,9 +480,6 @@ class SuperfishBlock extends SystemMenuBlock {
     /**
      // Commented out for now as I couldn't get validation to work, with RC4 at least.
 
-    $speed = $form_state->getValue(array('sf', 'superfish_speed'));
-    $delay = $form_state->getValue(array('sf-plugins', 'sf-touchscreen', 'sf-touchscreen-useragent', 'superfish_delay'));
-    $delay = $form_state->getValue(array('sf-plugins', 'sf-touchscreen', 'sf-touchscreen-useragent', 'superfish_delay'));
     $touch = $form_state->getValue(array('sf-plugins', 'sf-touchscreen', 'sf-touchscreen-useragent', 'superfish_touch'));
     $touchbp = $form_state->getValue(array('sf-plugins', 'sf-touchscreen', 'sf-touchscreen-windowwidth', 'superfish_touchbp'));
     $touchua = $form_state->getValue(array('sf-plugins', 'sf-touchscreen', 'sf-touchscreen-useragent', 'superfish_touchua'));
@@ -495,6 +490,8 @@ class SuperfishBlock extends SystemMenuBlock {
     $smallual = $form_state->getValue(array('sf-plugins', 'sf-smallscreen', 'sf-smallscreen-useragent', 'superfish_smallual'));
     $minwidth = $form_state->getValue(array('sf-plugins', 'sf-supersubs', 'superfish_minwidth'));
     $maxwidth = $form_state->getValue(array('sf-plugins', 'sf-supersubs', 'superfish_maxwidth'));
+    $speed = $form_state->getValue(array('sf-advanced', 'sf-settings', 'superfish_speed'));
+    $delay = $form_state->getValue(array('sf-advanced', 'sf-settings', 'superfish_delay'));
 
     if (!is_numeric($speed) && !in_array($speed, array('slow', 'normal', 'fast'))) {
       $form_state->setErrorByName('superfish_speed', t('Unacceptable value entered for the "Animation speed" option.'));
@@ -549,8 +546,6 @@ class SuperfishBlock extends SystemMenuBlock {
     $this->configuration['style'] = $form_state->getValue(array('sf', 'superfish_style'));
     $this->configuration['arrow'] = $form_state->getValue(array('sf', 'superfish_arrow'));
     $this->configuration['shadow'] = $form_state->getValue(array('sf', 'superfish_shadow'));
-    $this->configuration['speed'] = $form_state->getValue(array('sf', 'superfish_speed'));
-    $this->configuration['delay'] = $form_state->getValue(array('sf', 'superfish_delay'));
     $this->configuration['slide'] = $form_state->getValue(array('sf', 'superfish_slide'));
 
     $this->configuration['supposition'] = $form_state->getValue(array('sf-plugins', 'superfish_supposition'));
@@ -588,7 +583,9 @@ class SuperfishBlock extends SystemMenuBlock {
     $this->configuration['multicolumn_depth'] = $form_state->getValue(array('sf-multicolumn', 'superfish_multicolumn_depth'));
     $this->configuration['multicolumn_levels'] = $form_state->getValue(array('sf-multicolumn', 'superfish_multicolumn_levels'));
 
-    $this->configuration['pathlevels'] = $form_state->getValue(array('sf-advanced', 'superfish_pathlevels'));
+    $this->configuration['speed'] = $form_state->getValue(array('sf-advanced', 'sf-settings', 'superfish_speed'));
+    $this->configuration['delay'] = $form_state->getValue(array('sf-advanced', 'sf-settings', 'superfish_delay'));
+    $this->configuration['pathlevels'] = $form_state->getValue(array('sf-advanced', 'sf-settings', 'superfish_pathlevels'));
     $this->configuration['expanded'] = $form_state->getValue(array('sf-advanced', 'sf-hyperlinks', 'superfish_expanded'));
     $this->configuration['clone_parent'] = $form_state->getValue(array('sf-advanced', 'sf-hyperlinks', 'superfish_clone_parent'));
     $this->configuration['hide_linkdescription'] = $form_state->getValue(array('sf-advanced', 'sf-hyperlinks', 'superfish_hide_linkdescription'));
@@ -870,7 +867,6 @@ class SuperfishBlock extends SystemMenuBlock {
 
     // Attaching the requires JavaScript and CSS files.
     $build['#attached']['library'][] = 'superfish/superfish';
-    $build['#attached']['library'][] = 'superfish/superfish_'. $sfsettings['menu_type'];
     if ($sfsettings['style'] != 'none') {
       $build['#attached']['library'][] = 'superfish/superfish_style_'. $sfsettings['style'];
     }
@@ -895,8 +891,7 @@ class SuperfishBlock extends SystemMenuBlock {
 
     // Menu tree.
     $level = $this->configuration['level'];
-    $parameters = $this->menuTree->getCurrentRouteMenuTreeParameters($menu_name);
-    $parameters->setMinDepth($level);
+    $parameters = $this->menuTree->getCurrentRouteMenuTreeParameters($menu_name)->setMinDepth($level)->onlyEnabledLinks();
     if ($sfsettings['depth']) {
       $parameters->setMaxDepth(min($level + ($sfsettings['depth'] - 1), $this->menuTree->maxDepth()));
     }
@@ -907,6 +902,7 @@ class SuperfishBlock extends SystemMenuBlock {
     );
     $tree = $this->menuTree->transform($tree, $manipulators);
     // Expands all the children and returns.
+
     $tree = $this->expandAll($tree);
 
     // Unique HTML ID.
@@ -933,7 +929,18 @@ class SuperfishBlock extends SystemMenuBlock {
   /**
    * Loads the whole menu tree.
    */
-  public function expandAll($tree) {
+  public function expandAll($tree, $currentDepth = 1) {
+    $maxDepth = $this->configuration['depth'];
+    if ($maxDepth != 0 && $currentDepth >= $maxDepth) {
+      return $tree;
+    }
+
+    // Sorts the tree based on link "weights".
+    usort($tree, function($a, $b) {
+      $link_a = $a->link->getPluginDefinition();
+      $link_b = $b->link->getPluginDefinition();
+      return $link_a['weight'] - $link_b['weight'];
+    });
     foreach ($tree as $key => $element) {
        if ($element->hasChildren && null !== $element->link && !($element->link instanceof InaccessibleMenuLink)) {
         $menu_tree = \Drupal::menuTree();
@@ -941,7 +948,8 @@ class SuperfishBlock extends SystemMenuBlock {
         $parameters->setRoot($element->link->getPluginId())->excludeRoot()->setMaxDepth(1)->onlyEnabledLinks();
         $subtree = $menu_tree->load(NULL, $parameters);
         if ($subtree) {
-          $tree[$key]->subtree = $this->expandAll($subtree);
+          $nextDepth = $currentDepth + 1;
+          $tree[$key]->subtree = $this->expandAll($subtree, $nextDepth);
         }
       }
     }

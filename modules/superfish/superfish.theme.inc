@@ -124,10 +124,22 @@ function template_preprocess_superfish_menu_items(array &$variables) {
         'hasChildren'   => $menu_item->hasChildren,
         'inActiveTrail' => $menu_item->inActiveTrail
       );
-      
-      // Adding the necessary "active-trail" class.
-      if (array_key_exists($key, $active_trails)) {
-        $item_class[] = 'active-trail';
+
+      if (!isset($item['options']['external'])) {
+        // Adding the "is-active" class.
+        $host = \Drupal::request()->getHttpHost();
+        $request_uri = \Drupal::request()->getRequestUri();
+        $current_url = Url::fromRoute('<current>');
+        $current_path = $current_url->toString();
+        $link_url = $item['url']->toString();
+        if ($link_url == $current_path || $link_url == $request_uri || $link_url == $host . $request_uri) {
+          $link_class[] = 'is-active';
+        }
+
+        // Adding the necessary "active-trail" class.
+        if (($menu_item->link->getUrlObject()->getRouteName() == '<front>' && \Drupal::service('path.matcher')->isFrontPage()) || array_key_exists($item['id'], $active_trails) || $item['inActiveTrail']) {
+          $item_class[] = 'active-trail';
+        }
       }
 
       // Add menu link depth classes to the <li> element and its link.
@@ -172,7 +184,7 @@ function template_preprocess_superfish_menu_items(array &$variables) {
 
       // Hiding link descriptions (the "title" attribute).
       if ($settings['hide_linkdescription']) {
-        // TODO
+        $item['options']['attributes']['title'] = '';
       }
 
       // Sub-menu.
@@ -221,6 +233,9 @@ function template_preprocess_superfish_menu_items(array &$variables) {
       // Merging link classes.
       if (isset($item['options']['attributes']['class'])) {
         $link_class_current = $item['options']['attributes']['class'];
+        if (!is_array($link_class_current)) {
+          $link_class_current = array($link_class_current);
+        }
         $link_class = array_merge($link_class_current, superfish_array_remove_empty($link_class));
       }
       $item['options']['attributes']['class'] = superfish_array_remove_empty($link_class);

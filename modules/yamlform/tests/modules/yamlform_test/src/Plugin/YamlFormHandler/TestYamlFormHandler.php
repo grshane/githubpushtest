@@ -8,13 +8,13 @@ use Drupal\yamlform\YamlFormInterface;
 use Drupal\yamlform\YamlFormSubmissionInterface;
 
 /**
- * YAML form submission test handler.
+ * Form submission test handler.
  *
  * @YamlFormHandler(
  *   id = "test",
  *   label = @Translation("Test"),
  *   category = @Translation("Testing"),
- *   description = @Translation("Tests YAML form submission handler behaviors."),
+ *   description = @Translation("Tests form submission handler behaviors."),
  *   cardinality = \Drupal\yamlform\YamlFormHandlerInterface::CARDINALITY_SINGLE,
  *   results = \Drupal\yamlform\YamlFormHandlerInterface::RESULTS_IGNORED,
  * )
@@ -86,7 +86,7 @@ class TestYamlFormHandler extends YamlFormHandlerBase {
    * {@inheritdoc}
    */
   public function confirmForm(array &$form, FormStateInterface $form_state, YamlFormSubmissionInterface $yamlform_submission) {
-    drupal_set_message($this->configuration['message']);
+    drupal_set_message($this->configuration['message'], 'status', TRUE);
     \Drupal::logger('yamlform.test')->notice($this->configuration['message']);
     $this->displayMessage(__FUNCTION__);
   }
@@ -151,7 +151,7 @@ class TestYamlFormHandler extends YamlFormHandlerBase {
   protected function displayMessage($method_name, $context1 = NULL) {
     if (PHP_SAPI != 'cli') {
       $t_args = ['@class_name' => get_class($this), '@method_name' => $method_name, '@context1' => $context1];
-      drupal_set_message($this->t('Invoked: @class_name:@method_name @context1', $t_args));
+      drupal_set_message($this->t('Invoked: @class_name:@method_name @context1', $t_args), 'status', TRUE);
       \Drupal::logger('yamlform.test')->notice('Invoked: @class_name:@method_name @context1', $t_args);
     }
   }

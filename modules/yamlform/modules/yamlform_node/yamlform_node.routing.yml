@@ -12,7 +12,7 @@ entity.node.yamlform.confirmation:
   requirements:
     _custom_access: '\Drupal\yamlform_node\Access\YamlFormNodeAccess::checkYamlFormAccess'
 
-entity.node.yamlform.submissions:
+entity.node.yamlform.user.submissions:
   path: '/node/{node}/yamlform/submissions'
   defaults:
     _entity_list: 'yamlform_submission'
@@ -26,6 +26,36 @@ entity.node.yamlform.submissions:
   requirements:
     _custom_access: '\Drupal\yamlform_node\Access\YamlFormNodeAccess::checkYamlFormAccess'
     _user_is_logged_in: 'TRUE'
+
+entity.node.yamlform.user.submission:
+  path: '/node/{node}/yamlform/submissions/{yamlform_submission}'
+  defaults:
+    _controller: '\Drupal\yamlform\Controller\YamlFormSubmissionController::index'
+    _title_callback: 'Drupal\yamlform\Controller\YamlFormSubmissionController::title'
+    type: 'default'
+    operation: yamlform_submission_view
+    entity_access: 'yamlform_submission.view'
+  options:
+    parameters:
+      node:
+        type: 'entity:node'
+  requirements:
+    _custom_access: '\Drupal\yamlform_node\Access\YamlFormNodeAccess::checkYamlFormAccess'
+    _user_is_logged_in: 'TRUE'
+
+entity.node.yamlform.user.submission.edit:
+  path: '/node/{node}/yamlform/submissions/{yamlform_submission}/edit'
+  defaults:
+    _entity_form: 'yamlform_submission.default'
+    _title_callback: 'Drupal\yamlform\Controller\YamlFormSubmissionController::title'
+    operation: yamlform_submission_edit
+    entity_access: 'yamlform_submission.update'
+  options:
+    parameters:
+      node:
+        type: 'entity:node'
+  requirements:
+    _custom_access: '\Drupal\yamlform_node\Access\YamlFormNodeAccess::checkYamlFormSubmissionAccess'
 
 entity.node.yamlform.test:
   path: '/node/{node}/yamlform/test'
@@ -232,7 +262,7 @@ entity.node.yamlform_submission.delete_form:
   path: '/node/{node}/yamlform/submission/{yamlform_submission}/delete'
   defaults:
     _entity_form: 'yamlform_submission.delete'
-    _title: 'Delete YAML form submission'
+    _title: 'Delete form submission'
     operation: yamlform_submission_delete
     entity_access: 'yamlform_submission.delete'
   options:

@@ -2,12 +2,12 @@
 
 namespace Drupal\Tests\yamlform\Unit;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\yamlform\Utility\YamlFormTidy;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Tests YAML form tidy utility.
+ * Tests form tidy utility.
  *
  * @group YamlFormUnit
  *
@@ -40,19 +40,19 @@ class YamlFormTidyTest extends UnitTestCase {
   public function providerTidy() {
     $tests[] = [
       ['simple' => 'value'],
-      "simple: value\n",
+      "simple: value",
     ];
     $tests[] = [
       ['returns' => "line 1\nline 2"],
-      "returns: |\n  line 1\n  line 2\n",
+      "returns: |\n  line 1\n  line 2",
     ];
     $tests[] = [
       ['one two' => "line 1\nline 2"],
-      "'one two': |\n  line 1\n  line 2\n",
+      "'one two': |\n  line 1\n  line 2",
     ];
     $tests[] = [
       ['array' => ['one', 'two']],
-      "array:\n  - one\n  - two\n",
+      "array:\n  - one\n  - two",
     ];
     return $tests;
   }

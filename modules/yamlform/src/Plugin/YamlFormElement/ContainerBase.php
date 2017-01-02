@@ -16,25 +16,21 @@ abstract class ContainerBase extends YamlFormElementBase {
   public function getDefaultProperties() {
     return [
       'title' => '',
+      // General settings.
       'description' => '',
-
-      'required' => FALSE,
+      // Form display.
       'title_display' => '',
-
-      'attributes__class' => '',
-      'attributes__style' => '',
-
-      'admin_title' => '',
-      'private' => FALSE,
-
-      'flex' => 1,
-    ];
+      // Form validation.
+      'required' => FALSE,
+      // Attributes.
+      'attributes' => [],
+    ] + $this->getDefaultBaseProperties();
   }
 
   /**
    * {@inheritdoc}
    */
-  public function hasValue(array $element) {
+  public function isInput(array $element) {
     return FALSE;
   }
 
@@ -82,6 +78,13 @@ abstract class ContainerBase extends YamlFormElementBase {
     // Containers should never have values and therefore should never have
     // a test value.
     return NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getElementSelectorOptions(array $element) {
+    return [];
   }
 
 }

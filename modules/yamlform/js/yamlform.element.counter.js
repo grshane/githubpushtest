@@ -1,15 +1,20 @@
 /**
  * @file
- * Javascript behaviors for YAML form jQuery Word and Counter Counter integration.
+ * Javascript behaviors for jQuery Word and Counter Counter integration.
  */
 
 (function ($, Drupal) {
 
   'use strict';
 
+  /**
+   * Initialize text field and textarea word and character counter.
+   *
+   * @type {Drupal~behavior}
+   */
   Drupal.behaviors.yamlFormCounter = {
     attach: function (context) {
-      $(context).find('.js-yamlform-counter').once().each(function () {
+      $(context).find('.js-yamlform-counter').once('yamlform-counter').each(function () {
         var options = {
           goal: $(this).attr('data-counter-limit'),
           msg: $(this).attr('data-counter-message')

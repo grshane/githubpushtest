@@ -9,7 +9,7 @@ use Drupal\Core\Plugin\CategorizingPluginManagerTrait;
 use Drupal\Core\Plugin\DefaultPluginManager;
 
 /**
- * Provides a plugin manager for YAML form element plugins.
+ * Provides a plugin manager for form element plugins.
  *
  * @see hook_yamlform_element_info_alter()
  * @see \Drupal\yamlform\Annotation\YamlFormElement
@@ -22,7 +22,7 @@ class YamlFormElementManager extends DefaultPluginManager implements FallbackPlu
   use CategorizingPluginManagerTrait;
 
   /**
-   * List of already instantiated YAML form element plugins.
+   * List of already instantiated form element plugins.
    *
    * @var array
    */
@@ -58,7 +58,7 @@ class YamlFormElementManager extends DefaultPluginManager implements FallbackPlu
    */
   public function createInstance($plugin_id, array $configuration = []) {
     // If configuration is empty create a single reusable instance for each
-    // YAML form element plugin.
+    // Form element plugin.
     if (empty($configuration)) {
       if (!isset($this->instances[$plugin_id])) {
         $this->instances[$plugin_id] = parent::createInstance($plugin_id, $configuration);
@@ -75,6 +75,8 @@ class YamlFormElementManager extends DefaultPluginManager implements FallbackPlu
    */
   public function getInstances() {
     $plugin_definitions = $this->getDefinitions();
+    $plugin_definitions = $this->getSortedDefinitions($plugin_definitions);
+
     // If all the plugin definitions are initialize returned the cached
     // instances.
     if (count($plugin_definitions) == count($this->instances)) {
@@ -130,6 +132,57 @@ class YamlFormElementManager extends DefaultPluginManager implements FallbackPlu
   public function getElementInstance(array $element) {
     $plugin_id = $this->getElementPluginId($element);
     return $this->createInstance($plugin_id, $element);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSortedDefinitions(array $definitions = NULL, $sort_by = 'label') {
+    $definitions = isset($definitions) ? $definitions : $this->getDefinitions();
+
+    switch ($sort_by) {
+      case 'category':
+        uasort($definitions, function ($a, $b) use ($sort_by) {
+          return strnatcasecmp($a['category'] . '-' . $a[$sort_by], $b['category'] . '-' . $b[$sort_by]);
+        });
+        break;
+
+      default:
+        uasort($definitions, function ($a, $b) use ($sort_by) {
+          return strnatcasecmp($a[$sort_by], $b[$sort_by]);
+        });
+        break;
+    }
+
+    return $definitions;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTranslatableProperties() {
+    $properties = [];
+    $yamlform_elements = $this->getInstances();
+    foreach ($yamlform_elements as $yamlform_element) {
+      $translatable_properties = $yamlform_element->getTranslatableProperties();
+      $properties += array_combine($translatable_properties, $translatable_properties);
+    }
+    ksort($properties);
+    return $properties;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getAllProperties() {
+    $properties = [];
+    $yamlform_elements = $this->getInstances();
+    foreach ($yamlform_elements as $yamlform_element) {
+      $default_properties = array_keys($yamlform_element->getDefaultProperties());
+      $properties += array_combine($default_properties, $default_properties);
+    }
+    ksort($properties);
+    return $properties;
   }
 
 }

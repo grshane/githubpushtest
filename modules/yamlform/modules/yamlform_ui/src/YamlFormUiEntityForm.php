@@ -2,7 +2,7 @@
 
 namespace Drupal\yamlform_ui;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
@@ -11,7 +11,7 @@ use Drupal\yamlform\Utility\YamlFormDialogHelper;
 use Drupal\yamlform\YamlFormEntityForm;
 
 /**
- * Base for controller for YAML form UI.
+ * Base for controller for form UI.
  */
 class YamlFormUiEntityForm extends YamlFormEntityForm {
 
@@ -75,7 +75,12 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
       $yamlform_element = $this->elementManager->createInstance($plugin_id);
 
       $is_container = $yamlform_element->isContainer($element);
-      $is_root = $yamlform_element->isRoot($element);
+      $is_root = $yamlform_element->isRoot();
+
+      // If disabled, display warning.
+      if ($yamlform_element->isDisabled()) {
+        $yamlform_element->displayDisabledWarning($element);
+      }
 
       // Get row class names.
       $row_class = ['draggable'];
@@ -106,9 +111,9 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
 
       $rows[$key]['title'] = [
         '#markup' => $element['#admin_title'] ?: $element['#title'],
-        '#prefix' => !empty($indentation) ? drupal_render($indentation) : '',
+        '#prefix' => !empty($indentation) ? $this->renderer->render($indentation) : '',
       ];
-      if ($is_container && !$yamlform->hasTranslations()) {
+      if ($is_container) {
         $route_parameters = [
           'yamlform' => $yamlform->id(),
         ];
@@ -189,56 +194,60 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
           'url' => new Url('entity.yamlform_ui.element.edit_form', ['yamlform' => $yamlform->id(), 'key' => $key]),
           'attributes' => $dialog_attributes,
         ];
-        if (!$yamlform->hasTranslations()) {
-          $rows[$key]['operations']['#links']['duplicate'] = [
-            'title' => $this->t('Duplicate'),
-            'url' => new Url('entity.yamlform_ui.element.duplicate_form', [
-              'yamlform' => $yamlform->id(),
-              'key' => $key,
-            ]),
-            'attributes' => $dialog_attributes,
-          ];
-          $rows[$key]['operations']['#links']['delete'] = [
-            'title' => $this->t('Delete'),
-            'url' => new Url('entity.yamlform_ui.element.delete_form', [
-              'yamlform' => $yamlform->id(),
-              'key' => $key,
-            ]),
-          ];
+        // Issue #2741877 Nested modals don't work: when using CKEditor in a
+        // modal, then clicking the image button opens another modal,
+        // which closes the original modal.
+        // @todo Remove the below workaround once this issue is resolved.
+        if ($yamlform_element->getPluginId() == 'processed_text') {
+          unset($rows[$key]['operations']['#links']['edit']['attributes']);
         }
+        $rows[$key]['operations']['#links']['duplicate'] = [
+          'title' => $this->t('Duplicate'),
+          'url' => new Url('entity.yamlform_ui.element.duplicate_form', [
+            'yamlform' => $yamlform->id(),
+            'key' => $key,
+          ]),
+          'attributes' => $dialog_attributes,
+        ];
+        $rows[$key]['operations']['#links']['delete'] = [
+          'title' => $this->t('Delete'),
+          'url' => new Url('entity.yamlform_ui.element.delete_form', [
+            'yamlform' => $yamlform->id(),
+            'key' => $key,
+          ]),
+        ];
       }
     }
 
     // Must manually add local actions to the form because we can't alter local
     // actions and add the needed dialog attributes.
     // @see https://www.drupal.org/node/2585169
-    if (!$yamlform->hasTranslations()) {
-      $local_action_attributes = YamlFormDialogHelper::getModalDialogAttributes(800, ['button', 'button-action', 'button--primary', 'button--small']);
-      $form['local_actions'] = [
-        '#prefix' => '<div class="yamlform-ui-local-actions">',
-        '#suffix' => '</div>',
-      ];
-      $form['local_actions']['add_element'] = [
-        '#type' => 'link',
-        '#title' => $this->t('Add element'),
-        '#url' => new Url('entity.yamlform_ui.element', ['yamlform' => $yamlform->id()]),
-        '#attributes' => $local_action_attributes,
-      ];
+    $local_action_attributes = YamlFormDialogHelper::getModalDialogAttributes(800, ['button', 'button-action', 'button--primary', 'button--small']);
+    $form['local_actions'] = [
+      '#prefix' => '<div class="yamlform-ui-local-actions">',
+      '#suffix' => '</div>',
+    ];
+    $form['local_actions']['add_element'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Add element'),
+      '#url' => new Url('entity.yamlform_ui.element', ['yamlform' => $yamlform->id()]),
+      '#attributes' => $local_action_attributes,
+    ];
+    if ($this->elementManager->createInstance('yamlform_wizard_page')->isEnabled()) {
       $form['local_actions']['add_page'] = [
         '#type' => 'link',
         '#title' => $this->t('Add page'),
         '#url' => new Url('entity.yamlform_ui.element.add_form', ['yamlform' => $yamlform->id(), 'type' => 'wizard_page']),
         '#attributes' => $local_action_attributes,
       ];
-      if ($yamlform->hasFlexboxLayout()) {
-        drupal_set_message($this->t('Flexbox layouts are experimental and provided for testing purposes only. Use at your own risk.'), 'warning');
-        $form['local_actions']['add_layout'] = [
-          '#type' => 'link',
-          '#title' => $this->t('Add layout'),
-          '#url' => new Url('entity.yamlform_ui.element.add_form', ['yamlform' => $yamlform->id(), 'type' => 'flexbox']),
-          '#attributes' => $local_action_attributes,
-        ];
-      }
+    }
+    if ($yamlform->hasFlexboxLayout()) {
+      $form['local_actions']['add_layout'] = [
+        '#type' => 'link',
+        '#title' => $this->t('Add layout'),
+        '#url' => new Url('entity.yamlform_ui.element.add_form', ['yamlform' => $yamlform->id(), 'type' => 'flexbox']),
+        '#attributes' => $local_action_attributes,
+      ];
     }
 
     $form['elements_reordered'] = [
@@ -265,12 +274,9 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
       ],
     ] + $rows;
 
+    // Must preload libraries required by (modal) dialogs.
+    $form['#attached']['library'][] = 'yamlform/yamlform.admin.dialog';
     $form['#attached']['library'][] = 'yamlform_ui/yamlform_ui';
-
-    // Must preload CodeMirror libarary so that the window.dialog:aftercreate
-    // trigger is set before any dialogs are opened.
-    // @see js/yamlform.element.codemirror.js
-    $form['#attached']['library'][] = 'yamlform/yamlform.element.codemirror.yaml';
 
     return $form;
   }
@@ -282,7 +288,7 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
     /** @var \Drupal\yamlform\YamlFormInterface $yamlform */
     $yamlform = $this->getEntity();
 
-    // Don't validate new YAML forms because they don't have any initial
+    // Don't validate new forms because they don't have any initial
     // elements.
     if ($yamlform->isNew()) {
       return;
@@ -336,7 +342,7 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
     }
     $this->buildUpdatedElementsRecursive($elements_updated, '', $elements_reordered, $elements_flattened);
 
-    // Update the YAML form's elements.
+    // Update the form's elements.
     $yamlform->setElements($elements_updated);
 
     parent::validateForm($form, $form_state);
@@ -379,7 +385,7 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
   }
 
   /**
-   * Get YAML form's elements as an associative array of orderable elements.
+   * Get form's elements as an associative array of orderable elements.
    *
    * @return array
    *   An associative array of orderable elements.
@@ -416,7 +422,7 @@ class YamlFormUiEntityForm extends YamlFormEntityForm {
           $element['#title'] = Unicode::truncate(strip_tags($element['#markup']), 100, TRUE, TRUE);
         }
         else {
-          $element['#title'] = '&lt;' . ((string) t('blank')) . '&gt;';
+          $element['#title'] = '[' . t('blank') . ']';
         }
       }
     }

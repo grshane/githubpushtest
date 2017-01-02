@@ -1,6 +1,6 @@
 /**
  * @file
- * Javascript behaviors for YAML form.
+ * Javascript behaviors for forms.
  */
 
 (function ($, Drupal) {
@@ -13,11 +13,48 @@
    * @type {Drupal~behavior}
    *
    * @prop {Drupal~behaviorAttach} attach
-   *   Attaches the behavior for the YAML form autofocusing.
+   *   Attaches the behavior for the form autofocusing.
    */
   Drupal.behaviors.yamlFormAutofocus = {
     attach: function (context) {
       $(context).find('.yamlform-submission-form.js-yamlform-autofocus :input:visible:enabled:first').focus();
+    }
+  };
+
+  /**
+   * Prevent form autosubmit on wizard pages.
+   *
+   * @type {Drupal~behavior}
+   *
+   * @prop {Drupal~behaviorAttach} attach
+   *   Attaches the behavior for disabling form autosubmit.
+   */
+  Drupal.behaviors.yamlFormDisableAutoSubmit = {
+    attach: function (context) {
+      // @see http://stackoverflow.com/questions/11235622/jquery-disable-form-submit-on-enter
+      $(context).find('.yamlform-submission-form.js-yamlform-disable-autosubmit input').once('yamlform-disable-autosubmit').on('keyup keypress', function(e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode === 13) {
+          e.preventDefault();
+          return false;
+        }
+      });
+    }
+  };
+
+  /**
+   * Skip client-side validation when submit button is pressed.
+   *
+   * @type {Drupal~behavior}
+   *
+   * @prop {Drupal~behaviorAttach} attach
+   *   Attaches the behavior for the skipping client-side validation.
+   */
+  Drupal.behaviors.yamlFormSubmitNoValidate = {
+    attach: function (context) {
+      $(context).find(':button.js-yamlform-novalidate').once('yamlform-novalidate').on('click', function () {
+        $(this.form).attr('novalidate', 'novalidate');
+      });
     }
   };
 
@@ -27,18 +64,18 @@
    * @type {Drupal~behavior}
    *
    * @prop {Drupal~behaviorAttach} attach
-   *   Attaches the behavior for the YAML form draft submit button.
+   *   Attaches the behavior for the form draft submit button.
    */
   Drupal.behaviors.yamlFormDraft = {
     attach: function (context) {
-      $(context).find('#edit-draft').once().on('click', function () {
+      $(context).find('#edit-draft').once('yamlform-draft').on('click', function () {
         $(this.form).attr('novalidate', 'novalidate');
       });
     }
   };
 
   /**
-   * Filters the YAML form element list by a text input search string.
+   * Filters the form element list by a text input search string.
    *
    * The text input will have the selector `input.yamlform-form-filter-text`.
    *
@@ -51,7 +88,7 @@
    * @type {Drupal~behavior}
    *
    * @prop {Drupal~behaviorAttach} attach
-   *   Attaches the behavior for the YAML form element filtering.
+   *   Attaches the behavior for the form element filtering.
    */
   Drupal.behaviors.yamlformFilterByText = {
     attach: function (context, settings) {
@@ -60,7 +97,7 @@
       var $filter_rows;
 
       /**
-       * Filters the YAML form element list.
+       * Filters the form element list.
        *
        * @param {jQuery.Event} e
        *   The jQuery event for the keyup event that triggered the filter.
@@ -69,7 +106,7 @@
         var query = $(e.target).val().toLowerCase();
 
         /**
-         * Shows or hides the YAML form element entry based on the query.
+         * Shows or hides the form element entry based on the query.
          *
          * @param {number} index
          *   The index in the loop, as provided by `jQuery.each`

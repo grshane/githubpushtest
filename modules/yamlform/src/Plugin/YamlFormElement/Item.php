@@ -12,7 +12,7 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *   id = "item",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Item.php/class/Item",
  *   label = @Translation("Item"),
- *   category = @Translation("Container")
+ *   category = @Translation("Containers"),
  * )
  */
 class Item extends ContainerBase {
@@ -23,18 +23,16 @@ class Item extends ContainerBase {
   public function getDefaultProperties() {
     return [
       'title' => '',
+      // General settings.
       'description' => '',
-
-      'required' => FALSE,
-
+      // Form display.
       'title_display' => '',
       'description_display' => '',
       'field_prefix' => '',
       'field_suffix' => '',
-
-      'admin_title' => '',
-      'private' => FALSE,
-    ];
+      // Form validation.
+      'required' => FALSE,
+    ] + $this->getDefaultBaseProperties();
   }
 
   /**

@@ -11,7 +11,7 @@ use Drupal\yamlform\YamlFormElementBase;
  *   id = "password",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Password.php/class/Password",
  *   label = @Translation("Password"),
- *   category = @Translation("Basic"),
+ *   category = @Translation("Basic elements"),
  * )
  */
 class Password extends YamlFormElementBase {

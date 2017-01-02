@@ -8,7 +8,7 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
  * @YamlFormElement(
  *   id = "yamlform_radios_other",
  *   label = @Translation("Radios other"),
- *   category = @Translation("Options")
+ *   category = @Translation("Options elements"),
  * )
  */
 class YamlFormRadiosOther extends Radios {
@@ -17,13 +17,7 @@ class YamlFormRadiosOther extends Radios {
    * {@inheritdoc}
    */
   public function getDefaultProperties() {
-    return parent::getDefaultProperties() + [
-      'other__title' => '',
-      'other__placeholder' => '',
-      'other__description' => '',
-      'other__size' => '',
-      'other__maxlength' => '',
-    ];
+    return parent::getDefaultProperties() + self::getOtherProperties();
   }
 
 }

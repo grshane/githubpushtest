@@ -2,16 +2,16 @@
 
 namespace Drupal\yamlform_ui\Form;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Component\Utility\Xss;
-use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\yamlform\Entity\YamlForm;
 use Drupal\yamlform\Entity\YamlFormSubmission;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Provides a test form for YAML form elements.
+ * Provides a test form for form elements.
  *
  * This form is only visible if the yamlform_devel.module is enabled.
  *
@@ -20,14 +20,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
 
   /**
-   * Type of YAML form element being tested.
+   * Type of form element being tested.
    *
    * @var string
    */
   protected $type;
 
   /**
-   * A YAML form element.
+   * A form element.
    *
    * @var \Drupal\yamlform\YamlFormElementInterface
    */
@@ -53,14 +53,13 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
       throw new NotFoundHttpException();
     }
 
-    $test_element = \Drupal::request()->getSession()->get('yamlform_ui_test_element_' . $type);
-    if ($test_element) {
+    if ($test_element = \Drupal::request()->getSession()->get('yamlform_ui_test_element_' . $type)) {
       $this->element = $test_element;
-      $this->element['#type'] = $type;
     }
-    else {
-      $this->element = ['#type' => $type];
+    elseif (function_exists('_yamlform_test_get_example_element') && ($test_element = _yamlform_test_get_example_element($type))) {
+      $this->element = $test_element;
     }
+    $this->element['#type'] = $type;
 
     $this->yamlformElement = $this->elementManager->getElementInstance($this->element);
 
@@ -68,7 +67,6 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
 
     if ($test_element) {
       $yamlform_submission = YamlFormSubmission::create(['yamlform' => $this->yamlform]);
-
       $this->yamlformElement->initialize($test_element);
       $this->yamlformElement->initialize($this->element);
       $this->yamlformElement->prepare($this->element, $yamlform_submission);
@@ -89,7 +87,7 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
         $form['test']['html'] = [
           '#type' => 'item',
           '#title' => $this->t('HTML'),
-          '#markup' => (is_array($html)) ? drupal_render($html) : $html,
+          '#markup' => (is_array($html)) ? $this->renderer->render($html) : $html,
           '#allowed_tag' => Xss::getAdminTagList(),
         ];
         $form['test']['text'] = [
@@ -106,7 +104,18 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
         'source' => [
           '#theme' => 'yamlform_codemirror',
           '#type' => 'yaml',
-          '#code' => Yaml::encode($test_element),
+          '#code' => Yaml::encode($this->convertTranslatableMarkupToStringRecursive($test_element)),
+        ],
+      ];
+
+      $form['test']['render_array'] = [
+        '#type' => 'details',
+        '#title' => $this->t('Render array'),
+        '#desciption' => $this->t("Below is the element's final render array."),
+        'source' => [
+          '#theme' => 'yamlform_codemirror',
+          '#type' => 'yaml',
+          '#code' => Yaml::encode($this->convertTranslatableMarkupToStringRecursive($this->element)),
         ],
       ];
     }
@@ -124,7 +133,7 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
     $form['properties']['#tree'] = TRUE;
     $form['properties']['custom']['#open'] = TRUE;
 
-    $form['properties']['general']['type'] = [
+    $form['properties']['element']['type'] = [
       '#type' => 'item',
       '#title' => $this->t('Type'),
       '#markup' => $type,
@@ -138,7 +147,7 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
       '#value' => $this->t('Test'),
       '#button_type' => 'primary',
     ];
-    if ($test_element) {
+    if (\Drupal::request()->getSession()->get('yamlform_ui_test_element_' . $type)) {
       $form['actions']['reset'] = [
         '#type' => 'submit',
         '#value' => $this->t('Reset'),
@@ -146,9 +155,10 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
         '#submit' => ['::reset'],
       ];
     }
+
     // Clear all messages including 'Unable to display this form...' which is
     // generated because we are using a temp form.
-    drupal_get_messages();
+    // drupal_get_messages();
 
     return $form;
   }
@@ -158,7 +168,7 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
    */
   public function reset(array &$form, FormStateInterface $form_state) {
     \Drupal::request()->getSession()->remove('yamlform_ui_test_element_' . $this->type);
-    drupal_set_message($this->t('YAML form element %type test has been reset.', ['%type' => $this->type]));
+    drupal_set_message($this->t('Form element %type test has been reset.', ['%type' => $this->type]));
   }
 
   /**
@@ -168,8 +178,13 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
     // Rebuild is throwing the below error.
     // LogicException: Settings can not be serialized.
     // $form_state->setRebuild();
+    // @todo Determine what object is being serialized with form.
 
-    $element_form_state = (new FormState())->setValues($form_state->getValue('properties') ?: []);
+    // The form element configuration is stored in the 'properties' key in
+    // the form, pass that through for submission.
+    $element_form_state = clone $form_state;
+    $element_form_state->setValues($form_state->getValue('properties'));
+
     $properties = $this->yamlformElement->getConfigurationFormProperties($form, $element_form_state);
 
     // Set #default_value using 'test' element value.
@@ -179,20 +194,43 @@ class YamlFormUiElementTestForm extends YamlFormUiElementFormBase {
 
     \Drupal::request()->getSession()->set('yamlform_ui_test_element_' . $this->type, $properties);
 
-    drupal_set_message($this->t('YAML form element %type test has been updated.', ['%type' => $this->type]));
+    drupal_set_message($this->t('Form element %type test has been updated.', ['%type' => $this->type]));
   }
 
   /**
-   * Determines if the YAML form element key already exists.
+   * Determines if the form element key already exists.
    *
    * @param string $key
-   *   The YAML form element key.
+   *   The form element key.
    *
    * @return bool
-   *   TRUE if the YAML form element key, FALSE otherwise.
+   *   TRUE if the form element key, FALSE otherwise.
    */
   public function exists($key) {
     return FALSE;
+  }
+
+  /**
+   * Convert all translatable markup to strings.
+   *
+   * This allows element to be serialized.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return array
+   *   The element with all translatable markup converted to strings.
+   */
+  protected function convertTranslatableMarkupToStringRecursive(array $element) {
+    foreach ($element as $key => $value) {
+      if ($value instanceof TranslatableMarkup) {
+        $element[$key] = (string) $value;
+      }
+      elseif (is_array($value)) {
+        $element[$key] = $this->convertTranslatableMarkupToStringRecursive($value);
+      }
+    }
+    return $element;
   }
 
 }

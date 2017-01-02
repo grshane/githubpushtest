@@ -1,11 +1,14 @@
 langcode: en
 status: false
-dependencies: {  }
+dependencies:
+  enforced:
+    module:
+      - yamlform_examples
 uid: null
 template: false
 id: example_elements_states
-title: 'Example: Elements with #states API'
-description: 'Examples of Drupal''s element #states API.'
+title: 'Example: Elements: Condition Logic'
+description: 'Examples of elements using conditional logic.'
 elements: |
   checkbox_example:
     '#type': details
@@ -30,7 +33,7 @@ elements: |
     '#open': true
     select:
       '#type': select
-      '#title': 'Please select ''other'' is the below select menu.'
+      '#title': 'Please select ''other'' in the below select menu.'
       '#options':
         1: One
         2: Two
@@ -47,6 +50,35 @@ elements: |
         required:
           ':input[name="select"]':
             value: other
+  select_multiple_example:
+    '#type': details
+    '#title': 'Select multiple example'
+    '#open': true
+    select_multiple:
+      '#type': select
+      '#title': 'Please select ''One'' or ''Two'' in the below select menu.'
+      '#options':
+        1: One
+        2: Two
+        3: Three
+        4: Four
+    select_multiple_other:
+      '#type': textfield
+      '#attributes':
+        placeholder: 'Enter other...'
+      '#states':
+        visible:
+          - ':input[name="select_multiple"]':
+              - value: 1
+          - or
+          - ':input[name="select_multiple"]':
+              - value: 2
+        required:
+          - ':input[name="select_multiple"]':
+              - value: 1
+          - or
+          - ':input[name="select_multiple"]':
+              - value: 2
   radios_example:
     '#type': details
     '#title': 'Radio buttons with other example'
@@ -82,7 +114,7 @@ elements: |
       '#title': 'More information'
       '#open': true
       '#states':
-        visible:
+        expanded:
           ':input[name="checkbox_more"]':
             checked: true
       checkbox_more_first_name:
@@ -116,49 +148,14 @@ elements: |
         required:
           ':input[name="filled"]':
             filled: true
-  empty_example:
-    '#type': details
-    '#title': 'Hide and clear elements example'
-    '#open': true
-    empty_example_checkbox:
-      '#type': checkbox
-      '#title': 'Check this box to hide and clear the values for the below textfield, select, and radio elements'
-    empty_example_textfield:
-      '#type': textfield
-      '#default_value': 'Some value'
-      '#states':
-        invisible:
-          ':input[name="empty_example_checkbox"]':
-            checked: true
-    empty_example_select:
-      '#type': select
-      '#title':  'Select'
-      '#options':
-        1: One
-        2: Two
-        3: Three
-      '#default_value': 1
-      '#states':
-        invisible:
-          ':input[name="empty_example_checkbox"]':
-            checked: true
-    empty_example_radios:
-      '#type': radios
-      '#title':  'Radios'
-      '#options':
-        1: One
-        2: Two
-        3: Three
-      '#default_value': 1
-      '#states':
-        invisible:
-          ':input[name="empty_example_checkbox"]':
-            checked: true
+css: ''
+javascript: ''
 settings:
   page: true
   page_submit_path: ''
   page_confirm_path: ''
   form_submit_label: ''
+  form_submit_attributes: {  }
   form_exception_message: ''
   form_closed_message: ''
   form_confidential: false
@@ -166,27 +163,39 @@ settings:
   form_prepopulate: false
   form_prepopulate_source_entity: false
   form_novalidate: false
+  form_unsaved: false
+  form_disable_back: false
   form_autofocus: false
+  form_details_toggle: false
   wizard_progress_bar: true
   wizard_progress_pages: false
   wizard_progress_percentage: false
   wizard_next_button_label: ''
+  wizard_next_button_attributes: {  }
   wizard_prev_button_label: ''
+  wizard_prev_button_attributes: {  }
   wizard_start_label: ''
   wizard_complete: true
   wizard_complete_label: ''
   preview: 0
   preview_next_button_label: ''
+  preview_next_button_attributes: {  }
   preview_prev_button_label: ''
+  preview_prev_button_attributes: {  }
   preview_message: ''
   draft: false
   draft_auto_save: false
   draft_button_label: ''
+  draft_button_attributes: {  }
   draft_saved_message: ''
   draft_loaded_message: ''
   confirmation_type: page
   confirmation_message: ''
   confirmation_url: ''
+  confirmation_attributes: {  }
+  confirmation_back: true
+  confirmation_back_label: ''
+  confirmation_back_attributes: {  }
   limit_total: null
   limit_total_message: ''
   limit_user: null
@@ -194,6 +203,8 @@ settings:
   entity_limit_total: null
   entity_limit_user: null
   results_disabled: false
+  results_disabled_ignore: false
+  token_update: false
 access:
   create:
     roles:

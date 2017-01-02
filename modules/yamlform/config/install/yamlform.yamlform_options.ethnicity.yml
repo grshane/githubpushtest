@@ -1,6 +1,9 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  enforced:
+    module:
+      - yamlform
 id: ethnicity
 label: Ethnicity
 options: |
@@ -12,4 +15,3 @@ options: |
   'South Asian': 'South Asian'
   'East Asian': 'East Asian'
   Mixed: Mixed
-

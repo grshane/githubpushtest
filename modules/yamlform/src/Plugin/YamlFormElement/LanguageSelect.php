@@ -11,7 +11,7 @@ use Drupal\yamlform\YamlFormElementBase;
  *   id = "language_select",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!LanguageSelect.php/class/LanguageSelect",
  *   label = @Translation("Language select"),
- *   hidden = TRUE
+ *   hidden = TRUE,
  * )
  */
 class LanguageSelect extends YamlFormElementBase {

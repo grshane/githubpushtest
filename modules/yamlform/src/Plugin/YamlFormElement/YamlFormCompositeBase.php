@@ -10,6 +10,7 @@ use Drupal\yamlform\Utility\YamlFormElementHelper;
 use Drupal\yamlform\Utility\YamlFormOptionsHelper;
 use Drupal\yamlform\YamlFormElementBase;
 use Drupal\yamlform\YamlFormInterface;
+use Drupal\yamlform\YamlFormSubmissionInterface;
 
 /**
  * Provides a base for composite elements.
@@ -20,7 +21,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
    * {@inheritdoc}
    */
   public function getRelatedTypes(array $element) {
-    $types = [];
+    return [];
   }
 
   /**
@@ -43,6 +44,20 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
   abstract protected function getInitializedCompositeElement(array &$element);
 
   /**
+   * {@inheritdoc}
+   */
+  public function prepare(array &$element, YamlFormSubmissionInterface $yamlform_submission) {
+    parent::prepare($element, $yamlform_submission);
+
+    // If #flexbox is not set or an empty string, determine if the
+    // form is using a flexbox layout.
+    if (!isset($element['#flexbox']) || $element['#flexbox'] === '') {
+      $yamlform = $yamlform_submission->getYamlForm();
+      $element['#flexbox'] = $yamlform->hasFlexboxLayout();
+    }
+  }
+
+  /**
    * Format composite element value into lines of text.
    *
    * @param array $element
@@ -61,7 +76,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
         $composite_element = $composite_elements[$composite_key];
         $composite_title = $composite_element['#title'];
         $composite_value = $value[$composite_key];
-        $items[$composite_key] = "$composite_title: $composite_value";
+        $items[$composite_key] = "<b>$composite_title:</b> $composite_value";
       }
     }
     return $items;
@@ -73,16 +88,17 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
   public function getDefaultProperties() {
     $properties = [
       'title' => '',
+      // General settings.
       'description' => '',
-
       'default_value' => [],
-      'required' => FALSE,
-
-      'title_display' => '',
+      // Form display.
+      'title_display' => 'invisible',
       'description_display' => '',
-
-      'flex' => 1,
-    ];
+      // Form validation.
+      'required' => FALSE,
+      // Flex box.
+      'flexbox' => '',
+    ] + $this->getDefaultBaseProperties();
 
     $composite_elements = $this->getCompositeElements();
     foreach ($composite_elements as $composite_key => $composite_element) {
@@ -99,6 +115,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
         }
       }
       if (isset($properties[$composite_key . '__type'])) {
+        $properties['default_value'][$composite_key] = '';
         $properties[$composite_key . '__description'] = FALSE;
         $properties[$composite_key . '__required'] = FALSE;
         $properties[$composite_key . '__placeholder'] = '';
@@ -138,7 +155,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
         'default' => FALSE,
         'key' => $key,
         'element' => $element,
-        'delta' => $composite_key,
+        'property_name' => $composite_key,
         'composite_key' => $composite_key,
         'composite_element' => $composite_element,
         'plugin' => $this,
@@ -157,9 +174,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
       $composite_value = $value[$composite_key];
       $composite_options = [];
 
-      /** @var \Drupal\yamlform\YamlFormElementManagerInterface $element_manager */
-      $element_manager = \Drupal::service('plugin.manager.yamlform.element');
-      return $element_manager->invokeMethod('formatHtml', $composite_element, $composite_value, $composite_options);
+      return $this->elementManager->invokeMethod('formatHtml', $composite_element, $composite_value, $composite_options);
     }
     else {
       return $this->formatHtml($element, $value);
@@ -169,21 +184,75 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
   /**
    * {@inheritdoc}
    */
+  public function getElementSelectorOptions(array $element) {
+    $title = $this->getAdminLabel($element) . ' [' . $this->getPluginLabel() . ']';
+    $name = $element['#yamlform_key'];
+
+    $selectors = [];
+    $composite_elements = $this->getInitializedCompositeElement($element);
+    foreach ($composite_elements as $composite_key => $composite_element) {
+      $has_access = (!isset($composite_elements['#access']) || $composite_elements['#access']);
+      if ($has_access && isset($composite_element['#type'])) {
+        $element_handler = $this->elementManager->getElementInstance($composite_element);
+        $composite_title = (isset($composite_element['#title'])) ? $composite_element['#title'] : $composite_key;
+
+        switch ($composite_element['#type']) {
+          case 'label':
+          case 'yamlform_message':
+            break;
+
+          case 'yamlform_select_other':
+            $selectors[":input[name=\"{$name}[{$composite_key}][select]\"]"] = $composite_title . ' [' . $this->t('Select') . ']';
+            $selectors[":input[name=\"{$name}[{$composite_key}][other]\"]"] = $composite_title . ' [' . $this->t('Textfield') . ']';
+            break;
+
+          default:
+            $selectors[":input[name=\"{$name}[{$composite_key}]\"]"] = $composite_title . ' [' . $element_handler->getPluginLabel() . ']';
+            break;
+        }
+      }
+    }
+    return [$title => $selectors];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
 
-    /** @var \Drupal\yamlform\YamlFormElementManagerInterface $element_manager */
-    $element_manager = \Drupal::service('plugin.manager.yamlform.element');
+    // Update #default_value description.
+    $form['general']['default_value']['#description'] = $this->t("The default value of the composite form element as YAML.");
 
-    $form['validation']['required']['#description'] = $this->t('Check this option if the user must enter a value for all elements.');
-    $form['#attached']['library'][] = 'yamlform/yamlform.element.composite';
+    // Update #required label.
+    $form['validation']['required']['#description'] .= '<br/>' . $this->t("Checking this option only displays the required indicator next to this element's label. Please chose which elements should be required below.");
 
     $form['composite'] = [
-      '#type' => 'details',
+      '#type' => 'fieldset',
       '#title' => $this->t('@title settings', ['@title' => $this->getPluginLabel()]),
-      '#open' => FALSE,
+    ];
+    $form['composite']['elements'] = $this->buildCompositeElementsTable();
+    $form['composite']['flexbox'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Use Flexbox'),
+      '#description' => $this->t("If 'Automatic' is selected Flexbox layout will only be used if a Flexbox element is included in the form."),
+      '#options' => [
+        '' => $this->t('Automatic'),
+        0 => $this->t('No'),
+        1 => $this->t('Yes'),
+      ],
     ];
 
+    return $form;
+  }
+
+  /**
+   * Build the composite elements settings table.
+   *
+   * @return array
+   *   A renderable array container the composite elements settings table.
+   */
+  protected function buildCompositeElementsTable() {
     $header = [
       $this->t('Key'),
       $this->t('Title/Description/Placeholder'),
@@ -252,60 +321,55 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
       }
 
       // Type and options.
+      // Using if/else instead of switch/case because of complex conditions.
       $row['type_and_options'] = [];
-      switch ($type) {
-        case 'select':
-          if ($composite_options = $this->getCompositeElementOptions($composite_key)) {
-            $row['type_and_options']['data'][$composite_key . '__type'] = [
-              '#type' => 'select',
-              '#required' => TRUE,
-              '#options' => [
-                'select' => $this->t('Select'),
-                'yamlform_select_other' => $this->t('Select other'),
-                'textfield' => $this->t('Text field'),
+      if ($type == 'tel') {
+        $row['type_and_options']['data'][$composite_key . '__type'] = [
+          '#type' => 'select',
+          '#required' => TRUE,
+          '#options' => [
+            'tel' => $this->t('Telephone'),
+            'textfield' => $this->t('Text field'),
+          ],
+          '#attributes' => ['style' => 'width: 100%; margin-bottom: 5px'],
+          '#states' => $state_disabled,
+        ];
+      }
+      elseif ($type == 'select' && ($composite_options = $this->getCompositeElementOptions($composite_key))) {
+        $row['type_and_options']['data'][$composite_key . '__type'] = [
+          '#type' => 'select',
+          '#required' => TRUE,
+          '#options' => [
+            'select' => $this->t('Select'),
+            'yamlform_select_other' => $this->t('Select other'),
+            'textfield' => $this->t('Text field'),
+          ],
+          '#attributes' => ['style' => 'width: 100%; margin-bottom: 5px'],
+          '#states' => $state_disabled,
+        ];
+        $row['type_and_options']['data'][$composite_key . '__options'] = [
+          '#type' => 'select',
+          '#options' => $composite_options,
+          '#required' => TRUE,
+          '#attributes' => ['style' => 'width: 100%;'],
+          '#states' => $state_disabled + [
+            'invisible' => [
+              ':input[name="properties[' . $composite_key . '__type]"]' => [
+                'value' => 'textfield',
               ],
-              '#attributes' => ['style' => 'width: 100%; margin-bottom: 5px'],
-              '#states' => $state_disabled,
-            ];
-            $row['type_and_options']['data'][$composite_key . '__options'] = [
-              '#type' => 'select',
-              '#options' => $composite_options,
-              '#required' => TRUE,
-              '#attributes' => ['style' => 'width: 100%;'],
-              '#states' => $state_disabled + [
-                'invisible' => [
-                  ':input[name="properties[' . $composite_key . '__type]"]' => [
-                    'value' => 'textfield',
-                  ],
-                ],
-              ],
-            ];
-          }
-          else {
-            $row['type_and_options']['data'][$composite_key . '__type'] = [
-              '#markup' => $element_manager->getElementInstance($composite_element)->getPluginLabel(),
-            ];
-          }
-          break;
-
-        case 'tel':
-          $row['type_and_options']['data'][$composite_key . '__type'] = [
-            '#type' => 'select',
-            '#required' => TRUE,
-            '#options' => [
-              'tel' => $this->t('Telephone'),
-              'textfield' => $this->t('Text field'),
             ],
-            '#attributes' => ['style' => 'width: 100%; margin-bottom: 5px'],
-            '#states' => $state_disabled,
-          ];
-          break;
-
-        default:
-          $row['type_and_options']['data'][$composite_key . '__type'] = [
-            '#markup' => $element_manager->getElementInstance($composite_element)->getPluginLabel(),
-          ];
-          break;
+          ],
+        ];
+      }
+      else {
+        $row['type_and_options']['data'][$composite_key . '__type'] = [
+          '#type' => 'textfield',
+          '#access' => FALSE,
+        ];
+        $row['type_and_options']['data']['markup'] = [
+          '#markup' => $this->elementManager->getElementInstance($composite_element)->getPluginLabel(),
+          '#access' => TRUE,
+        ];
       }
 
       // Required.
@@ -313,13 +377,6 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
         $row[$composite_key . '__required'] = [
           '#type' => 'checkbox',
           '#return_value' => TRUE,
-          '#states' => [
-            'disabled' => [
-              ':input[name="properties[required]"]' => [
-                'checked' => TRUE,
-              ],
-            ],
-          ],
         ];
       }
       else {
@@ -335,12 +392,10 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
       $rows[$composite_key] = $row;
     }
 
-    $form['composite']['elements'] = [
+    return [
       '#type' => 'table',
       '#header' => $header,
     ] + $rows;
-
-    return $form;
   }
 
   /**
@@ -354,6 +409,11 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
    * {@inheritdoc}
    */
   public function formatHtml(array &$element, $value, array $options = []) {
+    // Return empty value.
+    if (empty($value) || empty(array_filter($value))) {
+      return '';
+    }
+
     $format = $this->getFormat($element);
     switch ($format) {
       case 'list':
@@ -419,7 +479,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
    */
   public function formatText(array &$element, $value, array $options = []) {
     // Return empty value.
-    if (is_array($value) && empty($value)) {
+    if (empty($value) || (is_array($value) && empty(array_filter($value)))) {
       return '';
     }
 
@@ -460,7 +520,6 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
    */
   public function getExportDefaultOptions() {
     return [
-      'composite_header_prefix' => TRUE,
       'composite_element_item_format' => 'label',
     ];
   }
@@ -468,18 +527,12 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
   /**
    * {@inheritdoc}
    */
-  public function buildExportOptionsForm(array &$form, FormStateInterface $form_state, array $default_values) {
+  public function buildExportOptionsForm(array &$form, FormStateInterface $form_state, array $export_options) {
     $form['composite'] = [
       '#type' => 'details',
       '#title' => $this->t('Composite element'),
       '#open' => TRUE,
       '#weight' => -10,
-    ];
-    $form['composite']['composite_header_prefix'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Composite header prefix'),
-      '#description' => $this->t("Prefix the header title with composite element's name. (ie: key or title)"),
-      '#default_value' => $default_values['composite_header_prefix'],
     ];
     $form['composite']['composite_element_item_format'] = [
       '#type' => 'radios',
@@ -488,7 +541,7 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
         'label' => $this->t('Option labels, the human-readable value (label)'),
         'key' => $this->t('Option values, the raw value stored in the database (key)'),
       ],
-      '#default_value' => $default_values['composite_element_item_format'],
+      '#default_value' => $export_options['composite_element_item_format'],
     ];
   }
 
@@ -496,45 +549,38 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
    * {@inheritdoc}
    */
   public function buildExportHeader(array $element, array $options) {
-    $header = [];
     $composite_elements = $this->getInitializedCompositeElement($element);
-    if ($options['composite_header_prefix']) {
-      $prefix_title = $this->getAdminLabel($element) . ': ';
-      $prefix_key = $element['#yamlform_key'] . '__';
-    }
-    else {
-      $prefix_title = '';
-      $prefix_key = '';
-    }
+    $header = [];
     foreach (RenderElement::children($composite_elements) as $composite_key) {
       $composite_element = $composite_elements[$composite_key];
-      if (isset($composite_element['#access']) && $composite_element['#access']) {
+      if (isset($composite_element['#access']) && $composite_element['#access'] === FALSE) {
         continue;
       }
 
-      if ($options['header_keys'] == 'label' && !empty($composite_element['#title'])) {
-        $header[] = $prefix_title . $composite_element['#title'];
+      if ($options['header_format'] == 'label' && !empty($composite_element['#title'])) {
+        $header[] = $composite_element['#title'];
       }
       else {
-        $header[] = $prefix_key . $composite_key;
+        $header[] = $composite_key;
       }
     }
-    return $header;
+
+    return $this->prefixExportHeader($header, $element, $options);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildExportRecord(array $element, $value, array $options) {
+  public function buildExportRecord(array $element, $value, array $export_options) {
     $record = [];
     $composite_elements = $this->getInitializedCompositeElement($element);
     foreach (RenderElement::children($composite_elements) as $composite_key) {
       $composite_element = $composite_elements[$composite_key];
-      if (isset($composite_element['#access']) && $composite_element['#access']) {
+      if (isset($composite_element['#access']) && $composite_element['#access'] === FALSE) {
         continue;
       }
 
-      if ($options['composite_element_item_format'] == 'label' && $composite_element['#type'] != 'textfield' && !empty($composite_element['#options'])) {
+      if ($export_options['composite_element_item_format'] == 'label' && $composite_element['#type'] != 'textfield' && !empty($composite_element['#options'])) {
         $record[] = YamlFormOptionsHelper::getOptionText($value[$composite_key], $composite_element['#options']);
       }
       else {
@@ -579,13 +625,13 @@ abstract class YamlFormCompositeBase extends YamlFormElementBase {
   }
 
   /**
-   * Get YAML form option keys for composite element based on the composite element's key.
+   * Get form option keys for composite element based on the composite element's key.
    *
    * @param string $composite_key
    *   A composite element's key.
    *
    * @return array
-   *   An array YAML form options.
+   *   An array form options.
    */
   protected function getCompositeElementOptions($composite_key) {
     /** @var \Drupal\yamlform\YamlFormOptionsInterface[] $yamlform_options */

@@ -9,8 +9,7 @@ namespace Drupal\yamlform\Plugin\YamlFormElement;
  *   id = "container",
  *   api = "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Render!Element!Container.php/class/Container",
  *   label = @Translation("Container"),
- *   category = @Translation("Container")
- *
+ *   category = @Translation("Containers"),
  * )
  */
 class Container extends ContainerBase {
@@ -20,9 +19,12 @@ class Container extends ContainerBase {
    */
   public function getDefaultProperties() {
     return [
-      'attributes__class' => '',
-      'attributes__style' => '',
+      // Attributes.
+      'attributes' => [],
+      // Flexbox.
       'flex' => 1,
+      // Conditional logic.
+      'states' => [],
     ];
   }
 

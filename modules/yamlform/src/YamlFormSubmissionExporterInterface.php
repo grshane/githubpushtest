@@ -6,44 +6,44 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Defines an interface for exporting YAML form submission results.
+ * Defines an interface for exporting form submission results.
  */
 interface YamlFormSubmissionExporterInterface {
 
   /**
-   * Set the YAML form whose submissions are being exported.
+   * Set the form whose submissions are being exported.
    *
    * @param \Drupal\yamlform\YamlFormInterface $yamlform
-   *   A YAML form.
+   *   A form.
    */
   public function setYamlForm(YamlFormInterface $yamlform = NULL);
 
   /**
-   * Get the YAML form whose submissions are being exported.
+   * Get the form whose submissions are being exported.
    *
    * @return \Drupal\yamlform\YamlFormInterface
-   *   A YAML form.
+   *   A form.
    */
   public function getYamlForm();
 
   /**
-   * Set the YAML form source entity whose submissions are being exported.
+   * Set the form source entity whose submissions are being exported.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   A YAML form's source entity.
+   *   A form's source entity.
    */
   public function setSourceEntity(EntityInterface $entity = NULL);
 
   /**
-   * Get the YAML form source entity whose submissions are being exported.
+   * Get the form source entity whose submissions are being exported.
    *
    * @return \Drupal\Core\Entity\EntityInterface
-   *   A YAML form's source entity.
+   *   A form's source entity.
    */
   public function getSourceEntity();
 
   /**
-   * Get export options for the current YAML form and entity.
+   * Get export options for the current form and entity.
    *
    * @return array
    *   Export options.
@@ -51,7 +51,7 @@ interface YamlFormSubmissionExporterInterface {
   public function getYamlFormOptions();
 
   /**
-   * Set export options for the current YAML form and entity.
+   * Set export options for the current form and entity.
    *
    * @param array $options
    *   Export options.
@@ -59,120 +59,111 @@ interface YamlFormSubmissionExporterInterface {
   public function setYamlFormOptions(array $options = []);
 
   /**
-   * Delete export options for the current YAML form and entity.
+   * Delete export options for the current form and entity.
    */
   public function deleteYamlFormOptions();
 
   /**
-   * Get default options for exporting a CSV.
+   * Set results exporter.
+   *
+   * @param array $export_options
+   *   Associative array of exporter options.
+   *
+   * @return \Drupal\yamlform\YamlFormExporterInterface
+   *   A results exporter.
+   */
+  public function setExporter(array $export_options = []);
+
+  /**
+   * Get the results exporter.
+   *
+   * @return \Drupal\yamlform\YamlFormExporterInterface
+   *   A results exporter.
+   */
+  public function getExporter();
+
+  /**
+   * Get export options.
    *
    * @return array
-   *   Default options for exporting a CSV.
+   *   Export options.
+   */
+  public function getExportOptions();
+
+  /**
+   * Get default export options.
+   *
+   * @return array
+   *   Default export options.
    */
   public function getDefaultExportOptions();
 
   /**
-   * {@inheritdoc}
-   */
-  public function buildForm(array &$form, FormStateInterface $form_state);
-
-  /**
-   * Get the values from the form's state.
+   * Build export options form.
    *
+   * @param array $form
+   *   The form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
+   * @param array $export_options
+   *   The default values.
+   */
+  public function buildExportOptionsForm(array &$form, FormStateInterface $form_state, array $export_options = []);
+
+  /**
+   * Get the values from the form's user input or form state values.
+   *
+   * @paran array $input
+   *   An associative array of user input or form state values.
    *
    * @return array
    *   An associative array of export options.
    */
-  public function getFormValues(FormStateInterface $form_state);
+  public function getValuesFromInput(array $input);
 
   /**
-   * Generate YAML form submission as a CSV and write it to a temp file.
-   *
-   * @param array $export_options
-   *   An associative array of export options generated via the
-   *   Drupal\yamlform\Form\YamlFormResultsExportForm.
+   * Execute results exporter and write export to a temp file.
    */
-  public function generate(array $export_options);
+  public function generate();
 
   /**
-   * Write YAML form results header to CSV file.
-   *
-   * @param array $field_definitions
-   *   An associative array containing YAML form submission field definitions.
-   * @param array $elements
-   *   An associative array containing YAML form elements.
-   * @param array $export_options
-   *   An associative array of export options.
+   * Write form results header to export file.
    */
-  public function writeHeader(array $field_definitions, array $elements, array $export_options);
+  public function writeHeader();
 
   /**
-   * Write YAML form results header to CSV file.
+   * Write form results header to export file.
    *
    * @param \Drupal\yamlform\YamlFormSubmissionInterface[] $yamlform_submissions
-   *   A YAML form submission.
-   * @param array $field_definitions
-   *   An associative array containing YAML form submission field definitions.
-   * @param array $elements
-   *   An associative array containing YAML form elements.
-   * @param array $export_options
-   *   An associative array of export options.
+   *   A form submission.
    */
-  public function writeRecords(array $yamlform_submissions, array $field_definitions, array $elements, array $export_options);
+  public function writeRecords(array $yamlform_submissions);
 
   /**
-   * Write CSV file to Archive file.
-   *
-   * @param array $export_options
-   *   An associative array of export options.
+   * Write form results footer to export file.
    */
-  public function writeCsvToArchive(array $export_options);
+  public function writeFooter();
 
   /**
-   * Get YAML form submission field definitions.
-   *
-   * @param array $export_options
-   *   An associative array of export options.
-   *
-   * @return array
-   *   An associative array containing YAML form submission field definitions.
+   * Write export file to Archive file.
    */
-  public function getFieldDefinitions(array $export_options);
+  public function writeExportToArchive();
 
   /**
-   * Get YAML form elements.
-   *
-   * @param array $export_options
-   *   An associative array of export options.
-   *
-   * @return array
-   *   An associative array containing YAML form elements keyed by name.
-   */
-  public function getElements(array $export_options);
-
-  /**
-   * Get YAML form submission query for specified YAMl form and export options.
-   *
-   * @param array $export_options
-   *   An associative array of export options.
+   * Get form submission query for specified YAMl form and export options.
    *
    * @return \Drupal\Core\Entity\Query\QueryInterface
-   *   A YAML form submission entity query.
+   *   A form submission entity query.
    */
-  public function getQuery(array $export_options);
+  public function getQuery();
 
   /**
    * Total number of submissions to be exported.
    *
-   * @param array $export_options
-   *   An associative array of export options.
-   *
    * @return int
    *   The total number of submissions to be exported.
    */
-  public function getTotal(array $export_options);
+  public function getTotal();
 
   /**
    * Get the number of submissions to be exported with each batch.
@@ -183,15 +174,15 @@ interface YamlFormSubmissionExporterInterface {
   public function getBatchLimit();
 
   /**
-   * Determine if YAML form submissions must be exported using batch processing.
+   * Determine if form submissions must be exported using batch processing.
    *
    * @return bool
-   *   TRUE if YAML form submissions must be exported using batch processing.
+   *   TRUE if form submissions must be exported using batch processing.
    */
   public function requiresBatch();
 
   /**
-   * Get CSV file temp directory path.
+   * Get export file temp directory path.
    *
    * @return string
    *   Temp directory path.
@@ -199,70 +190,62 @@ interface YamlFormSubmissionExporterInterface {
   public function getFileTempDirectory();
 
   /**
-   * Get CSV file name and path for a YAML form.
+   * Get form submission base file name.
    *
-   * @param array $export_options
-   *   An associative array of export options.
-   *
-   * @return string
-   *   CSV file name and path for a YAML form
-   */
-  public function getCsvFilePath(array $export_options);
-
-  /**
-   * Get CSV file name for a YAML form.
-   *
-   * @param array $export_options
-   *   An associative array of export options.
+   * @param \Drupal\yamlform\YamlFormSubmissionInterface $yamlform_submission
+   *   A form submission.
    *
    * @return string
-   *   CSV or TSV file name for a YAML form depending on the delimiter.
+   *   Form submission's base file name.
    */
-  public function getCsvFileName(array $export_options);
+  public function getSubmissionBaseName(YamlFormSubmissionInterface $yamlform_submission);
 
   /**
-   * Get archive file name and path for a YAML form.
-   *
-   * @param array $export_options
-   *   An associative array of export options.
+   * Get export file name and path.
    *
    * @return string
-   *   Archive file name and path for a YAML form
+   *   Export file name and path.
    */
-  public function getArchiveFilePath(array $export_options);
+  public function getExportFilePath();
 
   /**
-   * Get archive file name for a YAML form.
+   * Get export file name .
    *
-   * @param array $export_options
-   *   An associative array of export options.
+   * @return string
+   *   Export file name.
+   */
+  public function getExportFileName();
+
+  /**
+   * Get archive file name and path for a form.
+   *
+   * @return string
+   *   Archive file name and path for a form
+   */
+  public function getArchiveFilePath();
+
+  /**
+   * Get archive file name for a form.
    *
    * @return string
    *   Archive file name.
    */
-  public function getArchiveFileName(array $export_options);
+  public function getArchiveFileName();
 
   /**
    * Determine if an archive is being generated.
    *
-   * @param array $export_options
-   *   An associative array of export options.
-   *
    * @return bool
    *   TRUE if an archive is being generated.
    */
-  public function isArchive(array $export_options);
+  public function isArchive();
 
   /**
    * Determine if export needs to use batch processing.
    *
-   * @param array $export_options
-   *   An associative array of export options generated via the
-   *   Drupal\yamlform\Form\YamlFormResultsExportForm.
-   *
    * @return bool
    *   TRUE if export needs to use batch processing.
    */
-  public function isBatch(array $export_options);
+  public function isBatch();
 
 }

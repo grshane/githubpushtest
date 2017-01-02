@@ -2,7 +2,7 @@
 
 namespace Drupal\yamlform\Entity;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Language\LanguageInterface;
@@ -18,12 +18,13 @@ use Drupal\yamlform\YamlFormInterface;
 use Drupal\yamlform\YamlFormSubmissionInterface;
 
 /**
- * Defines the YAML form entity.
+ * Defines the form entity.
  *
  * @ConfigEntityType(
  *   id = "yamlform",
- *   label = @Translation("YAML form"),
+ *   label = @Translation("Form"),
  *   handlers = {
+ *     "storage" = "\Drupal\yamlform\YamlFormEntityStorage",
  *     "view_builder" = "Drupal\yamlform\YamlFormEntityViewBuilder",
  *     "list_builder" = "Drupal\yamlform\YamlFormEntityListBuilder",
  *     "access" = "Drupal\yamlform\YamlFormEntityAccessControlHandler",
@@ -31,9 +32,10 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *       "default" = "Drupal\yamlform\YamlFormEntityForm",
  *       "settings" = "Drupal\yamlform\YamlFormEntitySettingsForm",
  *       "third_party_settings" = "Drupal\yamlform\YamlFormEntityThirdPartySettingsForm",
+ *       "assets" = "Drupal\yamlform\YamlFormEntityAssetsForm",
  *       "access" = "Drupal\yamlform\YamlFormEntityAccessForm",
  *       "handlers" = "Drupal\yamlform\YamlFormEntityHandlersForm",
- *       "delete" = "Drupal\Core\Entity\EntityDeleteForm",
+ *       "delete" = "Drupal\yamlform\YamlFormEntityDeleteForm",
  *       "duplicate" = "Drupal\yamlform\YamlFormEntityForm",
  *     }
  *   },
@@ -50,6 +52,7 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *     "test-form" = "/yamlform/{yamlform}/test",
  *     "edit-form" = "/admin/structure/yamlform/manage/{yamlform}",
  *     "settings-form" = "/admin/structure/yamlform/manage/{yamlform}/settings",
+ *     "assets-form" = "/admin/structure/yamlform/manage/{yamlform}/assets",
  *     "third-party-settings-form" = "/admin/structure/yamlform/manage/{yamlform}/third-party",
  *     "access-form" = "/admin/structure/yamlform/manage/{yamlform}/access",
  *     "handlers-form" = "/admin/structure/yamlform/manage/{yamlform}/handlers",
@@ -71,6 +74,8 @@ use Drupal\yamlform\YamlFormSubmissionInterface;
  *     "title",
  *     "description",
  *     "elements",
+ *     "css",
+ *     "javascript",
  *     "settings",
  *     "access",
  *     "handlers",
@@ -83,42 +88,42 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   use StringTranslationTrait;
 
   /**
-   * The YAML form ID.
+   * The form ID.
    *
    * @var string
    */
   protected $id;
 
   /**
-   * The YAML form UUID.
+   * The form UUID.
    *
    * @var string
    */
   protected $uuid;
 
   /**
-   * The YAML form status.
+   * The form status.
    *
-   * @var boolean
+   * @var bool
    */
   protected $status = TRUE;
 
   /**
-   * The YAML form template indicator.
+   * The form template indicator.
    *
-   * @var boolean
+   * @var bool
    */
   protected $template = FALSE;
 
   /**
-   * The YAML form title.
+   * The form title.
    *
    * @var string
    */
   protected $title;
 
   /**
-   * The YAML form description.
+   * The form description.
    *
    * @var string
    */
@@ -127,89 +132,110 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * The owner's uid.
    *
-   * @var integer
+   * @var int
    */
   protected $uid;
 
   /**
-   * The YAML form settings.
+   * The form settings.
    *
    * @var array
    */
   protected $settings = [];
 
   /**
-   * The YAML form access controls.
+   * The form access controls.
    *
    * @var array
    */
   protected $access = [];
 
   /**
-   * The YAML form elements.
+   * The form elements.
    *
    * @var string
    */
   protected $elements;
 
   /**
-   * The array of YAML form handlers for this YAML form.
+   * The CSS stylesheet.
+   *
+   * @var string
+   */
+  protected $css = '';
+
+  /**
+   * The JavaScript.
+   *
+   * @var string
+   */
+  protected $javascript = '';
+
+  /**
+   * The array of form handlers for this form.
    *
    * @var array
    */
   protected $handlers = [];
 
   /**
-   * Holds the collection of YAML form handlers that are used by this YAML form.
+   * Holds the collection of form handlers that are used by this form.
    *
    * @var \Drupal\yamlform\YamlFormHandlerPluginCollection
    */
   protected $handlersCollection;
 
   /**
-   * The YAML form elements original.
+   * The form elements original.
    *
    * @var string
    */
   protected $elementsOriginal;
 
   /**
-   * The YAML form elements decoded.
+   * The form elements decoded.
    *
    * @var array
    */
   protected $elementsDecoded;
 
   /**
-   * The YAML form elements initializes (and decoded).
+   * The form elements initializes (and decoded).
    *
    * @var array
    */
   protected $elementsInitialized;
 
   /**
-   * The YAML form elements decoded and flattened.
+   * The form elements decoded and flattened.
    *
    * @var array
    */
   protected $elementsDecodedAndFlattened;
 
   /**
-   * The YAML form elements initialized and flattened.
+   * The form elements initialized and flattened.
    *
    * @var array
    */
   protected $elementsInitializedAndFlattened;
 
   /**
-   * The YAML form elements flattened and has value.
+   * The form elements flattened and has value.
    *
    * @var array
    */
   protected $elementsFlattenedAndHasValue;
 
   /**
-   * The YAML form pages.
+   * The form elements translations.
+   *
+   * @var array
+   */
+  protected $elementsTranslations;
+
+  /**
+   * The form pages.
    *
    * @var array
    */
@@ -316,7 +342,8 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
       return $this->hasTranslations;
     }
 
-    if (!\Drupal::moduleHandler()->moduleExists('locale')) {
+    // Make sure the config translation module is enabled.
+    if (!\Drupal::moduleHandler()->moduleExists('config_translation')) {
       $this->hasTranslations = FALSE;
       return $this->hasTranslations;
     }
@@ -371,6 +398,36 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    */
   public function setDescription($description) {
     $this->description = $description;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCss() {
+    return $this->css;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setCss($css) {
+    $this->css = $css;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getJavaScript() {
+    return $this->javascript;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setJavaScript($javascript) {
+    $this->javascript = $javascript;
     return $this;
   }
 
@@ -436,6 +493,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
       'page_submit_path' => '',
       'page_confirm_path' => '',
       'form_submit_label' => '',
+      'form_submit_attributes' => [],
       'form_exception_message' => '',
       'form_closed_message' => '',
       'form_confidential' => FALSE,
@@ -443,34 +501,48 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
       'form_prepopulate' => FALSE,
       'form_prepopulate_source_entity' => FALSE,
       'form_novalidate' => FALSE,
+      'form_unsaved' => FALSE,
+      'form_disable_back' => FALSE,
       'form_autofocus' => FALSE,
+      'form_details_toggle' => FALSE,
       'wizard_progress_bar' => TRUE,
       'wizard_progress_pages' => FALSE,
       'wizard_progress_percentage' => FALSE,
       'wizard_next_button_label' => '',
+      'wizard_next_button_attributes' => [],
       'wizard_prev_button_label' => '',
+      'wizard_prev_button_attributes' => [],
       'wizard_start_label' => '',
       'wizard_complete' => TRUE,
       'wizard_complete_label' => '',
       'preview' => DRUPAL_DISABLED,
       'preview_next_button_label' => '',
+      'preview_next_button_attributes' => [],
       'preview_prev_button_label' => '',
+      'preview_prev_button_attributes' => [],
       'preview_message' => '',
       'draft' => FALSE,
       'draft_auto_save' => FALSE,
       'draft_button_label' => '',
+      'draft_button_attributes' => [],
       'draft_saved_message' => '',
       'draft_loaded_message' => '',
       'confirmation_type' => 'page',
       'confirmation_message' => '',
       'confirmation_url' => '',
+      'confirmation_attributes' => [],
+      'confirmation_back' => TRUE,
+      'confirmation_back_label' => '',
+      'confirmation_back_attributes' => [],
       'limit_total' => NULL,
       'limit_total_message' => '',
       'limit_user' => NULL,
       'limit_user_message' => '',
       'entity_limit_total' => NULL,
       'entity_limit_user' => NULL,
-      'results_disabled' => '',
+      'results_disabled' => FALSE,
+      'results_disabled_ignore' => FALSE,
+      'token_update' => FALSE,
     ];
   }
 
@@ -521,14 +593,14 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * {@inheritdoc}
    */
   public function checkAccessRules($operation, AccountInterface $account, YamlFormSubmissionInterface $yamlform_submission = NULL) {
-    // Always grant access to "admin" which are YAML form and YAML form
+    // Always grant access to "admin" which are form and form
     // submission administrators.
     if ($account->hasPermission('administer yamlform') || $account->hasPermission('administer yamlform submission')) {
       return TRUE;
     }
 
     // The "page" operation is the same as "create" but requires that the
-    // YAML form is allowed to be displayed as dedicated page.
+    // Form is allowed to be displayed as dedicated page.
     // Used by the 'entity.yamlform.canonical' route.
     if ($operation == 'page') {
       if (empty($this->settings['page'])) {
@@ -587,7 +659,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * {@inheritdoc}
    */
   public function getSubmissionForm(array $values = [], $operation = 'default') {
-    // Set this YAML form's id.
+    // Set this form's id.
     $values['yamlform_id'] = $this->id();
 
     $yamlform_submission = $this->entityTypeManager()
@@ -655,6 +727,22 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    */
+  public function getElementsSelectorOptions() {
+    /** @var \Drupal\yamlform\YamlFormElementManagerInterface $element_manager */
+    $element_manager = \Drupal::service('plugin.manager.yamlform.element');
+
+    $selectors = [];
+    $elements = $this->getElementsInitializedAndFlattened();
+    foreach ($elements as $element) {
+      $element_handler = $element_manager->getElementInstance($element);
+      $selectors += $element_handler->getElementSelectorOptions($element);
+    }
+    return $selectors;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function setElements(array $elements) {
     $this->elements = Yaml::encode($elements);
     $this->resetElements();
@@ -662,7 +750,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   }
 
   /**
-   * Initialize parse YAML form elements.
+   * Initialize parse form elements.
    */
   protected function initElements() {
     if (isset($this->elementsInitialized)) {
@@ -672,8 +760,24 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
     $this->elementsDecodedAndFlattened = [];
     $this->elementsInitializedAndFlattened = [];
     $this->elementsFlattenedAndHasValue = [];
+    $this->elementsTranslations = [];
     try {
-      $elements = Yaml::decode($this->elements);
+      /** @var \Drupal\yamlform\YamlFormTranslationManagerInterface $translation_manager */
+      $translation_manager = \Drupal::service('yamlform.translation_manager');
+      /** @var \Drupal\Core\Language\LanguageManagerInterface $language_manager */
+      $language_manager = \Drupal::service('language_manager');
+
+      // If current form is translated, load the base (default) form and apply
+      // the translation to the elements.
+      if ($this->langcode != $language_manager->getCurrentLanguage()->getId()) {
+        $default_langcode = $language_manager->getDefaultLanguage()->getId();
+        $elements = $translation_manager->getConfigElements($this, $default_langcode);
+        $this->elementsTranslations = Yaml::decode($this->elements);
+      }
+      else {
+        $elements = Yaml::decode($this->elements);
+      }
+
       // Since YAML supports simple values.
       $elements = (is_array($elements)) ? $elements : [];
       $this->elementsDecoded = $elements;
@@ -698,7 +802,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   }
 
   /**
-   * Reset parsed and cached YAML form elements.
+   * Reset parsed and cached form elements.
    */
   protected function resetElements() {
     $this->elementsDecoded = NULL;
@@ -706,20 +810,21 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
     $this->elementsDecodedAndFlattened = NULL;
     $this->elementsInitializedAndFlattened = NULL;
     $this->elementsFlattenedAndHasValue = NULL;
+    $this->elementsTranslations = NULL;
   }
 
   /**
-   * Initialize YAML form elements into a flatten array.
+   * Initialize form elements into a flatten array.
    *
    * @param array $elements
-   *   The YAML form elements.
+   *   The form elements.
    */
   protected function initElementsRecursive(array &$elements, $parent = '', $depth = 0) {
-    /** @var \Drupal\yamlform\YamlFormElementManagerInterface $yamlform_element_manager */
-    $yamlform_element_manager = \Drupal::service('plugin.manager.yamlform.element');
+    /** @var \Drupal\yamlform\YamlFormElementManagerInterface $element_manager */
+    $element_manager = \Drupal::service('plugin.manager.yamlform.element');
 
-    /** @var \Drupal\Core\Render\ElementInfoManagerInterface $element_manager */
-    $element_manager = \Drupal::service('plugin.manager.element_info');
+    /** @var \Drupal\Core\Render\ElementInfoManagerInterface $element_info */
+    $element_info = \Drupal::service('plugin.manager.element_info');
 
     // Remove ignored properties.
     $elements = YamlFormElementHelper::removeIgnoredProperties($elements);
@@ -727,6 +832,11 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
     foreach ($elements as $key => &$element) {
       if (Element::property($key) || !is_array($element)) {
         continue;
+      }
+
+      // Apply translation to element.
+      if (isset($this->elementsTranslations[$key])) {
+        YamlFormElementHelper::applyTranslation($element, $this->elementsTranslations[$key]);
       }
 
       // Copy only the element properties to decoded and flattened elements.
@@ -739,6 +849,9 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
       $element['#yamlform_parent_flexbox'] = FALSE;
       $element['#yamlform_depth'] = $depth;
       $element['#yamlform_children'] = [];
+      $element['#yamlform_multiple'] = FALSE;
+      $element['#yamlform_composite'] = FALSE;
+
       if (!empty($parent)) {
         $parent_element = $this->elementsInitializedAndFlattened[$parent];
         // Add element to the parent element's children.
@@ -773,15 +886,18 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
 
         // Set yamlform_* prefix to #type that are using alias without yamlform_
         // namespace.
-        if (!$element_manager->hasDefinition($element['#type']) && $element_manager->hasDefinition('yamlform_' . $element['#type'])) {
+        if (!$element_info->hasDefinition($element['#type']) && $element_info->hasDefinition('yamlform_' . $element['#type'])) {
           $element['#type'] = 'yamlform_' . $element['#type'];
         }
 
         // Load the element's handler.
-        $element_handler = $yamlform_element_manager->createInstance($element['#type']);
+        $element_handler = $element_manager->createInstance($element['#type']);
 
         // Initialize the element.
         $element_handler->initialize($element);
+
+        $element['#yamlform_multiple'] = $element_handler->hasMultipleValues($element);
+        $element['#yamlform_composite'] = $element_handler->isComposite();
       }
 
       // Copy only the element properties to initialized and flattened elements.
@@ -789,7 +905,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
 
       // Check if element has value (aka can be exported) and add it to
       // flattened has value array.
-      if ($element_handler && $element_handler->hasValue($element)) {
+      if ($element_handler && $element_handler->isInput($element)) {
         $this->elementsFlattenedAndHasValue[$key] =& $this->elementsInitializedAndFlattened[$key];
       }
 
@@ -898,8 +1014,9 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * @param string $key
    *   The element's key.
    *
-   * @return array
+   * @return bool|array
    *   An array containing the deleted element and sub element keys.
+   *   FALSE is no sub elements are found.
    */
   protected function deleteElementRecursive(array &$elements, $key) {
     foreach ($elements as $element_key => &$element) {
@@ -944,37 +1061,45 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * {@inheritdoc}
    */
   public function getPages() {
-    if (!isset($this->pages)) {
-      // Add YAML form page containers.
-      $this->pages = [];
-      $elements = $this->getElementsInitialized();
+    if (isset($this->pages)) {
+      return $this->pages;
+    }
+
+    $wizard_properties = [
+      '#title' => '#title',
+      '#prev_button_label' => '#prev_button_label',
+      '#next_button_label' => '#next_button_label',
+    ];
+
+    $elements = $this->getElementsInitialized();
+
+    // Add form page containers.
+    $this->pages = [];
+    if (is_array($elements)) {
       foreach ($elements as $key => $element) {
         if (isset($element['#type']) && $element['#type'] == 'yamlform_wizard_page') {
-          $this->pages[$key] = $element;
+          $this->pages[$key] = array_intersect_key($element, $wizard_properties);
         }
-      }
-
-      // Add preview page.
-      $settings = $this->getSettings();
-      if ($settings['preview'] != DRUPAL_DISABLED) {
-        // If there is no start page, we must define one.
-        if (empty($this->pages)) {
-          $this->pages['start'] = [
-            '#type' => 'yamlform_wizard_page',
-            '#title' => $this->getSetting('wizard_start_label') ?: \Drupal::config('yamlform.settings')->get('settings.default_wizard_start_label'),
-          ];
-        }
-        $this->pages['preview'] = [
-          '#type' => 'yamlform_preview',
-          '#title' => $this->t('Preview'),
-        ];
       }
     }
 
+    // Add preview page.
+    $settings = $this->getSettings();
+    if ($settings['preview'] != DRUPAL_DISABLED) {
+      // If there is no start page, we must define one.
+      if (empty($this->pages)) {
+        $this->pages['start'] = [
+          '#title' => $this->getSetting('wizard_start_label') ?: \Drupal::config('yamlform.settings')->get('settings.default_wizard_start_label'),
+        ];
+      }
+      $this->pages['preview'] = [
+        '#title' => $this->t('Preview'),
+      ];
+    }
+
     // Only add complete page, if there are some pages.
-    if ($this->pages  && $this->getSetting('wizard_complete')) {
+    if ($this->pages && $this->getSetting('wizard_complete')) {
       $this->pages['complete'] = [
-        '#type' => 'yamlform_wizard_page',
         '#title' => $this->getSetting('wizard_complete_label') ?: \Drupal::config('yamlform.settings')->get('settings.default_wizard_complete_label'),
       ];
     }
@@ -985,18 +1110,9 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function getPage($index) {
+  public function getPage($key) {
     $pages = $this->getPages();
-    if (isset($pages[$index])) {
-      return $pages[$index];
-    }
-
-    $keys = array_keys($pages);
-    if (isset($keys[$index])) {
-      return $pages[$keys[$index]];
-    }
-
-    return NULL;
+    return (isset($pages[$key])) ? $pages[$key] : NULL;
   }
 
   /**
@@ -1026,21 +1142,23 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
     /** @var \Drupal\yamlform\YamlFormInterface[] $entities */
     parent::preDelete($storage, $entities);
 
-    // Delete all submission associated with this YAML form.
-    $entity_ids = \Drupal::entityQuery('yamlform_submission')
-      ->condition('yamlform_id', array_keys($entities), 'IN')
-      ->sort('sid')
-      ->execute();
-    entity_delete_multiple('yamlform_submission', $entity_ids);
-
-    // Delete all paths and states associated with this YAML form.
+    // Delete all paths and states associated with this form.
     foreach ($entities as $entity) {
       // Delete all paths.
       $entity->deletePaths();
 
       // Delete the state.
-      \Drupal::state()->delete('yamlform.' . $entity->id());
+      \Drupal::state()->delete('yamlform.yamlform.' . $entity->id());
     }
+
+    // Delete all submission associated with this form.
+    $submission_ids = \Drupal::entityQuery('yamlform_submission')
+      ->condition('yamlform_id', array_keys($entities), 'IN')
+      ->sort('sid')
+      ->execute();
+    $submission_storage = \Drupal::entityTypeManager()->getStorage('yamlform_submission');
+    $submissions = $submission_storage->loadMultiple($submission_ids);
+    $submission_storage->delete($submissions);
   }
 
   /**
@@ -1048,7 +1166,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    */
   public function getCacheTags() {
     $cache_tags = parent::getCacheTags();
-    // Add YAML form to cache tags which are used by the YamlFormSubmissionForm.
+    // Add form to cache tags which are used by the YamlFormSubmissionForm.
     $cache_tags[] = 'yamlform:' . $this->id();
     return $cache_tags;
   }
@@ -1158,10 +1276,10 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   }
 
   /**
-   * Returns the YAML form handler plugin manager.
+   * Returns the form handler plugin manager.
    *
    * @return \Drupal\Component\Plugin\PluginManagerInterface
-   *   The YAML form handler plugin manager.
+   *   The form handler plugin manager.
    */
   protected function getYamlFormHandlerPluginManager() {
     return \Drupal::service('plugin.manager.yamlform.handler');
@@ -1182,7 +1300,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
       $this->handlersCollection = new YamlFormHandlerPluginCollection($this->getYamlFormHandlerPluginManager(), $this->handlers);
       /** @var \Drupal\yamlform\YamlFormHandlerBase $handler */
       foreach ($this->handlersCollection as $handler) {
-        // Initialize the handler and pass in the YAML form.
+        // Initialize the handler and pass in the form.
         $handler->init($this);
       }
       $this->handlersCollection->sort();
@@ -1274,7 +1392,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    *
-   * Overriding so that URLs pointing to YAML form default to 'canonical'
+   * Overriding so that URLs pointing to form default to 'canonical'
    * submission form and not the back-end 'edit-form'.
    */
   public function url($rel = 'canonical', $options = []) {
@@ -1285,7 +1403,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    *
-   * Overriding so that URLs pointing to YAML form default to 'canonical'
+   * Overriding so that URLs pointing to form default to 'canonical'
    * submission form and not the back-end 'edit-form'.
    */
   public function toUrl($rel = 'canonical', array $options = []) {
@@ -1295,7 +1413,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    *
-   * Overriding so that URLs pointing to YAML form default to 'canonical'
+   * Overriding so that URLs pointing to form default to 'canonical'
    * submission form and not the back-end 'edit-form'.
    */
   public function urlInfo($rel = 'canonical', array $options = []) {
@@ -1305,7 +1423,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    *
-   * Overriding so that links to YAML form default to 'canonical' submission
+   * Overriding so that links to form default to 'canonical' submission
    * form and not the back-end 'edit-form'.
    */
   public function toLink($text = NULL, $rel = 'canonical', array $options = []) {
@@ -1315,7 +1433,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    *
-   * Overriding so that links to YAML form default to 'canonical' submission
+   * Overriding so that links to form default to 'canonical' submission
    * form and not the back-end 'edit-form'.
    */
   public function link($text = NULL, $rel = 'canonical', array $options = []) {
@@ -1333,7 +1451,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * {@inheritdoc}
    */
   public function getState($key, $default = NULL) {
-    $namespace = 'yamlform.' . $this->id();
+    $namespace = 'yamlform.yamlform.' . $this->id();
     $values = \Drupal::state()->get($namespace, []);
     return (isset($values[$key])) ? $values[$key] : $default;
   }
@@ -1342,7 +1460,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * {@inheritdoc}
    */
   public function setState($key, $value) {
-    $namespace = 'yamlform.' . $this->id();
+    $namespace = 'yamlform.yamlform.' . $this->id();
     $values = \Drupal::state()->get($namespace, []);
     $values[$key] = $value;
     \Drupal::state()->set($namespace, $values);
@@ -1352,7 +1470,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * {@inheritdoc}
    */
   public function deleteState($key) {
-    $namespace = 'yamlform.' . $this->id();
+    $namespace = 'yamlform.yamlform.' . $this->id();
     $values = \Drupal::state()->get($namespace, []);
     unset($values[$key]);
     \Drupal::state()->set($namespace, $values);
@@ -1362,7 +1480,7 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
    * {@inheritdoc}
    */
   public function hasState($key) {
-    $namespace = 'yamlform.' . $this->id();
+    $namespace = 'yamlform.yamlform.' . $this->id();
     $values = \Drupal::state()->get($namespace, []);
     return (isset($values[$key])) ? TRUE : FALSE;
   }
@@ -1370,12 +1488,32 @@ class YamlForm extends ConfigEntityBundleBase implements YamlFormInterface {
   /**
    * {@inheritdoc}
    */
-  protected function addDependency($type, $name) {
-    // A YAML form should never have any dependencies.
-    // This prevents the scenario where a YamlFormHandler's module is
-    // uninstalled and any YAML form implementing the YamlFormHandler
-    // is deleted without an error being thrown.
-    return $this;
+  public function onDependencyRemoval(array $dependencies) {
+    $changed = parent::onDependencyRemoval($dependencies);
+
+    $handlers = $this->getHandlers();
+    if (empty($handlers)) {
+      return $changed;
+    }
+
+    foreach ($handlers as $handler) {
+      $plugin_definition = $handler->getPluginDefinition();
+      $provider = $plugin_definition['provider'];
+      if (in_array($provider, $dependencies['module'])) {
+        $this->deleteYamlFormHandler($handler);
+        $changed = TRUE;
+      }
+    }
+    return $changed;
+  }
+
+  /**
+   * Define empty array iterator.
+   *
+   * See: Issue #2759267: Undefined method YamlForm::getIterator().
+   */
+  public function getIterator() {
+    return new \ArrayIterator([]);
   }
 
 }

@@ -12,8 +12,8 @@ use Drupal\yamlform\YamlFormInterface;
  * @YamlFormElement(
  *   id = "yamlform_codemirror",
  *   label = @Translation("CodeMirror"),
- *   category = @Translation("Advanced"),
- *   multiline = TRUE
+ *   category = @Translation("Advanced elements"),
+ *   multiline = TRUE,
  * )
  */
 class YamlFormCodeMirror extends YamlFormElementBase {
@@ -22,24 +22,9 @@ class YamlFormCodeMirror extends YamlFormElementBase {
    * {@inheritdoc}
    */
   public function getDefaultProperties() {
-    return [
-      'title' => '',
-      'description' => '',
-
-      'required' => FALSE,
-      'required_error' => '',
-
-      'default_value' => '',
-
-      'title_display' => '',
-      'description_display' => '',
-
-      'private' => FALSE,
-
-      'format' => $this->getDefaultFormat(),
+    return parent::getDefaultProperties() + [
+      // Codemirror setings.
       'mode' => 'text',
-
-      'flex' => 1,
     ];
   }
 
@@ -108,9 +93,8 @@ class YamlFormCodeMirror extends YamlFormElementBase {
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
     $form['codemirror'] = [
-      '#type' => 'details',
+      '#type' => 'fieldset',
       '#title' => $this->t('CodeMirror settings'),
-      '#open' => FALSE,
     ];
     $form['codemirror']['mode'] = [
       '#title' => $this->t('Mode'),

@@ -1,13 +1,18 @@
 /**
  * @file
- * Javascript behaviors for YAML form signature_pad integration.
+ * Javascript behaviors for signature pad integration.
  */
 
 (function ($, Drupal) {
 
   'use strict';
 
-  Drupal.behaviors.yamlFormElementSignature = {
+  /**
+   * Initialize signature element.
+   *
+   * @type {Drupal~behavior}
+   */
+  Drupal.behaviors.yamlFormSignature = {
     attach: function (context) {
       $(context).find('input.js-yamlform-signature').once('yamlform-signature').each(function () {
         var $input = $(this);
@@ -51,6 +56,26 @@
           this.blur();
           return false;
         });
+
+        // Input onchange clears signature pad if value is empty.
+        // @see yamlform.states.js
+        $input.on('change', function () {
+          if (!$input.val()) {
+            signaturePad.clear();
+          }
+        });
+
+        // Turn signature pad off/on when the input is disabled/enabled.
+        // @see yamlform.states.js
+        $input.on('yamlform:disabled', function () {
+          if ($input.is(':disabled')) {
+            signaturePad.off();
+          }
+          else {
+            signaturePad.on();
+          }
+        });
+
       });
     }
   };

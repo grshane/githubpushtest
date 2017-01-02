@@ -10,12 +10,12 @@ use Drupal\yamlform\YamlFormRequestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides a confirmation form for deleting a YAML form submission.
+ * Provides a confirmation form for deleting a form submission.
  */
 class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
 
   /**
-   * The YAML form entity.
+   * The form entity.
    *
    * @var \Drupal\yamlform\YamlFormInterface
    */
@@ -23,37 +23,37 @@ class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
 
 
   /**
-   * The YAML form submission entity.
+   * The form submission entity.
    *
    * @var \Drupal\yamlform\YamlFormSubmissionInterface
    */
   protected $yamlformSubmission;
 
   /**
-   * The YAML form source entity.
+   * The form source entity.
    *
    * @var \Drupal\Core\Entity\EntityInterface
    */
   protected $sourceEntity;
 
   /**
-   * YAML form request handler.
+   * Form request handler.
    *
    * @var \Drupal\yamlform\YamlFormRequestInterface
    */
-  protected $yamlFormRequest;
+  protected $requestHandler;
 
   /**
    * Constructs a new YamlFormSubmissionDeleteForm object.
    *
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The entity manager.
-   * @param \Drupal\yamlform\YamlFormRequestInterface $yamlform_request
-   *   The YAML form request handler.
+   * @param \Drupal\yamlform\YamlFormRequestInterface $request_handler
+   *   The form request handler.
    */
-  public function __construct(EntityManagerInterface $entity_manager, YamlFormRequestInterface $yamlform_request) {
+  public function __construct(EntityManagerInterface $entity_manager, YamlFormRequestInterface $request_handler) {
     parent::__construct($entity_manager);
-    $this->yamlFormRequest = $yamlform_request;
+    $this->requestHandler = $request_handler;
   }
 
   /**
@@ -70,7 +70,7 @@ class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    list($this->yamlformSubmission, $this->sourceEntity) = $this->yamlFormRequest->getYamlFormSubmissionEntities();
+    list($this->yamlformSubmission, $this->sourceEntity) = $this->requestHandler->getYamlFormSubmissionEntities();
     $this->yamlform = $this->yamlformSubmission->getYamlForm();
     return parent::buildForm($form, $form_state);
   }
@@ -93,8 +93,8 @@ class YamlFormSubmissionDeleteForm extends ContentEntityDeleteForm {
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    $route_name = $this->yamlFormRequest->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
-    $route_parameters = $this->yamlFormRequest->getRouteParameters($this->yamlform, $this->sourceEntity);
+    $route_name = $this->requestHandler->getRouteName($this->yamlform, $this->sourceEntity, 'yamlform.results_submissions');
+    $route_parameters = $this->requestHandler->getRouteParameters($this->yamlform, $this->sourceEntity);
     return new Url($route_name, $route_parameters);
   }
 

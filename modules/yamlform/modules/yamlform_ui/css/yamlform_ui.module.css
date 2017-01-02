@@ -1,6 +1,6 @@
 /**
  * @file
- * YAML form UI styling
+ * Form UI styling
  */
 
 /**
@@ -42,6 +42,9 @@ thead th .dropbutton {
   width: 10%;
 }
 
+.yamlform-ui-elements-table tr:first-child {
+  border-top: inherit !important;
+}
 .yamlform-ui-elements-table tr.yamlform-ui-element-type-yamlform_wizard_page {
   border-top: 2px solid #a6a6a6;
 }

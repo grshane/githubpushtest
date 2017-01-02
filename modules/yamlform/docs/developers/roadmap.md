@@ -5,142 +5,117 @@ Below is the current roadmap for the YAML Form module.
 Phase I (before Release Candidate)
 ----------------------------------
 
-### Forms & Elements 
+### Required Features & Tasks
 
-**Finalize elements**
+**General**
 
-- [#2765797](https://www.drupal.org/node/2765797) 
-  \#pattern support with regex validation **DONE** 
-- Autocompletion element & property support **DONE**
-- [#2758671](https://www.drupal.org/node/2758671) 
-  Select2 support. **DONE**
-- [#2346973](https://www.drupal.org/node/2346973) 
-  Entity query / Views entity reference support for #options 
+- Finalize default configuration  
+- Finalize supported elements
 
-**User Interface**
+**Multilingual** 
 
-- [#2759527](https://www.drupal.org/node/2759527) 
-  Build #options UI. **DONE** 
-- [#2764503](https://www.drupal.org/node/2764503) 
-  Build #states (conditional logic) UI. 
-- Customizable reports **DONE**
-- [#2722601](https://www.drupal.org/node/2722601)
-  Sortable reports **DONE**
-- [#2778907](https://www.drupal.org/node/2778907)
-  Improve WYSIWYG support **DONE**
+- [#2805113](https://www.drupal.org/node/2805113) 
+  Rework translation handling
 
-**Bugs/Tweaks**
+**Submission Download**
 
-- [#2784831](https://www.drupal.org/node/2784831)
-  Add date range validation to date element
+- [#2822560](https://www.drupal.org/node/2822560) 
+  Excel exporter
 
-### Design & UX 
+**Conditional Logic**
+
+- Server side conditional logic 
+
+**Views**
+
+- [#2769977](https://www.drupal.org/node/2769977) 
+  Views integration ★
 
 **Templating ★**
 
-- [#2757991](https://www.drupal.org/node/2757991)
-  Review and finalize templates  **DONE**
-- [#2794487](https://www.drupal.org/node/2794487) 
-  Add support for flexbox layouts **DONE**
 - [#2787117](https://www.drupal.org/node/2787117)
-  Add more started templates ★
+  Add more starter templates ★
   
-**Examples & Templates**
+**UI/UX**
 
-- Add better documentation to yamlform_examples.module **DONE**
-- Review out-of-the-box templates provide by the yamlform_templates.module. ★ 
+- [#2822613](https://www.drupal.org/node/2822613) 
+  Use CKEditor (instead of CodeMirror) for all settings that can contain HTML markup
+- Review element edit form UI/UX
 
-### Code & APIs 
+**Third party libraries**
 
-**Configuration Management**
-
-- [#2785807](https://www.drupal.org/node/2785807) 
-  Improve YAML Form configuration management **DONE**
-    - See: [Introducing Drush CMI tools](https://www.previousnext.com.au/blog/introducing-drush-cmi-tools)
-
-**Code Review**
-
-- Testability
-- Refactorability
-- Plugin definitions ★
-- Entity API implementation ★
-- Form API implementation ★
-
-**Security Review ★**
-
-- [#2791185](https://www.drupal.org/node/2791185)Callback injection **DONE**
-- JS/CSS injection
-- Access controls
-
-**API Review**
-
-- Review doc blocks
-
-**Libraries**
-
-- [#2745325](https://www.drupal.org/node/2745325)
-  Finalize external library support **DONE**
+- Improve CKEditor integration
 - Add external libraries to composer.json ★
 
-**Testing**
+### Optional Features
 
-- Refactor PHPUnit tests
-- Improve SimpleTest setUp performance.
-- Configuration Management
-- Default configuration
-- Finalize default admin settings
+**Elements**
 
-### Multilingual 
+- [#2783937](https://www.drupal.org/node/2783937)
+  Add OptGroup support to options element
 
-- Finalize how YAML form's elements are translated. ★
-- Make sure the YAML Form module is completely translatable. ★
+- Upload files from third-party services such as Dropbox, Box, OneDrive, Google 
+  Drive and Instagram
+  See: [File Chooser Field](https://www.drupal.org/project/file_chooser_field)
+
+**Email handler**
+
+- [#2817901](https://www.drupal.org/node/2817901) 
+  Form select component email handler mapping
+
+**Handlers**
+
+- Provide Google Sheets integration
 
 ### Documentation & Help 
 
 **General**
 
-- Decide if any documentation should live on Drupal.org
-- [#2759591](https://www.drupal.org/node/2759591)
-  What is YAML and why we are using it? **POSTPONED**
-- Move features into a dedicated file. **DONE**
-- Create a related project page **DONE**
-- Simplify the project page. **DONE**
-- Update screenshots **DONE**
+- Move all documentation to Drupal.org
+
+**Screencasts**
+
+- Decide if inline screencasts are useful and update screencasts
 
 **Module**
 
-- Review hook_help() **DONE**
-- Review hardcoded messages.
+- Review hardcoded messages
 
 **Editorial ★**
 
 - Unified tone
-- General typos, grammar, and wording. ★
-
-### Other 
-
-**Screencasts**
-
-- Form Builder - How to build forms? **DONE**
-- Form Developer - How to customize forms? **DONE**
-- Contributor - How to extend the YAML form API and plugins?
-- More to come...
-
-**Maintainers/Developer**
-
-- Document issue queue policies. **DONE**
-- Build full documented plugin examples.
+- General typos, grammar, and wording ★
 
 
 Phase II (after Stable Release)
 -------------------------------
 
+### Translations
+
+- [#2788741](https://www.drupal.org/node/2788741)
+  French
+  
+  
+### Optional Features
+
+
+**UI/UX**
+ 
+- [#2771235](https://www.drupal.org/node/2771235)
+  Implement drag-n-drop UI/UX ★ 
+
+**Field API**
+
+- [#2792583](https://www.drupal.org/node/2792583) 
+  Use Field API ★ 
+
 **Forms**
 
-- [#2781481](https://www.drupal.org/node/2781481)
-  Custom validation error messages **DONE**
 - [#2757491](https://www.drupal.org/node/2757491) 
   AJAX support for forms ★ 
+
+- [#2824714](https://www.drupal.org/node/2824714)
+  Composite and/or base forms
 
 **Rules/Actions**
 
@@ -149,22 +124,42 @@ Phase II (after Stable Release)
 
 **Results**
 
-- [#2786431](https://www.drupal.org/node/2786431)
-  Bulk export of attached files. **DONE**
-- Create trash bin for deleted results.   
-  _Copy D8 core's solutions_ 
-
-**Views**
-
-- [#2769977](https://www.drupal.org/node/2769977) 
-  Views integration ★
+- Create trash bin for deleted results
+  _Copy D8 core's solution_ 
 
 **APIs** 
 
-- REST API endpoint for CRUD operations.
+- REST API endpoint for CRUD operations
 - Headless Drupal Forms
 
-**Other** 
 
-- Code snippets repository
-- Template repository
+Ongoing Tasks
+-------------
+
+**Accessibility**
+
+- Establish accessibility policy and review process.
+ 
+**Communication**
+
+- Set up weekly, biweekly, or monthly online hangout.
+
+**Workflow**
+
+- Define development workflow
+- Define release policy and schedule
+- Document issue guidelines
+ 
+**Code Review**
+
+- Cleanup bad smelling code.
+- Testability
+- Refactorability
+- Plugin definitions ★
+- Entity API implementation ★
+- Form API implementation ★
+
+**Testing**
+
+- Refactor PHPUnit tests
+- Improve SimpleTest setUp performance
