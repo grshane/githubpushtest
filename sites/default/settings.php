@@ -48,3 +48,20 @@ if (defined('PANTHEON_ENVIRONMENT')) {
     $config['google_analytics.settings']['account'] = 'UA-80484325-1';
   }
 }
+
+# Set the $base_url parameter if we are running on Pantheon:
+
+if (defined('PANTHEON_ENVIRONMENT')) {
+  if (PANTHEON_ENVIRONMENT == 'live') {
+    $domain = 'www.fillyourbike.shop';
+  }
+  else {
+    # Fallback value for multidev or other environments.
+    # This covers environment-sitename.pantheonsite.io domains
+    # that are generated per environment.
+    $domain = $_SERVER['HTTP_HOST'];
+  }
+
+  # This global variable determines the base for all URLs in Drupal.
+  $base_url = 'https://'. $domain;
+}
